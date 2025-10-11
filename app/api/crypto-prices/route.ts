@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { fetchCryptoPrices } from '@/lib/crypto-api'
+import { cryptoAPI } from '@/lib/crypto-api'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,8 +19,19 @@ export async function GET() {
     }
 
     if (!databaseAvailable) {
-      const freshPrices = await fetchCryptoPrices()
-      return NextResponse.json(freshPrices, {
+      const freshPrices = await cryptoAPI.getCryptoList(1, 10)
+      // Transform to match expected format
+      const transformedPrices = freshPrices.map(price => ({
+        id: price.id,
+        symbol: price.symbol,
+        name: price.name,
+        price: price.current_price,
+        change24h: price.price_change_percentage_24h,
+        volume24h: price.total_volume,
+        marketCap: price.market_cap,
+        updatedAt: new Date().toISOString()
+      }))
+      return NextResponse.json(transformedPrices, {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
         }
@@ -48,10 +59,22 @@ export async function GET() {
     }
 
     // Fetch fresh prices from API
-    const freshPrices = await fetchCryptoPrices()
+    const freshPrices = await cryptoAPI.getCryptoList(1, 10)
+    
+    // Transform to match expected format
+    const transformedPrices = freshPrices.map(price => ({
+      id: price.id,
+      symbol: price.symbol,
+      name: price.name,
+      price: price.current_price,
+      change24h: price.price_change_percentage_24h,
+      volume24h: price.total_volume,
+      marketCap: price.market_cap,
+      updatedAt: new Date().toISOString()
+    }))
 
     // Update database with fresh prices
-    for (const price of freshPrices) {
+    for (const price of transformedPrices) {
       await prisma.cryptoPrice.upsert({
         where: { symbol: price.symbol },
         update: {
@@ -74,7 +97,7 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json(freshPrices, {
+    return NextResponse.json(transformedPrices, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
       }

@@ -64,6 +64,14 @@
   .news-card {
     @apply bg-slate-900/60 hover:bg-slate-800/60 border border-slate-800/50 hover:border-slate-700/50 rounded-2xl p-6 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-sm;
   }
+
+  .news-card img {
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  .news-card img[src=""] {
+    opacity: 0;
+  }
   
   .category-badge {
     @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide;

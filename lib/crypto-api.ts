@@ -1,85 +1,312 @@
 import axios from 'axios'
+import { 
+  chartDataCache, 
+  cryptoListCache, 
+  cryptoDetailCache, 
+  CACHE_TTL,
+  getChartCacheKey,
+  getCryptoListCacheKey,
+  getCryptoDetailCacheKey,
+  getSearchCacheKey,
+  getTrendingCacheKey
+} from './cache'
+import { apiRateLimiter, chartDataRateLimiter, searchRateLimiter } from './rate-limiter'
+import { withPerformanceMonitoring } from './analytics'
 
-const COINGECKO_API_URL = process.env.COINGECKO_API_URL || 'https://api.coingecko.com/api/v3'
-
-export interface CoinGeckoPrice {
+export interface CryptoPrice {
   id: string
   symbol: string
   name: string
   current_price: number
-  price_change_percentage_24h: number
-  total_volume: number
   market_cap: number
-  last_updated: string
+  market_cap_rank: number
+  total_volume: number
+  price_change_percentage_1h_in_currency: number
+  price_change_percentage_24h: number
+  price_change_percentage_7d_in_currency: number
+  price_change_24h: number
+  circulating_supply: number
+  total_supply: number
+  max_supply: number
+  fully_diluted_valuation: number
+  high_24h: number
+  low_24h: number
+  image: string
+  sparkline_in_7d?: {
+    price: number[]
+  }
 }
 
-export interface CryptoPriceData {
-  symbol: string
-  name: string
+export interface CryptoChartData {
+  timestamp: number
   price: number
-  change24h: number
-  volume24h: number
-  marketCap: number
-  updatedAt: string
+  volume?: number
 }
 
-const CRYPTO_IDS = [
-  'bitcoin',
-  'ethereum',
-  'binancecoin',
-  'cardano',
-  'solana',
-  'polkadot',
-  'dogecoin',
-  'avalanche-2',
-  'chainlink',
-  'polygon',
-  'litecoin',
-  'uniswap',
-  'bitcoin-cash',
-  'stellar',
-  'monero'
-]
+// Rate limiting is now handled by the advanced rate limiter
 
-export async function fetchCryptoPrices(): Promise<CryptoPriceData[]> {
-  try {
-    const response = await axios.get(`${COINGECKO_API_URL}/coins/markets`, {
-      params: {
-        vs_currency: 'usd',
-        ids: CRYPTO_IDS.join(','),
-        order: 'market_cap_desc',
-        per_page: 15,
-        page: 1,
-        sparkline: false,
-        price_change_percentage: '24h'
-      },
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+// CoinGecko API client with advanced caching and rate limiting
+class CryptoAPI {
+  private baseURL = 'https://api.coingecko.com/api/v3'
+
+  private async makeRequest<T>(
+    endpoint: string, 
+    params?: Record<string, any>,
+    rateLimiter = apiRateLimiter
+  ): Promise<T> {
+    // Check rate limit
+    const rateLimitResult = rateLimiter.checkLimit('api-client')
+    if (!rateLimitResult.allowed) {
+      const waitTime = rateLimitResult.retryAfter || 1000
+      console.log(`Rate limit exceeded. Waiting ${waitTime}ms`)
+      await new Promise(resolve => setTimeout(resolve, waitTime))
+    }
+
+    try {
+      const response = await axios.get(`${this.baseURL}${endpoint}`, {
+        params: {
+          ...params,
+          x_cg_demo_api_key: process.env.COINGECKO_API_KEY // Optional API key for higher limits
+        },
+        timeout: 15000, // Increased timeout for reliability
+        headers: {
+          'User-Agent': 'CoinFeedly/1.0',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate'
+        }
+      })
+
+      return response.data
+    } catch (error) {
+      console.error('Crypto API error:', error)
+      
+      // Handle specific error types
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.')
+        } else if (error.response?.status === 404) {
+          throw new Error('Cryptocurrency not found.')
+        } else if (error.code === 'ECONNABORTED') {
+          throw new Error('Request timeout. Please try again.')
+        }
       }
-    })
+      
+      throw new Error('Failed to fetch crypto data')
+    }
+  }
 
-    return response.data.map((coin: CoinGeckoPrice) => ({
-      symbol: coin.symbol.toUpperCase(),
-      name: coin.name,
-      price: coin.current_price,
-      change24h: coin.price_change_percentage_24h || 0,
-      volume24h: coin.total_volume || 0,
-      marketCap: coin.market_cap || 0,
-      updatedAt: coin.last_updated
-    }))
-  } catch (error) {
-    console.error('Error fetching crypto prices:', error)
-    throw error
+  getCryptoList = withPerformanceMonitoring(
+    async (page: number = 1, perPage: number = 50): Promise<CryptoPrice[]> => {
+      const cacheKey = getCryptoListCacheKey(page, perPage)
+      const cached = cryptoListCache.get(cacheKey)
+      
+      if (cached) {
+        return cached
+      }
+
+      const data = await this.makeRequest<CryptoPrice[]>('/coins/markets', {
+        vs_currency: 'usd',
+        order: 'market_cap_desc',
+        per_page: perPage,
+        page: page,
+        sparkline: true,
+        price_change_percentage: '1h,24h,7d'
+      })
+
+      cryptoListCache.set(cacheKey, data, CACHE_TTL.CRYPTO_LIST)
+      return data
+    },
+    'crypto-list'
+  )
+
+  getCryptoById = withPerformanceMonitoring(
+    async (id: string): Promise<CryptoPrice> => {
+      const cacheKey = getCryptoDetailCacheKey(id)
+      const cached = cryptoDetailCache.get(cacheKey)
+      
+      if (cached) {
+        return cached
+      }
+
+      const data = await this.makeRequest<any>(`/coins/${id}`, {
+        localization: false,
+        tickers: false,
+        market_data: true,
+        community_data: false,
+        developer_data: false,
+        sparkline: true
+      })
+
+      // Transform the response to match CryptoPrice interface
+      const transformedData = {
+        id: data.id,
+        symbol: data.symbol,
+        name: data.name,
+        current_price: data.market_data.current_price.usd,
+        market_cap: data.market_data.market_cap.usd,
+        market_cap_rank: data.market_cap_rank,
+        total_volume: data.market_data.total_volume.usd,
+        price_change_percentage_1h_in_currency: data.market_data.price_change_percentage_1h_in_currency.usd,
+        price_change_percentage_24h: data.market_data.price_change_percentage_24h,
+        price_change_percentage_7d_in_currency: data.market_data.price_change_percentage_7d_in_currency.usd,
+        price_change_24h: data.market_data.price_change_24h,
+        circulating_supply: data.market_data.circulating_supply,
+        total_supply: data.market_data.total_supply,
+        max_supply: data.market_data.max_supply,
+        fully_diluted_valuation: data.market_data.fully_diluted_valuation?.usd || 0,
+        high_24h: data.market_data.high_24h.usd,
+        low_24h: data.market_data.low_24h.usd,
+        image: data.image.small,
+        sparkline_in_7d: data.market_data.sparkline_7d ? { price: data.market_data.sparkline_7d.price } : undefined
+      }
+
+      cryptoDetailCache.set(cacheKey, transformedData, CACHE_TTL.CRYPTO_DETAIL)
+      return transformedData
+    },
+    'crypto-detail'
+  )
+
+  getCryptoChartData = withPerformanceMonitoring(
+    async (id: string, days: number = 7): Promise<CryptoChartData[]> => {
+      const cacheKey = getChartCacheKey(id, days)
+      const cached = chartDataCache.get(cacheKey)
+      
+      if (cached) {
+        return cached
+      }
+
+      const data = await this.makeRequest<{ prices: number[][] }>(
+        `/coins/${id}/market_chart`, 
+        {
+          vs_currency: 'usd',
+          days: days,
+          interval: days <= 1 ? 'hourly' : 'daily'
+        },
+        chartDataRateLimiter
+      )
+
+      const chartData = data.prices.map(([timestamp, price]) => ({
+        timestamp: timestamp,
+        price: price
+      }))
+
+      chartDataCache.set(cacheKey, chartData, CACHE_TTL.CHART_DATA)
+      return chartData
+    },
+    'crypto-chart'
+  )
+
+  searchCrypto = withPerformanceMonitoring(
+    async (query: string): Promise<CryptoPrice[]> => {
+      const cacheKey = getSearchCacheKey(query)
+      const cached = cryptoListCache.get(cacheKey)
+      
+      if (cached) {
+        return cached
+      }
+
+      const searchResults = await this.makeRequest<{ coins: any[] }>(
+        '/search', 
+        { query: query },
+        searchRateLimiter
+      )
+
+      if (searchResults.coins.length === 0) {
+        cryptoListCache.set(cacheKey, [], CACHE_TTL.SEARCH)
+        return []
+      }
+
+      const ids = searchResults.coins.slice(0, 10).map(coin => coin.id).join(',')
+      const data = await this.makeRequest<CryptoPrice[]>('/coins/markets', {
+        vs_currency: 'usd',
+        ids: ids,
+        order: 'market_cap_desc',
+        per_page: 10,
+        sparkline: true,
+        price_change_percentage: '1h,24h,7d'
+      })
+
+      cryptoListCache.set(cacheKey, data, CACHE_TTL.SEARCH)
+      return data
+    },
+    'crypto-search'
+  )
+
+  getTrendingCrypto = withPerformanceMonitoring(
+    async (): Promise<CryptoPrice[]> => {
+      const cacheKey = getTrendingCacheKey()
+      const cached = cryptoListCache.get(cacheKey)
+      
+      if (cached) {
+        return cached
+      }
+
+      const trending = await this.makeRequest<{ coins: any[] }>('/search/trending')
+      
+      if (trending.coins.length === 0) {
+        cryptoListCache.set(cacheKey, [], CACHE_TTL.TRENDING)
+        return []
+      }
+
+      const ids = trending.coins.slice(0, 10).map(coin => coin.item.id).join(',')
+      const data = await this.makeRequest<CryptoPrice[]>('/coins/markets', {
+        vs_currency: 'usd',
+        ids: ids,
+        order: 'market_cap_desc',
+        per_page: 10,
+        sparkline: true,
+        price_change_percentage: '1h,24h,7d'
+      })
+
+      cryptoListCache.set(cacheKey, data, CACHE_TTL.TRENDING)
+      return data
+    },
+    'crypto-trending'
+  )
+}
+
+export const cryptoAPI = new CryptoAPI()
+
+// Utility functions
+export function formatPrice(price: number): string {
+  if (price < 0.01) {
+    return `$${price.toFixed(6)}`
+  } else if (price < 1) {
+    return `$${price.toFixed(4)}`
+  } else if (price < 100) {
+    return `$${price.toFixed(2)}`
+  } else {
+    return `$${price.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
   }
 }
 
-export function formatPrice(price: number): string {
-  if (price >= 1) {
-    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+export function formatMarketCap(marketCap: number): string {
+  if (marketCap >= 1e12) {
+    return `$${(marketCap / 1e12).toFixed(2)}T`
+  } else if (marketCap >= 1e9) {
+    return `$${(marketCap / 1e9).toFixed(2)}B`
+  } else if (marketCap >= 1e6) {
+    return `$${(marketCap / 1e6).toFixed(2)}M`
   } else {
-    return `$${price.toFixed(6)}`
+    return `$${marketCap.toLocaleString()}`
   }
+}
+
+export function formatVolume(volume: number): string {
+  if (volume >= 1e12) {
+    return `$${(volume / 1e12).toFixed(2)}T`
+  } else if (volume >= 1e9) {
+    return `$${(volume / 1e9).toFixed(2)}B`
+  } else if (volume >= 1e6) {
+    return `$${(volume / 1e6).toFixed(2)}M`
+  } else {
+    return `$${volume.toLocaleString()}`
+  }
+}
+
+export function formatPercentage(percentage: number): string {
+  const sign = percentage >= 0 ? '+' : ''
+  return `${sign}${percentage.toFixed(2)}%`
 }
 
 export function formatChange(change: number): string {
@@ -87,26 +314,7 @@ export function formatChange(change: number): string {
   return `${sign}${change.toFixed(2)}%`
 }
 
-export function formatVolume(volume: number): string {
-  if (volume >= 1e9) {
-    return `$${(volume / 1e9).toFixed(1)}B`
-  } else if (volume >= 1e6) {
-    return `$${(volume / 1e6).toFixed(1)}M`
-  } else if (volume >= 1e3) {
-    return `$${(volume / 1e3).toFixed(1)}K`
-  } else {
-    return `$${volume.toFixed(0)}`
-  }
-}
-
-export function formatMarketCap(marketCap: number): string {
-  if (marketCap >= 1e12) {
-    return `$${(marketCap / 1e12).toFixed(1)}T`
-  } else if (marketCap >= 1e9) {
-    return `$${(marketCap / 1e9).toFixed(1)}B`
-  } else if (marketCap >= 1e6) {
-    return `$${(marketCap / 1e6).toFixed(1)}M`
-  } else {
-    return `$${marketCap.toFixed(0)}`
-  }
+// Legacy function for backward compatibility
+export async function fetchCryptoPrices(): Promise<CryptoPrice[]> {
+  return cryptoAPI.getCryptoList(1, 10)
 }

@@ -53,7 +53,7 @@ export default function CryptoPriceTicker({ prices }: CryptoPriceTickerProps) {
           {/* Multiple duplicates for seamless continuous flow */}
           {Array.from({ length: 3 }, (_, duplicateIndex) => 
             tickerPrices.map((crypto) => (
-              <div key={`${crypto.id}-${duplicateIndex}`} className="flex items-center space-x-3 ticker-item bg-slate-200/60 dark:bg-slate-800/60 px-4 py-2 rounded-lg transition-all duration-300 flex-shrink-0 mx-1">
+              <div key={`${crypto.id}-${duplicateIndex}`} className="flex items-center space-x-2 ticker-item bg-slate-200/60 dark:bg-slate-800/60 px-3 py-1.5 rounded-md transition-all duration-300 flex-shrink-0 mx-1">
                 <span className="font-bold text-slate-900 dark:text-white text-sm">{crypto.symbol}</span>
                 <span className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{formatPrice(crypto.price)}</span>
                 <span className={`text-sm font-bold px-2 py-1 rounded ${

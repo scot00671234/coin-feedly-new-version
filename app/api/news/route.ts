@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
+import { getRandomCryptoImage } from '@/lib/crypto-images'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,9 +20,12 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const category = searchParams.get('category')
   const search = searchParams.get('search')
-  const limit = parseInt(searchParams.get('limit') || '50')
+  const sort = searchParams.get('sort') || 'newest'
+  const page = parseInt(searchParams.get('page') || '1')
+  const limit = parseInt(searchParams.get('limit') || '12')
+  const offset = (page - 1) * limit
 
-  console.log('API Request - Category:', category, 'Search:', search, 'Limit:', limit)
+  console.log('API Request - Category:', category, 'Search:', search, 'Sort:', sort, 'Limit:', limit)
 
   try {
     // Check if database is available and has tables
@@ -53,7 +57,13 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      return NextResponse.json(filteredArticles.slice(0, limit), {
+      // Ensure all articles have images
+      const articlesWithImages = filteredArticles.map(article => ({
+        ...article,
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+      }))
+
+      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
@@ -68,10 +78,30 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
+      // Enhanced search with better relevance
+      const searchTerms = search.toLowerCase().split(' ').filter(term => term.length > 0)
+      
       whereClause.OR = [
+        // Exact title matches get highest priority
         { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        // Individual word matches in title
+        ...searchTerms.map(term => ({ title: { contains: term, mode: 'insensitive' } })),
+        // Description matches
+        { description: { contains: search, mode: 'insensitive' } },
+        // Individual word matches in description
+        ...searchTerms.map(term => ({ description: { contains: term, mode: 'insensitive' } }))
       ]
+    }
+
+    // Determine sort order
+    let orderBy: any = {}
+    if (sort === 'oldest') {
+      orderBy.publishedAt = 'asc'
+    } else if (sort === 'relevant' && search) {
+      // For relevance, we'll sort by publishedAt desc but this could be enhanced with full-text search
+      orderBy.publishedAt = 'desc'
+    } else {
+      orderBy.publishedAt = 'desc' // newest
     }
 
     const articles = await prisma.article.findMany({
@@ -79,14 +109,21 @@ export async function GET(request: NextRequest) {
       include: {
         source: true
       },
-      orderBy: {
-        publishedAt: 'desc'
-      },
+      orderBy,
+      skip: offset,
       take: limit
     })
 
-    // If no articles in database, fetch from RSS feeds
-    if (articles.length === 0) {
+    console.log(`Found ${articles.length} articles in database for page ${page}`)
+    console.log('Sample article imageUrl:', articles[0]?.imageUrl || 'No image')
+
+    // Check if articles have images, if not fetch fresh from RSS
+    const articlesWithoutImages = articles.filter(article => !article.imageUrl)
+    console.log(`Articles without images: ${articlesWithoutImages.length}`)
+
+    // If no articles in database or many articles missing images, fetch from RSS feeds
+    if (articles.length === 0 || articlesWithoutImages.length > articles.length * 0.5) {
+      console.log('Fetching fresh articles from RSS feeds...')
       const fetchedArticles = await fetchAndStoreArticles()
       
       // Apply filters to fetched articles
@@ -103,14 +140,38 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      return NextResponse.json(filteredArticles.slice(0, limit), {
+      // Apply sorting
+      filteredArticles.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime()
+        const dateB = new Date(b.publishedAt).getTime()
+        
+        if (sort === 'oldest') {
+          return dateA - dateB
+        } else {
+          return dateB - dateA // newest or relevant
+        }
+      })
+
+      // Ensure all articles have images
+      const articlesWithImages = filteredArticles.map(article => ({
+        ...article,
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+      }))
+
+      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
       })
     }
 
-    return NextResponse.json(articles, {
+    // Ensure all articles have images (add fallback if missing)
+    const articlesWithImages = articles.map(article => ({
+      ...article,
+      imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+    }))
+
+    return NextResponse.json(articlesWithImages, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
       }
@@ -135,7 +196,25 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      return NextResponse.json(filteredArticles.slice(0, limit), {
+      // Apply sorting
+      filteredArticles.sort((a, b) => {
+        const dateA = new Date(a.publishedAt).getTime()
+        const dateB = new Date(b.publishedAt).getTime()
+        
+        if (sort === 'oldest') {
+          return dateA - dateB
+        } else {
+          return dateB - dateA // newest or relevant
+        }
+      })
+
+      // Ensure all articles have images
+      const articlesWithImages = filteredArticles.map(article => ({
+        ...article,
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+      }))
+
+      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }

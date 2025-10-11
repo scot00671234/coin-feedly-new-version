@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Header from '@/components/Header'
-import CryptoPriceTicker from '@/components/CryptoPriceTicker'
+import UnifiedHeader from '@/components/UnifiedHeader'
+import HeaderTicker from '@/components/HeaderTicker'
 import NewsFeed from '@/components/NewsFeed'
 import CategoryFilter from '@/components/CategoryFilter'
+import SortFilter from '@/components/SortFilter'
 import Footer from '@/components/Footer'
 import { Article, CryptoPrice } from '@/types'
 
@@ -15,7 +16,11 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'relevant'>('newest')
   const [categoryCounts, setCategoryCounts] = useState({ all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 })
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     fetchNews()
@@ -23,36 +28,61 @@ export default function Home() {
     fetchCategoryCounts()
   }, [])
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPage(1)
+    setArticles([])
+    setHasMore(true)
+  }, [selectedCategory, searchQuery, sortBy])
+
   // Debounced search effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchQuery || selectedCategory !== 'all') {
         setSearching(true)
       }
-      fetchNews(selectedCategory, searchQuery)
+      fetchNews(selectedCategory, searchQuery, sortBy, 1, true)
     }, 500) // 500ms debounce
 
     return () => clearTimeout(timeoutId)
-  }, [selectedCategory, searchQuery])
+  }, [selectedCategory, searchQuery, sortBy])
 
-  const fetchNews = async (category = 'all', search = '') => {
+  const fetchNews = async (category = 'all', search = '', sort = 'newest', pageNum = 1, reset = false) => {
     try {
-      setLoading(true)
+      if (reset) {
+        setLoading(true)
+      } else {
+        setLoadingMore(true)
+      }
+      
       const params = new URLSearchParams()
       if (category !== 'all') params.append('category', category)
       if (search) params.append('search', search)
+      params.append('sort', sort)
+      params.append('page', pageNum.toString())
+      params.append('limit', '12')
       
       console.log('Fetching news with params:', params.toString())
       const response = await fetch(`/api/news?${params.toString()}`)
       const data = await response.json()
       console.log('Received articles:', data.length, 'articles')
-      setArticles(Array.isArray(data) ? data : [])
+      
+      if (reset) {
+        setArticles(Array.isArray(data) ? data : [])
+        setHasMore(data.length === 12)
+      } else {
+        setArticles(prev => [...prev, ...(Array.isArray(data) ? data : [])])
+        setHasMore(data.length === 12)
+      }
     } catch (error) {
       console.error('Error fetching news:', error)
-      setArticles([])
+      if (reset) {
+        setArticles([])
+      }
     } finally {
       setLoading(false)
       setSearching(false)
+      setLoadingMore(false)
     }
   }
 
@@ -87,6 +117,14 @@ export default function Home() {
     setSelectedCategory(category)
   }
 
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      fetchNews(selectedCategory, searchQuery, sortBy, nextPage, false)
+    }
+  }
+
 
   const categories = [
     { id: 'all', name: 'All News', count: categoryCounts.all },
@@ -106,29 +144,36 @@ export default function Home() {
       <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
       
-      <Header 
+      <UnifiedHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        onSearch={() => {
+          setPage(1)
+          setArticles([])
+          setHasMore(true)
+          fetchNews(selectedCategory, searchQuery, sortBy, 1, true)
+        }}
       />
       
-      {/* Spacer for floating header */}
-      <div className="h-20"></div>
-      
       {/* Crypto Price Ticker */}
-      <section className="py-8 bg-slate-200/30 dark:bg-slate-900/30 backdrop-blur-sm border-y border-slate-300/30 dark:border-slate-800/30">
-        <CryptoPriceTicker prices={cryptoPrices} />
-      </section>
+      <HeaderTicker prices={cryptoPrices} />
       
       {/* Main Content */}
-      <section className="py-16 relative z-10">
+      <section className="py-8 relative z-10">
         <div className="container mx-auto px-6 max-w-7xl">
-          {/* Filters */}
-          <div className="mb-16">
-            <CategoryFilter
-              categories={categories}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={handleCategoryChange}
-            />
+          {/* Filters and Sort */}
+          <div className="mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+              <CategoryFilter
+                categories={categories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={handleCategoryChange}
+              />
+              <SortFilter
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+              />
+            </div>
           </div>
           
           {/* Search Status */}
@@ -161,6 +206,9 @@ export default function Home() {
           <NewsFeed 
             articles={articles}
             loading={loading}
+            loadingMore={loadingMore}
+            hasMore={hasMore}
+            onLoadMore={loadMore}
           />
         </div>
       </section>

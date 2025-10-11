@@ -1,0 +1,278 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
+import { ArrowUp, ArrowDown } from 'lucide-react'
+import UnifiedHeader from '@/components/UnifiedHeader'
+import HeaderTicker from '@/components/HeaderTicker'
+import { useRouter } from 'next/navigation'
+
+export default function ChartsPage() {
+  const router = useRouter()
+  const [cryptos, setCryptos] = useState<CryptoPrice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [sortBy, setSortBy] = useState<'market_cap' | 'price' | 'volume' | 'change_24h'>('market_cap')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [tickerPrices, setTickerPrices] = useState<CryptoPrice[]>([])
+
+  useEffect(() => {
+    fetchCryptos()
+    fetchTickerPrices()
+  }, [page, sortBy, sortOrder])
+
+  const fetchTickerPrices = async () => {
+    try {
+      const data = await cryptoAPI.getCryptoList(1, 10)
+      setTickerPrices(data)
+    } catch (error) {
+      console.error('Error fetching ticker prices:', error)
+    }
+  }
+
+  // Auto-search effect with debouncing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch()
+      } else if (searchQuery === '') {
+        // Reset to show all cryptos when search is cleared
+        setPage(1)
+        fetchCryptos()
+      }
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
+
+  const fetchCryptos = async () => {
+    try {
+      setLoading(true)
+      const data = await cryptoAPI.getCryptoList(page, 50)
+      
+      if (page === 1) {
+        setCryptos(data)
+      } else {
+        setCryptos(prev => [...prev, ...data])
+      }
+      
+      setHasMore(data.length === 50)
+    } catch (error) {
+      console.error('Error fetching cryptos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setPage(1)
+      fetchCryptos()
+      return
+    }
+
+    try {
+      setLoading(true)
+      setPage(1)
+      const data = await cryptoAPI.searchCrypto(searchQuery)
+      setCryptos(data)
+      setHasMore(false)
+    } catch (error) {
+      console.error('Error searching cryptos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCryptoClick = (crypto: CryptoPrice) => {
+    router.push(`/crypto/${crypto.id}`)
+  }
+
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage(prev => prev + 1)
+    }
+  }
+
+  const sortedCryptos = [...cryptos].sort((a, b) => {
+    let aValue: number, bValue: number
+
+    switch (sortBy) {
+      case 'market_cap':
+        aValue = a.market_cap
+        bValue = b.market_cap
+        break
+      case 'price':
+        aValue = a.current_price
+        bValue = b.current_price
+        break
+      case 'volume':
+        aValue = a.total_volume
+        bValue = b.total_volume
+        break
+      case 'change_24h':
+        aValue = a.price_change_percentage_24h
+        bValue = b.price_change_percentage_24h
+        break
+      default:
+        return 0
+    }
+
+    return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
+  })
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
+      {/* Unified Header */}
+      <UnifiedHeader 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
+      />
+      
+      {/* Crypto Price Ticker */}
+      <HeaderTicker prices={tickerPrices} />
+
+      {/* Filters Section */}
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Sort by:</span>
+              <div className="flex items-center space-x-1">
+                {[
+                  { value: 'market_cap', label: 'Market Cap' },
+                  { value: 'price', label: 'Price' },
+                  { value: 'volume', label: 'Volume' },
+                  { value: 'change_24h', label: '24h Change' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value as any)}
+                    className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
+                      sortBy === option.value
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="flex items-center space-x-2 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+              title={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
+            >
+              <span className="text-xs uppercase tracking-wide">
+                {sortOrder === 'asc' ? 'Asc' : 'Desc'}
+              </span>
+              {sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 gap-6">
+          {/* Crypto List */}
+          <div className="w-full">
+            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg">
+              <div className="p-4 border-b border-slate-200/50 dark:border-slate-700/50">
+                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Cryptocurrencies</h2>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-100 dark:bg-slate-700/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">#</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Price</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">1h</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">24h</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">7d</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Market Cap</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Volume</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700/50">
+                    {sortedCryptos.map((crypto) => (
+                      <tr
+                        key={crypto.id}
+                        onClick={() => handleCryptoClick(crypto)}
+                        className="hover:bg-slate-100 dark:hover:bg-slate-700/30 cursor-pointer transition-colors"
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
+                          {crypto.market_cap_rank}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <img
+                              src={crypto.image}
+                              alt={crypto.name}
+                              className="w-8 h-8 rounded-full mr-3"
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-slate-900 dark:text-white">{crypto.name}</div>
+                              <div className="text-sm text-slate-500 dark:text-slate-400 uppercase">{crypto.symbol}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-900 dark:text-white font-medium">
+                          {formatPrice(crypto.current_price)}
+                        </td>
+                        <td className={`px-4 py-4 whitespace-nowrap text-sm ${
+                          crypto.price_change_percentage_1h_in_currency >= 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {formatPercentage(crypto.price_change_percentage_1h_in_currency)}
+                        </td>
+                        <td className={`px-4 py-4 whitespace-nowrap text-sm ${
+                          crypto.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {formatPercentage(crypto.price_change_percentage_24h)}
+                        </td>
+                        <td className={`px-4 py-4 whitespace-nowrap text-sm ${
+                          crypto.price_change_percentage_7d_in_currency >= 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {formatPercentage(crypto.price_change_percentage_7d_in_currency)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
+                          {formatMarketCap(crypto.market_cap)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
+                          {formatVolume(crypto.total_volume)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {loading && (
+                <div className="p-4 text-center">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                </div>
+              )}
+
+              {hasMore && !loading && (
+                <div className="p-4 text-center">
+                  <button
+                    onClick={loadMore}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

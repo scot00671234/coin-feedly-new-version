@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Article } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
-import { ExternalLink, Clock, Tag } from 'lucide-react'
+import { ExternalLink, Clock, Tag, Image as ImageIcon } from 'lucide-react'
 import ArticleModal from './ArticleModal'
+import { getImageUrl, getCryptoPlaceholderImage } from '@/lib/image-utils'
 
 interface NewsCardProps {
   article: Article
@@ -12,6 +13,8 @@ interface NewsCardProps {
 
 export default function NewsCard({ article }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [imageError, setImageError] = useState(false)
+  
   const getCategoryClass = (category: string) => {
     switch (category) {
       case 'bitcoin':
@@ -31,32 +34,43 @@ export default function NewsCard({ article }: NewsCardProps) {
     setIsModalOpen(true)
   }
 
+  // Get the best available image - always ensure we have one
+  const imageUrl = getImageUrl(article.imageUrl, article.title, article.category) || getCryptoPlaceholderImage(article.category, article.title)
+  
+  // Debug logging
+  console.log(`Article "${article.title.substring(0, 30)}..." - Original imageUrl: ${article.imageUrl}, Final imageUrl: ${imageUrl}`)
+
   return (
     <article 
       className="bg-slate-200/40 dark:bg-slate-800/40 hover:bg-slate-300/40 dark:hover:bg-slate-700/40 border border-slate-300/50 dark:border-slate-700/50 hover:border-slate-400/50 dark:hover:border-slate-600/50 rounded-xl p-6 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl group"
       onClick={handleClick}
     >
       {/* Image */}
-      {article.imageUrl && (
-        <div className="relative h-56 w-full mb-6 overflow-hidden rounded-2xl">
+      <div className="relative h-56 w-full mb-6 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-700">
+        {!imageError ? (
           <img
-            src={article.imageUrl}
+            src={imageUrl}
             alt={article.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.style.display = 'none'
-            }}
+            onError={() => setImageError(true)}
+            onLoad={() => setImageError(false)}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute top-4 left-4">
-            <span className={`category-badge ${getCategoryClass(article.category)}`}>
-              <Tag className="w-3 h-3 mr-1" />
-              {article.category}
-            </span>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800">
+            <div className="text-center">
+              <ImageIcon className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
+              <p className="text-sm text-slate-500 dark:text-slate-400">No image available</p>
+            </div>
           </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute top-4 left-4">
+          <span className={`category-badge ${getCategoryClass(article.category)}`}>
+            <Tag className="w-3 h-3 mr-1" />
+            {article.category}
+          </span>
         </div>
-      )}
+      </div>
 
       {/* Content */}
       <div className="space-y-5">
