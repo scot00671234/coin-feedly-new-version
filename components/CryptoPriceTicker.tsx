@@ -55,12 +55,12 @@ export default function CryptoPriceTicker({ prices }: CryptoPriceTickerProps) {
             tickerPrices.map((crypto) => (
               <div key={`${crypto.id}-${duplicateIndex}`} className="flex items-center space-x-2 ticker-item bg-slate-200/60 dark:bg-slate-800/60 px-3 py-1.5 rounded-md transition-all duration-300 flex-shrink-0 mx-1">
                 <span className="font-bold text-slate-900 dark:text-white text-sm">{crypto.symbol}</span>
-                <span className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{formatPrice(crypto.price)}</span>
+                <span className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{formatPrice(crypto.current_price)}</span>
                 <span className={`text-sm font-bold px-2 py-1 rounded ${
-                  crypto.change24h > 0 ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 
-                  crypto.change24h < 0 ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' : 'text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800/50'
+                  crypto.price_change_percentage_24h > 0 ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 
+                  crypto.price_change_percentage_24h < 0 ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' : 'text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800/50'
                 }`}>
-                  {formatChange(crypto.change24h)}
+                  {formatChange(crypto.price_change_percentage_24h)}
                 </span>
               </div>
             ))
