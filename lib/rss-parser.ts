@@ -8,7 +8,7 @@ const parser = new Parser({
       ['enclosure', 'enclosure', { keepArray: true }],
     ],
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 5000, // 5 second timeout
   headers: {
     'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader)',
   },

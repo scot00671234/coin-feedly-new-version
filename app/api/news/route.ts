@@ -13,7 +13,6 @@ const RSS_FEEDS = [
   { url: "https://cointelegraph.com/rss", category: "macro", source: "CoinTelegraph" },
   // Fallback feeds
   { url: "https://feeds.feedburner.com/CoinDesk", category: "bitcoin", source: "CoinDesk" },
-  { url: "https://bitcoinmagazine.com/.rss/full/", category: "bitcoin", source: "Bitcoin Magazine" },
 ]
 
 export async function GET(request: NextRequest) {
@@ -148,16 +147,18 @@ export async function GET(request: NextRequest) {
 async function fetchAndStoreArticles() {
   const articles = []
 
-  for (const feed of RSS_FEEDS) {
+  // Process feeds in parallel for better performance
+  const feedPromises = RSS_FEEDS.map(async (feed) => {
     try {
       // Parse RSS feed directly without database
       const rssFeed = await parseRSSFeed(feed.url)
       
       if (!rssFeed.items || !Array.isArray(rssFeed.items)) {
         console.warn(`No items found in feed ${feed.source}`)
-        continue
+        return []
       }
       
+      const feedArticles = []
       for (const item of rssFeed.items.slice(0, 10)) { // Limit to 10 items per feed
         try {
           // Validate item has required fields
@@ -183,14 +184,25 @@ async function fetchAndStoreArticles() {
             }
           }
           
-          articles.push(article)
+          feedArticles.push(article)
         } catch (itemError) {
           console.error(`Error processing article from ${feed.source}:`, itemError)
         }
       }
+      
+      return feedArticles
     } catch (feedError) {
       console.error(`Error fetching feed ${feed.source}:`, feedError)
+      return []
     }
+  })
+
+  // Wait for all feeds to complete
+  const feedResults = await Promise.all(feedPromises)
+  
+  // Flatten the results
+  for (const feedArticles of feedResults) {
+    articles.push(...feedArticles)
   }
 
   return articles
