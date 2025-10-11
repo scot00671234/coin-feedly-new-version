@@ -11,23 +11,29 @@ import { Article, CryptoPrice } from '@/types'
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([])
   const [cryptoPrices, setCryptoPrices] = useState<CryptoPrice[]>([])
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [categoryCounts, setCategoryCounts] = useState({ all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 })
 
   useEffect(() => {
     fetchNews()
     fetchCryptoPrices()
+    fetchCategoryCounts()
   }, [])
 
   useEffect(() => {
-    filterArticles()
-  }, [articles, selectedCategory, searchQuery])
+    fetchNews(selectedCategory, searchQuery)
+  }, [selectedCategory, searchQuery])
 
-  const fetchNews = async () => {
+  const fetchNews = async (category = 'all', search = '') => {
     try {
-      const response = await fetch('/api/news')
+      setLoading(true)
+      const params = new URLSearchParams()
+      if (category !== 'all') params.append('category', category)
+      if (search) params.append('search', search)
+      
+      const response = await fetch(`/api/news?${params.toString()}`)
       const data = await response.json()
       setArticles(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -48,34 +54,30 @@ export default function Home() {
     }
   }
 
-  const filterArticles = () => {
-    if (!Array.isArray(articles)) {
-      setFilteredArticles([])
-      return
+  const fetchCategoryCounts = async () => {
+    try {
+      const categories = ['all', 'bitcoin', 'altcoins', 'defi', 'macro']
+      const counts = { all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 }
+      
+      for (const category of categories) {
+        const response = await fetch(`/api/news?category=${category}&limit=1`)
+        const data = await response.json()
+        counts[category as keyof typeof counts] = Array.isArray(data) ? data.length : 0
+      }
+      
+      setCategoryCounts(counts)
+    } catch (error) {
+      console.error('Error fetching category counts:', error)
     }
-
-    let filtered = articles
-
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(article => article.category === selectedCategory)
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    setFilteredArticles(filtered)
   }
 
+
   const categories = [
-    { id: 'all', name: 'All News', count: Array.isArray(articles) ? articles.length : 0 },
-    { id: 'bitcoin', name: 'Bitcoin', count: Array.isArray(articles) ? articles.filter(a => a.category === 'bitcoin').length : 0 },
-    { id: 'altcoins', name: 'Altcoins', count: Array.isArray(articles) ? articles.filter(a => a.category === 'altcoins').length : 0 },
-    { id: 'defi', name: 'DeFi', count: Array.isArray(articles) ? articles.filter(a => a.category === 'defi').length : 0 },
-    { id: 'macro', name: 'Macro', count: Array.isArray(articles) ? articles.filter(a => a.category === 'macro').length : 0 },
+    { id: 'all', name: 'All News', count: categoryCounts.all },
+    { id: 'bitcoin', name: 'Bitcoin', count: categoryCounts.bitcoin },
+    { id: 'altcoins', name: 'Altcoins', count: categoryCounts.altcoins },
+    { id: 'defi', name: 'DeFi', count: categoryCounts.defi },
+    { id: 'macro', name: 'Macro', count: categoryCounts.macro },
   ]
 
   return (
@@ -120,7 +122,7 @@ export default function Home() {
           
           {/* News Feed */}
           <NewsFeed 
-            articles={filteredArticles}
+            articles={articles}
             loading={loading}
           />
         </div>

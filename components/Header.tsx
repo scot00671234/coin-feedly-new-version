@@ -75,7 +75,7 @@ export default function Header() {
                 onClick={toggleTheme}
                 className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 rounded-full transition-all duration-200"
               >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               </button>
               <button className="flex items-center space-x-2 bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300/50 dark:hover:bg-slate-700/50 px-3 py-2 rounded-full transition-all duration-200">
                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
@@ -136,7 +136,7 @@ export default function Header() {
                     onClick={toggleTheme}
                     className="flex items-center space-x-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-4 py-2 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-800/30 transition-all duration-200"
                   >
-                    {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                     <span className="text-sm font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                   </button>
                 </div>
