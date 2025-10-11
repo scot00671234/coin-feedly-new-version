@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-dark-700;
+  }
+  body {
+    @apply bg-dark-900 text-white;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-dark-700 hover:bg-dark-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-dark-800/50 backdrop-blur-sm border border-dark-700 rounded-xl p-6 shadow-xl;
+  }
+  
+  .ticker-item {
+    @apply whitespace-nowrap text-sm font-medium;
+  }
+  
+  .news-card {
+    @apply bg-dark-800/30 hover:bg-dark-800/50 border border-dark-700/50 hover:border-dark-600/50 rounded-lg p-4 transition-all duration-200 cursor-pointer;
+  }
+  
+  .category-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .category-bitcoin {
+    @apply bg-crypto-bitcoin/20 text-crypto-bitcoin border border-crypto-bitcoin/30;
+  }
+  
+  .category-altcoins {
+    @apply bg-crypto-altcoin/20 text-crypto-altcoin border border-crypto-altcoin/30;
+  }
+  
+  .category-defi {
+    @apply bg-blue-500/20 text-blue-400 border border-blue-500/30;
+  }
+  
+  .category-macro {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-500;
+}
+
+/* Ticker animation */
+.ticker-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-content {
+  display: inline-block;
+  animation: ticker 30s linear infinite;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply animate-pulse bg-dark-700 rounded;
+}
+
+/* Price change indicators */
+.price-up {
+  @apply text-green-400;
+}
+
+.price-down {
+  @apply text-red-400;
+}
+
+.price-neutral {
+  @apply text-gray-400;
+}

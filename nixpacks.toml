@@ -1,0 +1,17 @@
+[providers]
+node = "18"
+
+[phases.setup]
+nixPkgs = ["postgresql"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"
+
+[env]
+NODE_ENV = "production"

@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model NewsSource {
+  id       String @id @default(cuid())
+  name     String @unique
+  url      String @unique
+  category String
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  articles Article[]
+
+  @@map("news_sources")
+}
+
+model Article {
+  id          String @id @default(cuid())
+  title       String
+  description String?
+  content     String?
+  url         String @unique
+  publishedAt DateTime
+  imageUrl    String?
+  category    String
+  sourceId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  source NewsSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("articles")
+}
+
+model CryptoPrice {
+  id        String @id @default(cuid())
+  symbol    String @unique
+  name      String
+  price     Float
+  change24h Float
+  volume24h Float?
+  marketCap Float?
+  updatedAt DateTime @updatedAt
+
+  @@map("crypto_prices")
+}
+
+model BlogPost {
+  id          String @id @default(cuid())
+  title       String
+  slug        String @unique
+  content     String
+  excerpt     String?
+  keywords    String[]
+  publishedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isPublished Boolean @default(false)
+
+  @@map("blog_posts")
+}
