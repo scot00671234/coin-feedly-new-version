@@ -5,7 +5,6 @@ import { Article } from '@/types'
 import Header from './Header'
 import CryptoPriceTicker from './CryptoPriceTicker'
 import NewsFeed from './NewsFeed'
-import SearchBar from './SearchBar'
 
 interface CategoryPageProps {
   category: string
@@ -14,7 +13,6 @@ interface CategoryPageProps {
 
 export default function CategoryPage({ category, articles: initialArticles }: CategoryPageProps) {
   const [articles, setArticles] = useState<Article[]>(initialArticles)
-  const [filteredArticles, setFilteredArticles] = useState<Article[]>(initialArticles)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
@@ -27,32 +25,19 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
 
   const categoryName = categoryNames[category as keyof typeof categoryNames]
 
-  useEffect(() => {
-    filterArticles()
-  }, [articles, searchQuery])
-
-  const filterArticles = () => {
-    if (!Array.isArray(articles)) {
-      setFilteredArticles([])
-      return
-    }
-
-    let filtered = articles
-
-    if (searchQuery) {
-      filtered = filtered.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
-    setFilteredArticles(filtered)
+  const handleSearch = () => {
+    // Search functionality is now handled by the API
+    refreshArticles()
   }
 
   const refreshArticles = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/news?category=${category}`)
+      const params = new URLSearchParams()
+      params.append('category', category)
+      if (searchQuery) params.append('search', searchQuery)
+      
+      const response = await fetch(`/api/news?${params.toString()}`)
       const data = await response.json()
       setArticles(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -65,7 +50,11 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
 
   return (
     <main className="min-h-screen">
-      <Header />
+      <Header 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
+      />
       
       <div className="container mx-auto px-4 py-8">
         {/* Category Header */}
@@ -85,18 +74,10 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
             {loading ? 'Refreshing...' : 'Refresh News'}
           </button>
         </div>
-
-        {/* Search */}
-        <div className="mb-8">
-          <SearchBar 
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-        </div>
         
         {/* News Feed */}
         <NewsFeed 
-          articles={filteredArticles}
+          articles={articles}
           loading={loading}
         />
       </div>
