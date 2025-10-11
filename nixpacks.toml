@@ -1,7 +1,5 @@
-providers = ["nodejs"]
-
-[providers.nodejs]
-version = "18"
+[providers]
+nodejs = "18"
 
 [phases.install]
 cmds = ["npm ci"]
