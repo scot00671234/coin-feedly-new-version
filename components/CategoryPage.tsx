@@ -5,6 +5,7 @@ import { Article } from '@/types'
 import Header from './Header'
 import CryptoPriceTicker from './CryptoPriceTicker'
 import NewsFeed from './NewsFeed'
+import Footer from './Footer'
 
 interface CategoryPageProps {
   category: string
@@ -81,6 +82,9 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
           loading={loading}
         />
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </main>
   )
 }

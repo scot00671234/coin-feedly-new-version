@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import CryptoPriceTicker from '@/components/CryptoPriceTicker'
 import NewsFeed from '@/components/NewsFeed'
 import CategoryFilter from '@/components/CategoryFilter'
+import Footer from '@/components/Footer'
 import { Article, CryptoPrice } from '@/types'
 
 export default function Home() {
@@ -74,6 +75,11 @@ export default function Home() {
     fetchNews(selectedCategory, searchQuery)
   }
 
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+    fetchNews(category, searchQuery)
+  }
+
 
   const categories = [
     { id: 'all', name: 'All News', count: categoryCounts.all },
@@ -84,7 +90,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative">
       {/* Blueish subtle glare effect - entire background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-blue-400/8 to-blue-600/12 dark:from-blue-500/15 dark:via-blue-400/8 dark:to-blue-600/12"></div>
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/10 via-transparent to-blue-500/8 dark:from-blue-400/10 dark:via-transparent dark:to-blue-500/8"></div>
@@ -115,7 +121,7 @@ export default function Home() {
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
+              setSelectedCategory={handleCategoryChange}
             />
           </div>
           
@@ -126,6 +132,9 @@ export default function Home() {
           />
         </div>
       </section>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

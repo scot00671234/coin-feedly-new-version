@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, X, Sun, Moon, Search } from 'lucide-react'
@@ -14,6 +14,7 @@ interface HeaderProps {
 export default function Header({ searchQuery, setSearchQuery, onSearch }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Check for saved theme preference or default to dark mode
@@ -40,6 +41,20 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     onSearch()
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      onSearch()
+    }, 500)
   }
 
   return (
@@ -70,7 +85,7 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
                     type="text"
                     placeholder="Search crypto news, analysis, and market insights..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchInputChange}
                     className="w-full pl-10 pr-4 py-2 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                   />
                 </div>
@@ -84,10 +99,6 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
                 className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 rounded-full transition-all duration-200"
               >
                 {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-              </button>
-              <button className="flex items-center space-x-2 bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300/50 dark:hover:bg-slate-700/50 px-3 py-2 rounded-full transition-all duration-200">
-                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <span className="text-slate-700 dark:text-white text-sm font-medium">Live</span>
               </button>
             </div>
 
@@ -111,7 +122,7 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
                       type="text"
                       placeholder="Search crypto news..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={handleSearchInputChange}
                       className="w-full pl-10 pr-4 py-3 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                     />
                   </div>

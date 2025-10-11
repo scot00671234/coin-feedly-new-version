@@ -13,14 +13,33 @@ export default function CryptoPriceTicker({ prices }: CryptoPriceTickerProps) {
 
   useEffect(() => {
     if (prices.length > 0) {
-      setTickerPrices(prices)
+      // Sort prices by market cap order (Bitcoin first, then by market cap)
+      const sortedPrices = [...prices].sort((a, b) => {
+        const order = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE', 'AVAX', 'DOT', 'LINK', 'LTC', 'BCH', 'XLM', 'XMR']
+        const aIndex = order.indexOf(a.symbol)
+        const bIndex = order.indexOf(b.symbol)
+        
+        // If both are in the predefined order, sort by that order
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex
+        }
+        
+        // If only one is in the predefined order, prioritize it
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        
+        // If neither is in the predefined order, sort alphabetically
+        return a.symbol.localeCompare(b.symbol)
+      })
+      
+      setTickerPrices(sortedPrices)
     }
   }, [prices])
 
   if (tickerPrices.length === 0) {
     return (
-      <div className="bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-lg p-4 mb-8">
-        <div className="flex items-center justify-center">
+      <div className="overflow-hidden">
+        <div className="flex items-center justify-center py-4">
           <div className="animate-pulse text-slate-600 dark:text-slate-400">Loading crypto prices...</div>
         </div>
       </div>
@@ -28,17 +47,16 @@ export default function CryptoPriceTicker({ prices }: CryptoPriceTickerProps) {
   }
 
   return (
-    <div className="bg-slate-200/40 dark:bg-slate-800/40 border border-slate-300/50 dark:border-slate-700/50 rounded-xl p-4 shadow-lg overflow-hidden">
+    <div className="overflow-hidden">
       <div className="ticker-container">
         <div className="ticker-content">
           {tickerPrices.map((crypto) => (
-            <div key={crypto.id} className="flex items-center space-x-2 ticker-item bg-slate-300/40 dark:bg-slate-800/40 px-3 py-2 rounded-lg border border-slate-400/50 dark:border-slate-700/50 hover:bg-slate-400/40 dark:hover:bg-slate-700/40 transition-all duration-300 flex-shrink-0 mx-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
-              <span className="font-bold text-slate-900 dark:text-white text-xs">{crypto.symbol}</span>
-              <span className="text-slate-700 dark:text-slate-200 font-semibold text-xs">{formatPrice(crypto.price)}</span>
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                crypto.change24h > 0 ? 'text-emerald-300 bg-emerald-500/20' : 
-                crypto.change24h < 0 ? 'text-red-300 bg-red-500/20' : 'text-slate-400 bg-slate-500/20'
+            <div key={crypto.id} className="flex items-center space-x-3 ticker-item bg-slate-200/60 dark:bg-slate-800/60 px-4 py-2 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 transition-all duration-300 flex-shrink-0 mx-1">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">{crypto.symbol}</span>
+              <span className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{formatPrice(crypto.price)}</span>
+              <span className={`text-sm font-bold px-2 py-1 rounded ${
+                crypto.change24h > 0 ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 
+                crypto.change24h < 0 ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' : 'text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800/50'
               }`}>
                 {formatChange(crypto.change24h)}
               </span>
@@ -46,13 +64,12 @@ export default function CryptoPriceTicker({ prices }: CryptoPriceTickerProps) {
           ))}
           {/* Duplicate for seamless loop */}
           {tickerPrices.map((crypto) => (
-            <div key={`duplicate-${crypto.id}`} className="flex items-center space-x-2 ticker-item bg-slate-300/40 dark:bg-slate-800/40 px-3 py-2 rounded-lg border border-slate-400/50 dark:border-slate-700/50 hover:bg-slate-400/40 dark:hover:bg-slate-700/40 transition-all duration-300 flex-shrink-0 mx-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
-              <span className="font-bold text-slate-900 dark:text-white text-xs">{crypto.symbol}</span>
-              <span className="text-slate-700 dark:text-slate-200 font-semibold text-xs">{formatPrice(crypto.price)}</span>
-              <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-                crypto.change24h > 0 ? 'text-emerald-300 bg-emerald-500/20' : 
-                crypto.change24h < 0 ? 'text-red-300 bg-red-500/20' : 'text-slate-400 bg-slate-500/20'
+            <div key={`duplicate-${crypto.id}`} className="flex items-center space-x-3 ticker-item bg-slate-200/60 dark:bg-slate-800/60 px-4 py-2 rounded-lg hover:bg-slate-300/60 dark:hover:bg-slate-700/60 transition-all duration-300 flex-shrink-0 mx-1">
+              <span className="font-bold text-slate-900 dark:text-white text-sm">{crypto.symbol}</span>
+              <span className="text-slate-700 dark:text-slate-200 font-semibold text-sm">{formatPrice(crypto.price)}</span>
+              <span className={`text-sm font-bold px-2 py-1 rounded ${
+                crypto.change24h > 0 ? 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30' : 
+                crypto.change24h < 0 ? 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30' : 'text-slate-500 bg-slate-100 dark:text-slate-400 dark:bg-slate-800/50'
               }`}>
                 {formatChange(crypto.change24h)}
               </span>
