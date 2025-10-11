@@ -1,5 +1,7 @@
-[providers]
-node = "18"
+providers = ["nodejs"]
+
+[providers.nodejs]
+version = "18"
 
 [phases.setup]
 nixPkgs = ["postgresql"]
@@ -8,7 +10,7 @@ nixPkgs = ["postgresql"]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["npx prisma generate", "npm run build"]
 
 [start]
 cmd = "npm start"
