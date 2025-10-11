@@ -20,18 +20,7 @@ export async function GET() {
 
     if (!databaseAvailable) {
       const freshPrices = await cryptoAPI.getCryptoList(1, 10)
-      // Transform to match expected format
-      const transformedPrices = freshPrices.map(price => ({
-        id: price.id,
-        symbol: price.symbol,
-        name: price.name,
-        price: price.current_price,
-        change24h: price.price_change_percentage_24h,
-        volume24h: price.total_volume,
-        marketCap: price.market_cap,
-        updatedAt: new Date().toISOString()
-      }))
-      return NextResponse.json(transformedPrices, {
+      return NextResponse.json(freshPrices, {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
         }
@@ -51,7 +40,30 @@ export async function GET() {
     })
 
     if (recentPrices.length > 0) {
-      return NextResponse.json(recentPrices, {
+      // Transform database format to full CryptoPrice format
+      const transformedRecent = recentPrices.map(price => ({
+        id: price.id,
+        symbol: price.symbol,
+        name: price.name,
+        current_price: price.price,
+        market_cap: price.marketCap,
+        market_cap_rank: 0, // Not stored in database
+        total_volume: price.volume24h || 0,
+        price_change_percentage_1h_in_currency: 0, // Not stored in database
+        price_change_percentage_24h: price.change24h,
+        price_change_percentage_7d_in_currency: 0, // Not stored in database
+        price_change_24h: 0, // Not stored in database
+        circulating_supply: 0, // Not stored in database
+        total_supply: 0, // Not stored in database
+        max_supply: 0, // Not stored in database
+        fully_diluted_valuation: 0, // Not stored in database
+        high_24h: 0, // Not stored in database
+        low_24h: 0, // Not stored in database
+        image: '', // Not stored in database
+        sparkline_in_7d: undefined
+      }))
+      
+      return NextResponse.json(transformedRecent, {
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
         }
@@ -61,7 +73,7 @@ export async function GET() {
     // Fetch fresh prices from API
     const freshPrices = await cryptoAPI.getCryptoList(1, 10)
     
-    // Transform to match expected format
+    // Transform to match database format for storage
     const transformedPrices = freshPrices.map(price => ({
       id: price.id,
       symbol: price.symbol,
@@ -97,7 +109,8 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json(transformedPrices, {
+    // Return the full CryptoPrice objects for the frontend
+    return NextResponse.json(freshPrices, {
       headers: {
         'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
       }
@@ -114,7 +127,30 @@ export async function GET() {
       })
       
       if (fallbackPrices.length > 0) {
-        return NextResponse.json(fallbackPrices, {
+        // Transform database format back to full CryptoPrice format
+        const transformedFallback = fallbackPrices.map(price => ({
+          id: price.id,
+          symbol: price.symbol,
+          name: price.name,
+          current_price: price.price,
+          market_cap: price.marketCap,
+          market_cap_rank: 0, // Not stored in database
+          total_volume: price.volume24h || 0,
+          price_change_percentage_1h_in_currency: 0, // Not stored in database
+          price_change_percentage_24h: price.change24h,
+          price_change_percentage_7d_in_currency: 0, // Not stored in database
+          price_change_24h: 0, // Not stored in database
+          circulating_supply: 0, // Not stored in database
+          total_supply: 0, // Not stored in database
+          max_supply: 0, // Not stored in database
+          fully_diluted_valuation: 0, // Not stored in database
+          high_24h: 0, // Not stored in database
+          low_24h: 0, // Not stored in database
+          image: '', // Not stored in database
+          sparkline_in_7d: undefined
+        }))
+        
+        return NextResponse.json(transformedFallback, {
           headers: {
             'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
           }
