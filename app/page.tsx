@@ -5,7 +5,6 @@ import Header from '@/components/Header'
 import CryptoPriceTicker from '@/components/CryptoPriceTicker'
 import NewsFeed from '@/components/NewsFeed'
 import CategoryFilter from '@/components/CategoryFilter'
-import SearchBar from '@/components/SearchBar'
 import { Article, CryptoPrice } from '@/types'
 
 export default function Home() {
@@ -71,6 +70,10 @@ export default function Home() {
     }
   }
 
+  const handleSearch = () => {
+    fetchNews(selectedCategory, searchQuery)
+  }
+
 
   const categories = [
     { id: 'all', name: 'All News', count: categoryCounts.all },
@@ -90,7 +93,11 @@ export default function Home() {
       <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
       
-      <Header />
+      <Header 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
+      />
       
       {/* Spacer for floating header */}
       <div className="h-20"></div>
@@ -103,16 +110,8 @@ export default function Home() {
       {/* Main Content */}
       <section className="py-16 relative z-10">
         <div className="container mx-auto px-6 max-w-7xl">
-          {/* Search and Filters */}
+          {/* Filters */}
           <div className="mb-16">
-            
-            <div className="max-w-3xl mx-auto mb-8">
-              <SearchBar 
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-              />
-            </div>
-            
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedCategory}

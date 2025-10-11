@@ -3,9 +3,15 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X, Sun, Moon } from 'lucide-react'
+import { Menu, X, Sun, Moon, Search } from 'lucide-react'
 
-export default function Header() {
+interface HeaderProps {
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  onSearch: () => void
+}
+
+export default function Header({ searchQuery, setSearchQuery, onSearch }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
 
@@ -31,6 +37,11 @@ export default function Header() {
     setIsDarkMode(!isDarkMode)
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSearch()
+  }
+
   return (
     <header className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl px-4">
       <div className="bg-slate-900/80 dark:bg-slate-900/80 bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl rounded-full border border-slate-800/50 dark:border-slate-800/50 border-slate-200/50 dark:border-slate-800/50 shadow-2xl">
@@ -50,24 +61,21 @@ export default function Header() {
               <span className="text-lg font-bold text-slate-900 dark:text-white">Coin Feedly</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-1">
-              <Link href="/" className="text-slate-700 dark:text-white bg-slate-200/50 dark:bg-slate-800/50 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200">
-                Home
-              </Link>
-              <Link href="/bitcoin" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200">
-                Bitcoin
-              </Link>
-              <Link href="/altcoins" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200">
-                Altcoins
-              </Link>
-              <Link href="/defi" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200">
-                DeFi
-              </Link>
-              <Link href="/macro" className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200">
-                Macro
-              </Link>
-            </nav>
+            {/* Desktop Search */}
+            <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+              <form onSubmit={handleSearch} className="w-full relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search crypto news, analysis, and market insights..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                  />
+                </div>
+              </form>
+            </div>
 
             {/* Right side elements */}
             <div className="hidden lg:flex items-center space-x-3">
@@ -92,45 +100,22 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Search */}
           {isMenuOpen && (
             <div className="lg:hidden py-4 border-t border-slate-200/50 dark:border-slate-800/50">
-              <nav className="flex flex-col space-y-2">
-                <Link 
-                  href="/" 
-                  className="text-slate-700 dark:text-white bg-slate-200/50 dark:bg-slate-800/50 px-4 py-3 rounded-full font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Home
-                </Link>
-                <Link 
-                  href="/bitcoin" 
-                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-3 rounded-full font-medium transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Bitcoin
-                </Link>
-                <Link 
-                  href="/altcoins" 
-                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-3 rounded-full font-medium transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Altcoins
-                </Link>
-                <Link 
-                  href="/defi" 
-                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-3 rounded-full font-medium transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  DeFi
-                </Link>
-                <Link 
-                  href="/macro" 
-                  className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/30 px-4 py-3 rounded-full font-medium transition-all duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Macro
-                </Link>
+              <div className="space-y-4">
+                <form onSubmit={handleSearch}>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search crypto news..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                    />
+                  </div>
+                </form>
                 <div className="flex items-center justify-between pt-2">
                   <button 
                     onClick={toggleTheme}
@@ -140,7 +125,7 @@ export default function Header() {
                     <span className="text-sm font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                   </button>
                 </div>
-              </nav>
+              </div>
             </div>
           )}
         </div>

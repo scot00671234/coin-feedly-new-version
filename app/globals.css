@@ -115,15 +115,17 @@
   @apply bg-dark-500;
 }
 
-/* Ticker animation */
+/* Bloomberg-style ticker animation */
 .ticker-container {
   overflow: hidden;
   white-space: nowrap;
+  position: relative;
 }
 
 .ticker-content {
-  display: inline-block;
-  animation: ticker 30s linear infinite;
+  display: inline-flex;
+  animation: ticker 60s linear infinite;
+  white-space: nowrap;
 }
 
 @keyframes ticker {
