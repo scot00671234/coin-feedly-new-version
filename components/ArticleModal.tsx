@@ -57,13 +57,13 @@ export default function ArticleModal({ article, isOpen, onClose }: ArticleModalP
         setArticleContent(data.content || article.content || article.description)
       } else {
         // Fallback to existing content
-        setArticleContent(article.content || article.description)
+        setArticleContent(article.content || article.description || null)
       }
     } catch (err) {
       console.error('Error fetching article content:', err)
       setError('Failed to load full article content')
       // Fallback to existing content
-      setArticleContent(article.content || article.description)
+      setArticleContent(article.content || article.description || null)
     } finally {
       setLoading(false)
     }
