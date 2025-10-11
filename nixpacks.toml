@@ -7,7 +7,7 @@ cmds = ["npm ci"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [phases.setup]
-cmds = ["npx prisma migrate deploy"]
+cmds = ["chmod +x start.sh"]
 
 [start]
-cmd = "npm start"
+cmd = "./start.sh"
