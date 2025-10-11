@@ -26,10 +26,14 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
 
   const categoryName = categoryNames[category as keyof typeof categoryNames]
 
-  const handleSearch = () => {
-    // Search functionality is now handled by the API
-    refreshArticles()
-  }
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      refreshArticles()
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
 
   const refreshArticles = async () => {
     setLoading(true)
@@ -54,7 +58,6 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
       <Header 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
       />
       
       <div className="container mx-auto px-4 py-8">
