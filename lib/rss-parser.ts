@@ -8,6 +8,10 @@ const parser = new Parser({
       ['enclosure', 'enclosure', { keepArray: true }],
     ],
   },
+  timeout: 10000, // 10 second timeout
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader)',
+  },
 })
 
 export interface RSSFeedItem {
@@ -31,15 +35,26 @@ export interface RSSFeed {
 export async function parseRSSFeed(url: string): Promise<RSSFeed> {
   try {
     const feed = await parser.parseURL(url)
+    
+    if (!feed) {
+      throw new Error('No feed data received')
+    }
+    
     return {
-      title: feed.title || '',
-      description: feed.description,
-      link: feed.link || '',
-      items: feed.items as any,
+      title: feed.title || 'Untitled Feed',
+      description: feed.description || '',
+      link: feed.link || url,
+      items: Array.isArray(feed.items) ? feed.items : [],
     }
   } catch (error) {
     console.error(`Error parsing RSS feed ${url}:`, error)
-    throw error
+    // Return empty feed instead of throwing to prevent app crashes
+    return {
+      title: 'Error Feed',
+      description: 'Failed to load feed',
+      link: url,
+      items: [],
+    }
   }
 }
 

@@ -5,12 +5,15 @@ import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
 export const dynamic = 'force-dynamic'
 
 const RSS_FEEDS = [
-  { url: "https://www.coindesk.com/feed/", category: "bitcoin", source: "CoinDesk" },
-  { url: "https://cointelegraph.com/rss", category: "altcoins", source: "Cointelegraph" },
+  { url: "https://cointelegraph.com/rss", category: "bitcoin", source: "CoinTelegraph" },
   { url: "https://bitcoinist.com/feed/", category: "bitcoin", source: "Bitcoinist" },
   { url: "https://decrypt.co/feed", category: "altcoins", source: "Decrypt" },
   { url: "https://www.blockworks.co/feed", category: "defi", source: "Blockworks" },
-  { url: "https://coindesk.com/arc/outboundfeeds/rss/?outputType=xml", category: "macro", source: "CoinDesk" },
+  { url: "https://cointelegraph.com/rss", category: "defi", source: "CoinTelegraph" },
+  { url: "https://cointelegraph.com/rss", category: "macro", source: "CoinTelegraph" },
+  // Fallback feeds
+  { url: "https://feeds.feedburner.com/CoinDesk", category: "bitcoin", source: "CoinDesk" },
+  { url: "https://bitcoinmagazine.com/.rss/full/", category: "bitcoin", source: "Bitcoin Magazine" },
 ]
 
 export async function GET(request: NextRequest) {
