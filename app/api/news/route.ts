@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
     try {
       await prisma.$connect()
     } catch (dbError) {
-      console.log('Database not available, returning mock data')
-      return NextResponse.json(getMockArticles(category, search, limit))
+      console.log('Database not available, fetching fresh articles from RSS feeds')
+      const fetchedArticles = await fetchAndStoreArticles()
+      return NextResponse.json(fetchedArticles)
     }
 
     // Fetch articles from database
@@ -63,105 +64,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(articles)
   } catch (error) {
     console.error('Error fetching news:', error)
-    // Return mock data on error
-    return NextResponse.json(getMockArticles())
-  }
-}
-
-function getMockArticles(category?: string | null, search?: string | null, limit: number = 50) {
-  const mockArticles = [
-    {
-      id: '1',
-      title: 'Bitcoin Reaches New All-Time High as Institutional Adoption Grows',
-      description: 'Major corporations continue to add Bitcoin to their balance sheets, driving the cryptocurrency to unprecedented price levels.',
-      content: 'Bitcoin has reached a new all-time high as institutional adoption continues to grow...',
-      url: 'https://example.com/bitcoin-ath',
-      publishedAt: new Date().toISOString(),
-      imageUrl: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=800&h=400&fit=crop',
-      category: 'bitcoin',
-      source: {
-        id: '1',
-        name: 'CoinDesk',
-        url: 'https://coindesk.com'
-      }
-    },
-    {
-      id: '2',
-      title: 'Ethereum 2.0 Staking Rewards Hit Record Highs',
-      description: 'Ethereum stakers are seeing unprecedented rewards as the network continues its transition to proof-of-stake.',
-      content: 'Ethereum 2.0 staking has become increasingly profitable...',
-      url: 'https://example.com/ethereum-staking',
-      publishedAt: new Date(Date.now() - 3600000).toISOString(),
-      imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop',
-      category: 'altcoins',
-      source: {
-        id: '2',
-        name: 'Cointelegraph',
-        url: 'https://cointelegraph.com'
-      }
-    },
-    {
-      id: '3',
-      title: 'DeFi Protocol Launches Revolutionary Yield Farming Strategy',
-      description: 'A new DeFi protocol introduces an innovative approach to yield farming that could change the landscape.',
-      content: 'The DeFi space continues to innovate with new yield farming strategies...',
-      url: 'https://example.com/defi-yield-farming',
-      publishedAt: new Date(Date.now() - 7200000).toISOString(),
-      imageUrl: 'https://images.unsplash.com/photo-1639322537504-6427a16b0a28?w=800&h=400&fit=crop',
-      category: 'defi',
-      source: {
-        id: '3',
-        name: 'Blockworks',
-        url: 'https://blockworks.co'
-      }
-    },
-    {
-      id: '4',
-      title: 'Federal Reserve Signals Potential Digital Dollar Development',
-      description: 'The Fed is exploring the possibility of a central bank digital currency as part of its monetary policy toolkit.',
-      content: 'The Federal Reserve is taking steps toward developing a digital dollar...',
-      url: 'https://example.com/fed-digital-dollar',
-      publishedAt: new Date(Date.now() - 10800000).toISOString(),
-      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
-      category: 'macro',
-      source: {
-        id: '4',
-        name: 'The Block',
-        url: 'https://theblockcrypto.com'
-      }
-    },
-    {
-      id: '5',
-      title: 'Bitcoin Mining Difficulty Adjusts Downward as Hash Rate Stabilizes',
-      description: 'The Bitcoin network has adjusted its mining difficulty downward, making it more profitable for miners.',
-      content: 'Bitcoin mining difficulty has decreased following recent network adjustments...',
-      url: 'https://example.com/bitcoin-mining-difficulty',
-      publishedAt: new Date(Date.now() - 14400000).toISOString(),
-      imageUrl: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=800&h=400&fit=crop',
-      category: 'bitcoin',
-      source: {
-        id: '1',
-        name: 'Bitcoinist',
-        url: 'https://bitcoinist.com'
-      }
+    // Try to fetch fresh articles from RSS feeds on error
+    try {
+      const fetchedArticles = await fetchAndStoreArticles()
+      return NextResponse.json(fetchedArticles)
+    } catch (fetchError) {
+      console.error('Failed to fetch articles from RSS feeds:', fetchError)
+      return NextResponse.json(
+        { error: 'Failed to fetch news articles' }, 
+        { status: 500 }
+      )
     }
-  ]
-
-  let filtered = mockArticles
-
-  if (category && category !== 'all') {
-    filtered = filtered.filter(article => article.category === category)
   }
-
-  if (search) {
-    filtered = filtered.filter(article =>
-      article.title.toLowerCase().includes(search.toLowerCase()) ||
-      article.description.toLowerCase().includes(search.toLowerCase())
-    )
-  }
-
-  return filtered.slice(0, limit)
 }
+
 
 async function fetchAndStoreArticles() {
   const articles = []

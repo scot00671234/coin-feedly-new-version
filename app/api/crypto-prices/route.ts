@@ -10,8 +10,13 @@ export async function GET() {
     try {
       await prisma.$connect()
     } catch (dbError) {
-      console.log('Database not available, returning mock crypto prices')
-      return NextResponse.json(getMockCryptoPrices())
+      console.log('Database not available, fetching fresh prices from API')
+      const freshPrices = await fetchCryptoPrices()
+      return NextResponse.json(freshPrices, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+        }
+      })
     }
 
     // Check if we have recent prices in database (less than 5 minutes old)
@@ -27,7 +32,11 @@ export async function GET() {
     })
 
     if (recentPrices.length > 0) {
-      return NextResponse.json(recentPrices)
+      return NextResponse.json(recentPrices, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+        }
+      })
     }
 
     // Fetch fresh prices from API
@@ -57,7 +66,11 @@ export async function GET() {
       })
     }
 
-    return NextResponse.json(freshPrices)
+    return NextResponse.json(freshPrices, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+      }
+    })
   } catch (error) {
     console.error('Error fetching crypto prices:', error)
     
@@ -70,118 +83,21 @@ export async function GET() {
       })
       
       if (fallbackPrices.length > 0) {
-        return NextResponse.json(fallbackPrices)
+        return NextResponse.json(fallbackPrices, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+          }
+        })
       }
     } catch (dbError) {
       console.error('Database fallback failed:', dbError)
     }
 
-    // Return mock data on error
-    return NextResponse.json(getMockCryptoPrices())
+    // Return error response instead of mock data
+    return NextResponse.json(
+      { error: 'Failed to fetch crypto prices' }, 
+      { status: 500 }
+    )
   }
 }
 
-function getMockCryptoPrices() {
-  return [
-    {
-      id: '1',
-      symbol: 'BTC',
-      name: 'Bitcoin',
-      price: 43250.50,
-      change24h: 2.45,
-      volume24h: 28500000000,
-      marketCap: 850000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '2',
-      symbol: 'ETH',
-      name: 'Ethereum',
-      price: 2650.75,
-      change24h: 1.85,
-      volume24h: 15200000000,
-      marketCap: 320000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '3',
-      symbol: 'BNB',
-      name: 'Binance Coin',
-      price: 315.20,
-      change24h: -0.75,
-      volume24h: 1200000000,
-      marketCap: 48000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '4',
-      symbol: 'ADA',
-      name: 'Cardano',
-      price: 0.485,
-      change24h: 3.20,
-      volume24h: 850000000,
-      marketCap: 17000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '5',
-      symbol: 'SOL',
-      name: 'Solana',
-      price: 98.45,
-      change24h: 5.80,
-      volume24h: 2100000000,
-      marketCap: 42000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '6',
-      symbol: 'DOT',
-      name: 'Polkadot',
-      price: 7.25,
-      change24h: 1.15,
-      volume24h: 320000000,
-      marketCap: 9000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '7',
-      symbol: 'DOGE',
-      name: 'Dogecoin',
-      price: 0.085,
-      change24h: -2.30,
-      volume24h: 650000000,
-      marketCap: 12000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '8',
-      symbol: 'AVAX',
-      name: 'Avalanche',
-      price: 28.90,
-      change24h: 4.15,
-      volume24h: 480000000,
-      marketCap: 11000000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '9',
-      symbol: 'LINK',
-      name: 'Chainlink',
-      price: 14.75,
-      change24h: 0.95,
-      volume24h: 280000000,
-      marketCap: 8500000000,
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '10',
-      symbol: 'MATIC',
-      name: 'Polygon',
-      price: 0.925,
-      change24h: 2.80,
-      volume24h: 180000000,
-      marketCap: 8500000000,
-      updatedAt: new Date().toISOString()
-    }
-  ]
-}
