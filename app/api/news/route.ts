@@ -15,13 +15,14 @@ const RSS_FEEDS = [
 ]
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category')
-    const search = searchParams.get('search')
-    const limit = parseInt(searchParams.get('limit') || '50')
+  const { searchParams } = new URL(request.url)
+  const category = searchParams.get('category')
+  const search = searchParams.get('search')
+  const limit = parseInt(searchParams.get('limit') || '50')
 
-    console.log('API Request - Category:', category, 'Search:', search, 'Limit:', limit)
+  console.log('API Request - Category:', category, 'Search:', search, 'Limit:', limit)
+
+  try {
 
     // Check if database is available
     try {
