@@ -27,7 +27,26 @@ export async function GET(request: NextRequest) {
     } catch (dbError) {
       console.log('Database not available, fetching fresh articles from RSS feeds')
       const fetchedArticles = await fetchAndStoreArticles()
-      return NextResponse.json(fetchedArticles)
+      
+      // Apply filters to fetched articles
+      let filteredArticles = fetchedArticles
+      
+      if (category && category !== 'all') {
+        filteredArticles = filteredArticles.filter(article => article.category === category)
+      }
+
+      if (search) {
+        filteredArticles = filteredArticles.filter(article =>
+          article.title.toLowerCase().includes(search.toLowerCase()) ||
+          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
+        )
+      }
+
+      return NextResponse.json(filteredArticles.slice(0, limit), {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+        }
+      })
     }
 
     // Fetch articles from database
@@ -58,16 +77,28 @@ export async function GET(request: NextRequest) {
     // If no articles in database, fetch from RSS feeds
     if (articles.length === 0) {
       const fetchedArticles = await fetchAndStoreArticles()
-      return NextResponse.json(fetchedArticles)
+      return NextResponse.json(fetchedArticles, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+        }
+      })
     }
 
-    return NextResponse.json(articles)
+    return NextResponse.json(articles, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
+    })
   } catch (error) {
     console.error('Error fetching news:', error)
     // Try to fetch fresh articles from RSS feeds on error
     try {
       const fetchedArticles = await fetchAndStoreArticles()
-      return NextResponse.json(fetchedArticles)
+      return NextResponse.json(fetchedArticles, {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+        }
+      })
     } catch (fetchError) {
       console.error('Failed to fetch articles from RSS feeds:', fetchError)
       return NextResponse.json(
@@ -84,29 +115,15 @@ async function fetchAndStoreArticles() {
 
   for (const feed of RSS_FEEDS) {
     try {
-      // Get or create news source
-      let source = await prisma.newsSource.findUnique({
-        where: { url: feed.url }
-      })
-
-      if (!source) {
-        source = await prisma.newsSource.create({
-          data: {
-            name: feed.source,
-            url: feed.url,
-            category: feed.category
-          }
-        })
-      }
-
-      // Parse RSS feed
+      // Parse RSS feed directly without database
       const rssFeed = await parseRSSFeed(feed.url)
       
       for (const item of rssFeed.items.slice(0, 10)) { // Limit to 10 items per feed
         try {
           const imageUrl = extractImageUrl(item)
           
-          const articleData = {
+          const article = {
+            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title: item.title || 'Untitled',
             description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500),
             content: item.content || item.description,
@@ -114,23 +131,14 @@ async function fetchAndStoreArticles() {
             publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
             imageUrl,
             category: feed.category,
-            sourceId: source.id
+            source: {
+              id: `temp-source-${feed.source}`,
+              name: feed.source,
+              url: feed.url
+            }
           }
-
-          // Check if article already exists
-          const existingArticle = await prisma.article.findUnique({
-            where: { url: articleData.url }
-          })
-
-          if (!existingArticle) {
-            const article = await prisma.article.create({
-              data: articleData,
-              include: {
-                source: true
-              }
-            })
-            articles.push(article)
-          }
+          
+          articles.push(article)
         } catch (itemError) {
           console.error(`Error processing article from ${feed.source}:`, itemError)
         }
