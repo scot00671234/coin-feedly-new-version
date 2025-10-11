@@ -3,9 +3,6 @@ providers = ["nodejs"]
 [providers.nodejs]
 version = "18"
 
-[phases.setup]
-nixPkgs = ["postgresql"]
-
 [phases.install]
 cmds = ["npm ci"]
 
@@ -14,6 +11,3 @@ cmds = ["npx prisma generate", "npm run build"]
 
 [start]
 cmd = "npm start"
-
-[env]
-NODE_ENV = "production"
