@@ -38,7 +38,6 @@ export default function LightChart({ data, height = 400, width, loading = false 
       },
       timeScale: {
         borderColor: '#374151',
-        textColor: '#d1d5db',
         timeVisible: true,
         secondsVisible: false,
       },
