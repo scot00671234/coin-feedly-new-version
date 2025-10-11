@@ -21,6 +21,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '50')
 
+    console.log('API Request - Category:', category, 'Search:', search, 'Limit:', limit)
+
     // Check if database is available
     try {
       await prisma.$connect()
@@ -77,7 +79,22 @@ export async function GET(request: NextRequest) {
     // If no articles in database, fetch from RSS feeds
     if (articles.length === 0) {
       const fetchedArticles = await fetchAndStoreArticles()
-      return NextResponse.json(fetchedArticles, {
+      
+      // Apply filters to fetched articles
+      let filteredArticles = fetchedArticles
+      
+      if (category && category !== 'all') {
+        filteredArticles = filteredArticles.filter(article => article.category === category)
+      }
+
+      if (search) {
+        filteredArticles = filteredArticles.filter(article =>
+          article.title.toLowerCase().includes(search.toLowerCase()) ||
+          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
+        )
+      }
+
+      return NextResponse.json(filteredArticles.slice(0, limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
@@ -94,7 +111,22 @@ export async function GET(request: NextRequest) {
     // Try to fetch fresh articles from RSS feeds on error
     try {
       const fetchedArticles = await fetchAndStoreArticles()
-      return NextResponse.json(fetchedArticles, {
+      
+      // Apply filters to fetched articles
+      let filteredArticles = fetchedArticles
+      
+      if (category && category !== 'all') {
+        filteredArticles = filteredArticles.filter(article => article.category === category)
+      }
+
+      if (search) {
+        filteredArticles = filteredArticles.filter(article =>
+          article.title.toLowerCase().includes(search.toLowerCase()) ||
+          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
+        )
+      }
+
+      return NextResponse.json(filteredArticles.slice(0, limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }

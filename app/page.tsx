@@ -33,8 +33,10 @@ export default function Home() {
       if (category !== 'all') params.append('category', category)
       if (search) params.append('search', search)
       
+      console.log('Fetching news with params:', params.toString())
       const response = await fetch(`/api/news?${params.toString()}`)
       const data = await response.json()
+      console.log('Received articles:', data.length, 'articles')
       setArticles(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching news:', error)

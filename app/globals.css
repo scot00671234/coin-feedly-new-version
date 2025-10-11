@@ -125,7 +125,7 @@
 
 .ticker-content {
   display: inline-flex;
-  animation: bloomberg-ticker 120s linear infinite;
+  animation: bloomberg-ticker 180s linear infinite;
   white-space: nowrap;
   will-change: transform;
 }
@@ -137,11 +137,6 @@
   100% {
     transform: translateX(-100%);
   }
-}
-
-/* Pause animation on hover for better UX */
-.ticker-container:hover .ticker-content {
-  animation-play-state: paused;
 }
 
 /* Loading skeleton */
