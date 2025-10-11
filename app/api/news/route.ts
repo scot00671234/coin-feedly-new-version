@@ -24,12 +24,19 @@ export async function GET(request: NextRequest) {
   console.log('API Request - Category:', category, 'Search:', search, 'Limit:', limit)
 
   try {
-
-    // Check if database is available
+    // Check if database is available and has tables
+    let databaseAvailable = false
     try {
       await prisma.$connect()
+      // Try to query a simple table to check if it exists
+      await prisma.article.findFirst()
+      databaseAvailable = true
     } catch (dbError) {
-      console.log('Database not available, fetching fresh articles from RSS feeds')
+      console.log('Database not available or tables missing, fetching fresh articles from RSS feeds')
+      databaseAvailable = false
+    }
+
+    if (!databaseAvailable) {
       const fetchedArticles = await fetchAndStoreArticles()
       
       // Apply filters to fetched articles

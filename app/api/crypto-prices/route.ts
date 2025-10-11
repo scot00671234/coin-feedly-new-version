@@ -6,11 +6,19 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    // Check if database is available
+    // Check if database is available and has tables
+    let databaseAvailable = false
     try {
       await prisma.$connect()
+      // Try to query a simple table to check if it exists
+      await prisma.cryptoPrice.findFirst()
+      databaseAvailable = true
     } catch (dbError) {
-      console.log('Database not available, fetching fresh prices from API')
+      console.log('Database not available or tables missing, fetching fresh prices from API')
+      databaseAvailable = false
+    }
+
+    if (!databaseAvailable) {
       const freshPrices = await fetchCryptoPrices()
       return NextResponse.json(freshPrices, {
         headers: {
