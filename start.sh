@@ -22,7 +22,12 @@ if [ $attempt -eq $max_attempts ]; then
 fi
 
 echo "Running database migrations..."
-npx prisma migrate deploy
+if npx prisma migrate deploy; then
+  echo "Migrations applied successfully"
+else
+  echo "Migration failed, trying db push as fallback..."
+  npx prisma db push
+fi
 
 echo "Starting application..."
 npm start
