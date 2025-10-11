@@ -9,9 +9,8 @@ const RSS_FEEDS = [
   { url: "https://cointelegraph.com/rss", category: "altcoins", source: "Cointelegraph" },
   { url: "https://bitcoinist.com/feed/", category: "bitcoin", source: "Bitcoinist" },
   { url: "https://decrypt.co/feed", category: "altcoins", source: "Decrypt" },
-  { url: "https://www.theblockcrypto.com/rss", category: "macro", source: "The Block" },
   { url: "https://www.blockworks.co/feed", category: "defi", source: "Blockworks" },
-  { url: "https://www.dlnews.com/rss", category: "macro", source: "DL News" },
+  { url: "https://coindesk.com/arc/outboundfeeds/rss/?outputType=xml", category: "macro", source: "CoinDesk" },
 ]
 
 export async function GET(request: NextRequest) {
@@ -151,15 +150,25 @@ async function fetchAndStoreArticles() {
       // Parse RSS feed directly without database
       const rssFeed = await parseRSSFeed(feed.url)
       
+      if (!rssFeed.items || !Array.isArray(rssFeed.items)) {
+        console.warn(`No items found in feed ${feed.source}`)
+        continue
+      }
+      
       for (const item of rssFeed.items.slice(0, 10)) { // Limit to 10 items per feed
         try {
+          // Validate item has required fields
+          if (!item.title && !item.description) {
+            continue
+          }
+          
           const imageUrl = extractImageUrl(item)
           
           const article = {
             id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title: item.title || 'Untitled',
-            description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500),
-            content: item.content || item.description,
+            description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+            content: item.content || item.description || '',
             url: item.link || '',
             publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
             imageUrl,
