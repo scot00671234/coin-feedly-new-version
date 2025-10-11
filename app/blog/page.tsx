@@ -16,14 +16,20 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
-  const blogPosts = await prisma.blogPost.findMany({
-    where: {
-      isPublished: true
-    },
-    orderBy: {
-      publishedAt: 'desc'
-    }
-  })
+  let blogPosts: any[] = []
+  
+  try {
+    blogPosts = await prisma.blogPost.findMany({
+      where: {
+        isPublished: true
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      }
+    })
+  } catch (error) {
+    console.log('Database not available for blog posts, showing empty state')
+  }
 
   return (
     <div className="min-h-screen">
@@ -75,8 +81,9 @@ export default async function BlogPage() {
         )}
 
         {/* Blog Posts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.slice(1).map((post) => (
+        {blogPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogPosts.slice(1).map((post) => (
             <article key={post.id} className="bg-dark-800/50 border border-dark-700 rounded-xl p-6 hover:border-dark-600 transition-colors">
               <div className="flex items-center space-x-2 mb-4">
                 <Tag className="w-4 h-4 text-primary-400" />
@@ -106,8 +113,21 @@ export default async function BlogPage() {
                 </Link>
               </div>
             </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h3 className="text-2xl font-bold text-white mb-4">No Blog Posts Available</h3>
+            <p className="text-gray-300 mb-6">Check back later for the latest crypto insights and analysis.</p>
+            <Link 
+              href="/"
+              className="btn-primary inline-flex items-center space-x-2"
+            >
+              <span>Explore News Feed</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
 
         {/* CTA Section */}
         <div className="mt-16 text-center">

@@ -44,18 +44,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Blog posts
-  const blogPosts = await prisma.blogPost.findMany({
-    where: { isPublished: true },
-    select: { slug: true, updatedAt: true },
-  })
+  // Blog posts - handle database connection gracefully
+  let blogPages: any[] = []
+  try {
+    const blogPosts = await prisma.blogPost.findMany({
+      where: { isPublished: true },
+      select: { slug: true, updatedAt: true },
+    })
 
-  const blogPages = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }))
+    blogPages = blogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }))
+  } catch (error) {
+    console.log('Database not available for sitemap, skipping blog posts')
+  }
 
   return [...staticPages, ...blogPages]
 }

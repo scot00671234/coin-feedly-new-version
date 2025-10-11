@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
 
+export const dynamic = 'force-dynamic'
+
 const RSS_FEEDS = [
   { url: "https://www.coindesk.com/feed/", category: "bitcoin", source: "CoinDesk" },
   { url: "https://cointelegraph.com/rss", category: "altcoins", source: "Cointelegraph" },
