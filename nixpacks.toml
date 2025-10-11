@@ -7,7 +7,7 @@ cmds = ["npm ci"]
 cmds = ["npx prisma generate", "npm run build"]
 
 [phases.setup]
-cmds = ["chmod +x start.sh"]
+cmds = []
 
 [start]
-cmd = "./start.sh"
+cmd = "bash start.sh"
