@@ -14,6 +14,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [searching, setSearching] = useState(false)
   const [categoryCounts, setCategoryCounts] = useState({ all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 })
 
   useEffect(() => {
@@ -22,8 +23,16 @@ export default function Home() {
     fetchCategoryCounts()
   }, [])
 
+  // Debounced search effect
   useEffect(() => {
-    fetchNews(selectedCategory, searchQuery)
+    const timeoutId = setTimeout(() => {
+      if (searchQuery || selectedCategory !== 'all') {
+        setSearching(true)
+      }
+      fetchNews(selectedCategory, searchQuery)
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timeoutId)
   }, [selectedCategory, searchQuery])
 
   const fetchNews = async (category = 'all', search = '') => {
@@ -43,6 +52,7 @@ export default function Home() {
       setArticles([])
     } finally {
       setLoading(false)
+      setSearching(false)
     }
   }
 
@@ -62,7 +72,7 @@ export default function Home() {
       const counts = { all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 }
       
       for (const category of categories) {
-        const response = await fetch(`/api/news?category=${category}&limit=1`)
+        const response = await fetch(`/api/news?category=${category}`)
         const data = await response.json()
         counts[category as keyof typeof counts] = Array.isArray(data) ? data.length : 0
       }
@@ -73,13 +83,8 @@ export default function Home() {
     }
   }
 
-  const handleSearch = () => {
-    fetchNews(selectedCategory, searchQuery)
-  }
-
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category)
-    fetchNews(category, searchQuery)
   }
 
 
@@ -104,7 +109,6 @@ export default function Home() {
       <Header 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
       />
       
       {/* Spacer for floating header */}
@@ -127,6 +131,32 @@ export default function Home() {
             />
           </div>
           
+          {/* Search Status */}
+          {(searching || searchQuery || selectedCategory !== 'all') && (
+            <div className="text-center py-4">
+              {searching ? (
+                <div className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span>Searching...</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center space-x-2 text-slate-600 dark:text-slate-400">
+                  <span>Showing results for:</span>
+                  {selectedCategory !== 'all' && (
+                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                      {categories.find(c => c.id === selectedCategory)?.name}
+                    </span>
+                  )}
+                  {searchQuery && (
+                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                      "{searchQuery}"
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* News Feed */}
           <NewsFeed 
             articles={articles}

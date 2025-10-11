@@ -8,13 +8,11 @@ import { Menu, X, Sun, Moon, Search } from 'lucide-react'
 interface HeaderProps {
   searchQuery: string
   setSearchQuery: (query: string) => void
-  onSearch: () => void
 }
 
-export default function Header({ searchQuery, setSearchQuery, onSearch }: HeaderProps) {
+export default function Header({ searchQuery, setSearchQuery }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     // Check for saved theme preference or default to dark mode
@@ -38,23 +36,8 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
     setIsDarkMode(!isDarkMode)
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSearch()
-  }
-
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
-    
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-    
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(() => {
-      onSearch()
-    }, 500)
   }
 
   return (
@@ -78,7 +61,7 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
 
             {/* Desktop Search */}
             <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
-              <form onSubmit={handleSearch} className="w-full relative">
+              <div className="w-full relative">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <input
@@ -89,7 +72,7 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
                     className="w-full pl-10 pr-4 py-2 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
                   />
                 </div>
-              </form>
+              </div>
             </div>
 
             {/* Right side elements */}
@@ -115,18 +98,16 @@ export default function Header({ searchQuery, setSearchQuery, onSearch }: Header
           {isMenuOpen && (
             <div className="lg:hidden py-4 border-t border-slate-200/50 dark:border-slate-800/50">
               <div className="space-y-4">
-                <form onSubmit={handleSearch}>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                    <input
-                      type="text"
-                      placeholder="Search crypto news..."
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
-                    />
-                  </div>
-                </form>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search crypto news..."
+                    value={searchQuery}
+                    onChange={handleSearchInputChange}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-200/50 dark:bg-slate-800/50 border border-slate-300/50 dark:border-slate-700/50 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                  />
+                </div>
                 <div className="flex items-center justify-between pt-2">
                   <button 
                     onClick={toggleTheme}
