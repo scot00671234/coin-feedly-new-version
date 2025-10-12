@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
@@ -46,8 +46,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
     })
 
     // Create line series
-    const lineSeries = chart.addSeries({
-      type: 'Line',
+    const lineSeries = chart.addLineSeries({
       color: '#3b82f6',
       lineWidth: 2,
       crosshairMarkerVisible: true,
