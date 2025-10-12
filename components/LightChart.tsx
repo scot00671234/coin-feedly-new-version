@@ -46,9 +46,8 @@ export default function LightChart({ data, height = 400, width, loading = false 
     })
 
     // Create line series
-    const lineSeries = chart.addSeries('Line', {
-      color: '#3b82f6',
-      lineWidth: 2,
+    const lineSeries = chart.addSeries({
+      type: 'Line'
     })
 
     chartRef.current = chart
