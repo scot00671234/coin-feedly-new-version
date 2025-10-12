@@ -81,12 +81,12 @@ class AdvancedCache<T> {
     let oldestKey = ''
     let oldestTime = Date.now()
 
-    for (const [key, entry] of this.cache.entries()) {
+    this.cache.forEach((entry, key) => {
       if (entry.lastAccessed < oldestTime) {
         oldestTime = entry.lastAccessed
         oldestKey = key
       }
-    }
+    })
 
     if (oldestKey) {
       this.cache.delete(oldestKey)
