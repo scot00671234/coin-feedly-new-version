@@ -62,7 +62,7 @@ export default function CryptoDetailPage() {
       const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
       
       const formattedData = data.map(item => ({
-        time: item.timestamp / 1000, // Convert to seconds
+        time: (item.timestamp / 1000).toString(), // Convert to seconds and then to string
         value: item.price
       }))
       

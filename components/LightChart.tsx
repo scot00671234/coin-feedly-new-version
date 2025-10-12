@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 
 interface LightChartProps {
-  data: Array<{ time: number; value: number }>
+  data: Array<{ time: string; value: number }>
   height?: number
   width?: number
   loading?: boolean
