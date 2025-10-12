@@ -46,13 +46,9 @@ export default function LightChart({ data, height = 400, width, loading = false 
     })
 
     // Create line series
-    const lineSeries = chart.addLineSeries({
+    const lineSeries = chart.addSeries('Line', {
       color: '#3b82f6',
       lineWidth: 2,
-      crosshairMarkerVisible: true,
-      crosshairMarkerRadius: 6,
-      crosshairMarkerBorderColor: '#3b82f6',
-      crosshairMarkerBackgroundColor: '#3b82f6',
     })
 
     chartRef.current = chart
