@@ -61,9 +61,12 @@ async function getCategoryArticles(category: string, page: number = 1) {
   const limit = 12
   const skip = (page - 1) * limit
 
+  // Ensure category is valid and uppercase
+  const categoryFilter = category?.toUpperCase() || 'BITCOIN'
+
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
-      where: { category: category.toUpperCase() },
+      where: { category: categoryFilter },
       orderBy: { publishedAt: 'desc' },
       skip,
       take: limit,
@@ -72,7 +75,7 @@ async function getCategoryArticles(category: string, page: number = 1) {
       }
     }),
     prisma.article.count({
-      where: { category: category.toUpperCase() }
+      where: { category: categoryFilter }
     })
   ])
 
