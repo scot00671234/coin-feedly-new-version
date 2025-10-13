@@ -4,6 +4,17 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { formatDistanceToNow } from 'date-fns'
 
+// Generate slug from title
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+    .substring(0, 100)
+}
+
 interface ArticlePageProps {
   params: {
     slug: string
@@ -345,7 +356,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {relatedArticles.map((relatedArticle) => (
                     <Link
                       key={relatedArticle.id}
-                      href={`/article/${relatedArticle.slug}`}
+                      href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
                       className="block group"
                     >
                       <div className="flex gap-3">
