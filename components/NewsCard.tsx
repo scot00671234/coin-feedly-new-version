@@ -42,6 +42,8 @@ export default function NewsCard({ article }: NewsCardProps) {
 
   const articleSlug = article.slug || generateSlug(article.title)
   
+  console.log(`🔗 NewsCard - Article: "${article.title.substring(0, 50)}..." -> Slug: "${articleSlug}"`)
+  
   // If no slug exists, we'll use the generated one but the article page will handle the fallback
 
   // Get the best available image - always ensure we have one

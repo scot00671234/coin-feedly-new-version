@@ -69,24 +69,54 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  // Convert slug back to title for search
-  const titleFromSlug = slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+  console.log(`🔍 Looking for article with slug: ${slug}`)
   
-  // Try to find article by title (works regardless of database schema)
-  const article = await prisma.article.findFirst({
-    where: {
-      title: {
-        contains: titleFromSlug,
-        mode: 'insensitive'
+  // First try to find by slug if it exists
+  let article = null
+  try {
+    article = await prisma.article.findFirst({
+      where: {
+        slug: slug
+      },
+      include: {
+        source: true
       }
-    },
-    include: {
-      source: true
+    })
+    if (article) {
+      console.log(`✅ Found article by slug: ${article.title}`)
     }
-  })
+  } catch (error) {
+    console.log('⚠️  Slug column not available, trying title search')
+  }
+
+  // If not found by slug, try by title
+  if (!article) {
+    // Convert slug back to title for search
+    const titleFromSlug = slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    
+    console.log(`🔍 Searching by title: ${titleFromSlug}`)
+    
+    article = await prisma.article.findFirst({
+      where: {
+        title: {
+          contains: titleFromSlug,
+          mode: 'insensitive'
+        }
+      },
+      include: {
+        source: true
+      }
+    })
+    
+    if (article) {
+      console.log(`✅ Found article by title: ${article.title}`)
+    } else {
+      console.log(`❌ No article found for slug: ${slug}`)
+    }
+  }
 
   if (!article) {
     return null
