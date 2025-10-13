@@ -19,13 +19,19 @@ function generateSlug(title: string): string {
 // Fetch article content from external URL
 async function fetchArticleContent(url: string) {
   try {
+    // Create an AbortController for timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+    
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; CoinFeedly/1.0)',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
-      timeout: 10000
+      signal: controller.signal
     })
+    
+    clearTimeout(timeoutId)
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
