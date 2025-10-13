@@ -268,8 +268,13 @@ async function startup() {
           where: { keywords: { isEmpty: true } }
         })
         
-        articlesToEnhance = Math.max(articlesMissingSlug, articlesMissingSeoTitle, articlesMissingKeywords)
-        console.log(`📊 Articles missing SEO data - Slug: ${articlesMissingSlug}, SEO Title: ${articlesMissingSeoTitle}, Keywords: ${articlesMissingKeywords}`)
+        // Also check for articles with empty slugs (empty string)
+        const articlesWithEmptySlug = await prisma.article.count({
+          where: { slug: { equals: '' } }
+        })
+        
+        articlesToEnhance = Math.max(articlesMissingSlug, articlesMissingSeoTitle, articlesMissingKeywords, articlesWithEmptySlug)
+        console.log(`📊 Articles missing SEO data - Slug: ${articlesMissingSlug}, Empty Slug: ${articlesWithEmptySlug}, SEO Title: ${articlesMissingSeoTitle}, Keywords: ${articlesMissingKeywords}`)
       } catch (columnError) {
         // If columns don't exist, just count all articles
         console.log('⚠️  Some SEO columns not available, will enhance all articles')

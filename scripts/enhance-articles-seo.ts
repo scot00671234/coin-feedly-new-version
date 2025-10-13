@@ -19,6 +19,7 @@ async function enhanceArticlesWithSEO() {
         where: {
           OR: [
             { slug: { equals: null } },
+            { slug: { equals: '' } },
             { seoTitle: { equals: null } },
             { keywords: { isEmpty: true } }
           ]
