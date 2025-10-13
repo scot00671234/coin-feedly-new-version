@@ -22,100 +22,56 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  let article = null
-
-  try {
-    // First try to find by slug (if column exists)
-    article = await prisma.article.findUnique({
-      where: { slug },
-      include: {
-        source: true
+  // Convert slug back to title for search
+  const titleFromSlug = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  
+  // Try to find article by title (works regardless of database schema)
+  const article = await prisma.article.findFirst({
+    where: {
+      title: {
+        contains: titleFromSlug,
+        mode: 'insensitive'
       }
-    })
-  } catch (error) {
-    // If slug column doesn't exist, fall back to title search
-    console.log('Slug column not available, using title search fallback')
-  }
-
-  // If no article found by slug, try to find by title (fallback for articles without slugs)
-  if (!article) {
-    // Convert slug back to title for fallback search
-    const titleFromSlug = slug
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-    
-    article = await prisma.article.findFirst({
-      where: {
-        title: {
-          contains: titleFromSlug,
-          mode: 'insensitive'
-        }
-      },
-      include: {
-        source: true
-      }
-    })
-  }
+    },
+    include: {
+      source: true
+    }
+  })
 
   if (!article) {
     return null
   }
 
-  // Get related articles
-  let relatedArticles = []
-  try {
-    relatedArticles = await prisma.article.findMany({
-      where: {
-        category: article.category,
-        id: { not: article.id }
-      },
-      orderBy: { publishedAt: 'desc' },
-      take: 4,
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        description: true,
-        imageUrl: true,
-        publishedAt: true,
-        readingTime: true,
-        source: {
-          select: {
-            name: true
-          }
+  // Get related articles (always generate slugs from titles)
+  const relatedArticles = await prisma.article.findMany({
+    where: {
+      category: article.category,
+      id: { not: article.id }
+    },
+    orderBy: { publishedAt: 'desc' },
+    take: 4,
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      imageUrl: true,
+      publishedAt: true,
+      source: {
+        select: {
+          name: true
         }
       }
-    })
-  } catch (error) {
-    // If slug column doesn't exist, select without it
-    relatedArticles = await prisma.article.findMany({
-      where: {
-        category: article.category,
-        id: { not: article.id }
-      },
-      orderBy: { publishedAt: 'desc' },
-      take: 4,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        imageUrl: true,
-        publishedAt: true,
-        source: {
-          select: {
-            name: true
-          }
-        }
-      }
-    })
-    
-    // Add slug property to each article (generated from title)
-    relatedArticles = relatedArticles.map(article => ({
-      ...article,
-      slug: generateSlug(article.title)
-    }))
-  }
+    }
+  })
+  
+  // Add slug property to each article (generated from title)
+  const relatedArticlesWithSlugs = relatedArticles.map(article => ({
+    ...article,
+    slug: generateSlug(article.title)
+  }))
 
   // Increment view count (if column exists)
   try {
@@ -128,7 +84,7 @@ async function getArticle(slug: string) {
     console.log('ViewCount column not available, skipping increment')
   }
 
-  return { article, relatedArticles }
+  return { article, relatedArticles: relatedArticlesWithSlugs }
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
