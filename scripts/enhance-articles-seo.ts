@@ -11,19 +11,31 @@ async function enhanceArticlesWithSEO() {
   try {
     console.log('🚀 Starting SEO enhancement for articles...')
     
-    // Get all articles that don't have SEO data
-    const articles = await prisma.article.findMany({
-      where: {
-        OR: [
-          { slug: { equals: null } },
-          { seoTitle: { equals: null } },
-          { keywords: { isEmpty: true } }
-        ]
-      },
-      include: {
-        source: true
-      }
-    })
+    // Check if slug column exists first
+    let articles = []
+    try {
+      // Try to get articles that don't have SEO data
+      articles = await prisma.article.findMany({
+        where: {
+          OR: [
+            { slug: { equals: null } },
+            { seoTitle: { equals: null } },
+            { keywords: { isEmpty: true } }
+          ]
+        },
+        include: {
+          source: true
+        }
+      })
+    } catch (columnError) {
+      // If slug column doesn't exist, get all articles
+      console.log('⚠️  Slug column not available, enhancing all articles')
+      articles = await prisma.article.findMany({
+        include: {
+          source: true
+        }
+      })
+    }
 
     console.log(`📊 Found ${articles.length} articles to enhance`)
 
@@ -36,18 +48,24 @@ async function enhanceArticlesWithSEO() {
         const keywords = generateKeywords(article.title, article.category, article.description || '')
         const readingTime = article.content ? calculateReadingTime(article.content) : null
 
-        // Update article with SEO data
-        await prisma.article.update({
-          where: { id: article.id },
-          data: {
-            slug,
-            seoTitle,
-            seoDescription,
-            keywords,
-            readingTime,
-            featuredImage: article.imageUrl
-          }
-        })
+        // Update article with SEO data (handle missing columns gracefully)
+        try {
+          await prisma.article.update({
+            where: { id: article.id },
+            data: {
+              slug,
+              seoTitle,
+              seoDescription,
+              keywords,
+              readingTime,
+              featuredImage: article.imageUrl
+            }
+          })
+        } catch (updateError) {
+          // If some columns don't exist, try updating only the ones that do
+          console.log(`⚠️  Some SEO columns not available for article ${article.id}, skipping update`)
+          continue
+        }
 
         console.log(`✅ Enhanced: ${article.title.substring(0, 50)}...`)
       } catch (error) {

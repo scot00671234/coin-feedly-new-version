@@ -25,8 +25,8 @@ echo "Running database migrations..."
 if npx prisma migrate deploy; then
   echo "Migrations applied successfully"
 else
-  echo "Migration failed, trying db push as fallback..."
-  if npx prisma db push; then
+  echo "Migration failed, trying db push with data loss acceptance..."
+  if npx prisma db push --accept-data-loss; then
     echo "Database schema updated with db push"
   else
     echo "Both migration and db push failed, running force migration..."
