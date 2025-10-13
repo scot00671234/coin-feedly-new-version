@@ -257,8 +257,8 @@ async function startup() {
       const articlesToEnhance = await prisma.article.count({
         where: {
           OR: [
-            { slug: null },
-            { seoTitle: null },
+            { slug: { equals: null } },
+            { seoTitle: { equals: null } },
             { keywords: { isEmpty: true } }
           ]
         }

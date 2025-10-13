@@ -15,8 +15,8 @@ async function enhanceArticlesWithSEO() {
     const articles = await prisma.article.findMany({
       where: {
         OR: [
-          { slug: null },
-          { seoTitle: null },
+          { slug: { equals: null } },
+          { seoTitle: { equals: null } },
           { keywords: { isEmpty: true } }
         ]
       },
