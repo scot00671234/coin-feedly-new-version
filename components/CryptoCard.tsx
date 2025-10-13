@@ -76,3 +76,5 @@ export default function CryptoCard({ crypto, onClick, isSelected = false }: Cryp
 }
 
 
+
+

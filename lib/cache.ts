@@ -99,11 +99,12 @@ class AdvancedCache<T> {
     const now = Date.now()
     const keysToDelete: string[] = []
 
-    for (const [key, entry] of this.cache.entries()) {
+    // Use forEach instead of for...of to ensure compatibility
+    this.cache.forEach((entry, key) => {
       if (now - entry.timestamp > entry.ttl) {
         keysToDelete.push(key)
       }
-    }
+    })
 
     keysToDelete.forEach(key => {
       this.cache.delete(key)
