@@ -71,103 +71,61 @@ interface ArticlePageProps {
 async function getArticle(slug: string) {
   console.log(`🔍 Looking for article with slug: ${slug}`)
   
-  // First try to find by slug if it exists
-  let article = null
+  // Convert slug back to title for search
+  const titleFromSlug = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+  
+  console.log(`🔍 Searching for title: ${titleFromSlug}`)
+  
+  // Fetch articles from the news API
   try {
-    article = await prisma.article.findFirst({
-      where: {
-        slug: slug
-      },
-      include: {
-        source: true
-      }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=100`, {
+      cache: 'no-store'
     })
-    if (article) {
-      console.log(`✅ Found article by slug: ${article.title}`)
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch articles')
     }
-  } catch (error) {
-    console.log('⚠️  Slug column not available, trying title search')
-  }
-
-  // If not found by slug, try by title
-  if (!article) {
-    // Convert slug back to title for search
-    const titleFromSlug = slug
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
     
-    console.log(`🔍 Searching by title: ${titleFromSlug}`)
+    const data = await response.json()
+    const articles = data.articles || []
     
-    article = await prisma.article.findFirst({
-      where: {
-        title: {
-          contains: titleFromSlug,
-          mode: 'insensitive'
-        }
-      },
-      include: {
-        source: true
-      }
-    })
+    console.log(`📊 Fetched ${articles.length} articles from API`)
+    
+    // Find article by title match
+    const article = articles.find((art: any) => 
+      art.title.toLowerCase().includes(titleFromSlug.toLowerCase()) ||
+      titleFromSlug.toLowerCase().includes(art.title.toLowerCase())
+    )
     
     if (article) {
-      console.log(`✅ Found article by title: ${article.title}`)
+      console.log(`✅ Found article: ${article.title}`)
+      return {
+        article,
+        relatedArticles: articles.filter((art: any) => 
+          art.category === article.category && art.id !== article.id
+        ).slice(0, 4),
+        externalContent: null // We'll fetch this separately
+      }
     } else {
       console.log(`❌ No article found for slug: ${slug}`)
+      return null
     }
-  }
-
-  if (!article) {
+    
+  } catch (error) {
+    console.error('Error fetching articles:', error)
     return null
   }
 
-  // Fetch external article content
+  // Fetch external article content if we have a URL
   let externalContent = null
   if (article.url) {
     externalContent = await fetchArticleContent(article.url)
   }
 
-  // Get related articles (always generate slugs from titles)
-  const relatedArticles = await prisma.article.findMany({
-    where: {
-      category: article.category,
-      id: { not: article.id }
-    },
-    orderBy: { publishedAt: 'desc' },
-    take: 4,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      imageUrl: true,
-      publishedAt: true,
-      source: {
-        select: {
-          name: true
-        }
-      }
-    }
-  })
-  
-  // Add slug property to each article (generated from title)
-  const relatedArticlesWithSlugs = relatedArticles.map(article => ({
-    ...article,
-    slug: generateSlug(article.title)
-  }))
-
-  // Increment view count (if column exists)
-  try {
-    await prisma.article.update({
-      where: { id: article.id },
-      data: { viewCount: { increment: 1 } }
-    })
-  } catch (error) {
-    // If viewCount column doesn't exist, skip increment
-    console.log('ViewCount column not available, skipping increment')
-  }
-
-  return { article, relatedArticles: relatedArticlesWithSlugs, externalContent }
+  return { article, relatedArticles, externalContent }
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
@@ -411,7 +369,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {relatedArticles.map((relatedArticle) => (
                     <Link
                       key={relatedArticle.id}
-                      href={`/article/${relatedArticle.slug}`}
+                      href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
                       className="block group"
                     >
                       <div className="flex gap-3">
