@@ -26,7 +26,13 @@ if npx prisma migrate deploy; then
   echo "Migrations applied successfully"
 else
   echo "Migration failed, trying db push as fallback..."
-  npx prisma db push
+  if npx prisma db push; then
+    echo "Database schema updated with db push"
+  else
+    echo "Both migration and db push failed, trying to create migration..."
+    npx prisma migrate dev --name add-article-seo-fields --create-only
+    npx prisma migrate deploy
+  fi
 fi
 
 echo "Running startup script..."

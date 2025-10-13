@@ -41,6 +41,8 @@ export default function NewsCard({ article }: NewsCardProps) {
   }
 
   const articleSlug = article.slug || generateSlug(article.title)
+  
+  // If no slug exists, we'll use the generated one but the article page will handle the fallback
 
   // Get the best available image - always ensure we have one
   const imageUrl = getImageUrl(article.imageUrl, article.title, article.category) || getCryptoPlaceholderImage(article.category, article.title)

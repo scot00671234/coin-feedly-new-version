@@ -11,12 +11,33 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  const article = await prisma.article.findUnique({
+  let article = await prisma.article.findUnique({
     where: { slug },
     include: {
       source: true
     }
   })
+
+  // If no article found by slug, try to find by title (fallback for articles without slugs)
+  if (!article) {
+    // Convert slug back to title for fallback search
+    const titleFromSlug = slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    
+    article = await prisma.article.findFirst({
+      where: {
+        title: {
+          contains: titleFromSlug,
+          mode: 'insensitive'
+        }
+      },
+      include: {
+        source: true
+      }
+    })
+  }
 
   if (!article) {
     return null
