@@ -18,7 +18,7 @@ const RSS_FEEDS = [
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const category = searchParams.get('category')
+  const category = searchParams.get('category') || 'all'
   const search = searchParams.get('search')
   const sort = searchParams.get('sort') || 'newest'
   const page = parseInt(searchParams.get('page') || '1')
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category)
+        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
       }
 
       if (search) {
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {}
     
     if (category && category !== 'all') {
-      whereClause.category = category
+      whereClause.category = category.toUpperCase()
     }
 
     if (search) {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category)
+        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
       }
 
       if (search) {
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category)
+        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
       }
 
       if (search) {
