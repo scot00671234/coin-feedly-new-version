@@ -109,6 +109,12 @@ async function getArticle(slug: string) {
         }
       }
     })
+    
+    // Add slug property to each article (generated from title)
+    relatedArticles = relatedArticles.map(article => ({
+      ...article,
+      slug: generateSlug(article.title)
+    }))
   }
 
   // Increment view count (if column exists)
@@ -356,7 +362,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {relatedArticles.map((relatedArticle) => (
                     <Link
                       key={relatedArticle.id}
-                      href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
+                      href={`/article/${relatedArticle.slug}`}
                       className="block group"
                     >
                       <div className="flex gap-3">
