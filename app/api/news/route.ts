@@ -254,23 +254,51 @@ async function fetchAndStoreArticles() {
           
           const imageUrl = extractImageUrl(item)
           
-          const article = {
-            id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            title: item.title || 'Untitled',
-            description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
-            content: item.content || item.description || '',
-            url: item.link || '',
-            publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
-            imageUrl,
-            category: feed.category,
-            source: {
-              id: `temp-source-${feed.source}`,
-              name: feed.source,
-              url: feed.url
-            }
+          // Check if article already exists
+          const existingArticle = await prisma.article.findFirst({
+            where: { url: item.link || '' }
+          })
+          
+          if (existingArticle) {
+            console.log(`Article already exists: ${item.title}`)
+            continue
           }
           
+          // Create or find source
+          let source = await prisma.newsSource.findFirst({
+            where: { name: feed.source }
+          })
+          
+          if (!source) {
+            source = await prisma.newsSource.create({
+              data: {
+                name: feed.source,
+                url: feed.url,
+                category: feed.category,
+                isActive: true
+              }
+            })
+          }
+          
+          // Create article in database
+          const article = await prisma.article.create({
+            data: {
+              title: item.title || 'Untitled',
+              description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+              content: item.content || item.description || '',
+              url: item.link || '',
+              publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
+              imageUrl,
+              category: feed.category.toUpperCase(),
+              sourceId: source.id
+            },
+            include: {
+              source: true
+            }
+          })
+          
           feedArticles.push(article)
+          console.log(`✅ Stored article: ${article.title}`)
         } catch (itemError) {
           console.error(`Error processing article from ${feed.source}:`, itemError)
         }
@@ -291,5 +319,6 @@ async function fetchAndStoreArticles() {
     articles.push(...feedArticles)
   }
 
+  console.log(`📊 Fetched and stored ${articles.length} articles from RSS feeds`)
   return articles
 }
