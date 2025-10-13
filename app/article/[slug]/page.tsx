@@ -102,12 +102,19 @@ async function getArticle(slug: string) {
     
     if (article) {
       console.log(`✅ Found article: ${article.title}`)
+      
+      // Fetch external article content if we have a URL
+      let externalContent = null
+      if (article.url) {
+        externalContent = await fetchArticleContent(article.url)
+      }
+      
       return {
         article,
         relatedArticles: articles.filter((art: any) => 
           art.category === article.category && art.id !== article.id
         ).slice(0, 4),
-        externalContent: null // We'll fetch this separately
+        externalContent
       }
     } else {
       console.log(`❌ No article found for slug: ${slug}`)
@@ -118,14 +125,6 @@ async function getArticle(slug: string) {
     console.error('Error fetching articles:', error)
     return null
   }
-
-  // Fetch external article content if we have a URL
-  let externalContent = null
-  if (article.url) {
-    externalContent = await fetchArticleContent(article.url)
-  }
-
-  return { article, relatedArticles, externalContent }
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
