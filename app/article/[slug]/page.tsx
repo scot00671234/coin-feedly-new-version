@@ -11,12 +11,20 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  let article = await prisma.article.findUnique({
-    where: { slug },
-    include: {
-      source: true
-    }
-  })
+  let article = null
+
+  try {
+    // First try to find by slug (if column exists)
+    article = await prisma.article.findUnique({
+      where: { slug },
+      include: {
+        source: true
+      }
+    })
+  } catch (error) {
+    // If slug column doesn't exist, fall back to title search
+    console.log('Slug column not available, using title search fallback')
+  }
 
   // If no article found by slug, try to find by title (fallback for articles without slugs)
   if (!article) {
@@ -44,34 +52,64 @@ async function getArticle(slug: string) {
   }
 
   // Get related articles
-  const relatedArticles = await prisma.article.findMany({
-    where: {
-      category: article.category,
-      id: { not: article.id }
-    },
-    orderBy: { publishedAt: 'desc' },
-    take: 4,
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      imageUrl: true,
-      publishedAt: true,
-      readingTime: true,
-      source: {
-        select: {
-          name: true
+  let relatedArticles = []
+  try {
+    relatedArticles = await prisma.article.findMany({
+      where: {
+        category: article.category,
+        id: { not: article.id }
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 4,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        imageUrl: true,
+        publishedAt: true,
+        readingTime: true,
+        source: {
+          select: {
+            name: true
+          }
         }
       }
-    }
-  })
+    })
+  } catch (error) {
+    // If slug column doesn't exist, select without it
+    relatedArticles = await prisma.article.findMany({
+      where: {
+        category: article.category,
+        id: { not: article.id }
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: 4,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        imageUrl: true,
+        publishedAt: true,
+        source: {
+          select: {
+            name: true
+          }
+        }
+      }
+    })
+  }
 
-  // Increment view count
-  await prisma.article.update({
-    where: { id: article.id },
-    data: { viewCount: { increment: 1 } }
-  })
+  // Increment view count (if column exists)
+  try {
+    await prisma.article.update({
+      where: { id: article.id },
+      data: { viewCount: { increment: 1 } }
+    })
+  } catch (error) {
+    // If viewCount column doesn't exist, skip increment
+    console.log('ViewCount column not available, skipping increment')
+  }
 
   return { article, relatedArticles }
 }

@@ -29,9 +29,8 @@ else
   if npx prisma db push; then
     echo "Database schema updated with db push"
   else
-    echo "Both migration and db push failed, trying to create migration..."
-    npx prisma migrate dev --name add-article-seo-fields --create-only
-    npx prisma migrate deploy
+    echo "Both migration and db push failed, running force migration..."
+    npx tsx scripts/force-migrate.ts
   fi
 fi
 
