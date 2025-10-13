@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { formatDistanceToNow } from 'date-fns'
+import { Clock, ExternalLink, ArrowLeft, Share2, Eye, Calendar, User } from 'lucide-react'
 
 // Generate slug from title
 function generateSlug(title: string): string {
@@ -13,6 +14,46 @@ function generateSlug(title: string): string {
     .replace(/-+/g, '-')
     .trim()
     .substring(0, 100)
+}
+
+// Fetch article content from external URL
+async function fetchArticleContent(url: string) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CoinFeedly/1.0)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      timeout: 10000
+    })
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    
+    const html = await response.text()
+    
+    // Extract main content using simple regex patterns
+    const contentMatch = html.match(/<article[^>]*>(.*?)<\/article>/is) ||
+                        html.match(/<main[^>]*>(.*?)<\/main>/is) ||
+                        html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>(.*?)<\/div>/is) ||
+                        html.match(/<div[^>]*class="[^"]*post[^"]*"[^>]*>(.*?)<\/div>/is)
+    
+    if (contentMatch) {
+      return contentMatch[1]
+    }
+    
+    // Fallback: extract content between common content indicators
+    const bodyMatch = html.match(/<body[^>]*>(.*?)<\/body>/is)
+    if (bodyMatch) {
+      return bodyMatch[1]
+    }
+    
+    return null
+  } catch (error) {
+    console.error('Error fetching article content:', error)
+    return null
+  }
 }
 
 interface ArticlePageProps {
@@ -43,6 +84,12 @@ async function getArticle(slug: string) {
 
   if (!article) {
     return null
+  }
+
+  // Fetch external article content
+  let externalContent = null
+  if (article.url) {
+    externalContent = await fetchArticleContent(article.url)
   }
 
   // Get related articles (always generate slugs from titles)
@@ -84,7 +131,7 @@ async function getArticle(slug: string) {
     console.log('ViewCount column not available, skipping increment')
   }
 
-  return { article, relatedArticles: relatedArticlesWithSlugs }
+  return { article, relatedArticles: relatedArticlesWithSlugs, externalContent }
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
@@ -133,7 +180,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound()
   }
 
-  const { article, relatedArticles } = data
+  const { article, relatedArticles, externalContent } = data
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -255,17 +302,29 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
                 {/* Embedded Content */}
                 <div className="p-8">
-                  <div className="prose dark:prose-invert max-w-none">
-                    {article.content ? (
-                      <div dangerouslySetInnerHTML={{ __html: article.content }} />
+                  <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        Full Article Content
+                      </h2>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Embedded from {article.source.name}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="prose dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-strong:text-gray-900 dark:prose-strong:text-white">
+                    {externalContent ? (
+                      <div dangerouslySetInnerHTML={{ __html: externalContent }} />
                     ) : (
                       <div className="text-center py-12">
                         <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-8">
+                          <ExternalLink className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Full Article Content
+                            Article Content Unavailable
                           </h3>
                           <p className="text-gray-600 dark:text-gray-300 mb-6">
-                            This article is available on the original source. Click below to read the full content.
+                            We couldn't load the full article content. This might be due to the source website's restrictions or network issues.
                           </p>
                           <a
                             href={article.url}
@@ -273,10 +332,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             rel="noopener noreferrer"
                             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                           >
-                            Read Full Article
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Read Full Article on {article.source.name}
                           </a>
                         </div>
                       </div>
