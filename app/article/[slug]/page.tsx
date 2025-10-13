@@ -365,7 +365,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   Related {article.category} News
                 </h3>
                 <div className="space-y-4">
-                  {relatedArticles.map((relatedArticle) => (
+                  {relatedArticles.map((relatedArticle: any) => (
                     <Link
                       key={relatedArticle.id}
                       href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
