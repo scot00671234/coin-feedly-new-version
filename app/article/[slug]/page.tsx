@@ -40,17 +40,17 @@ async function fetchArticleContent(url: string) {
     const html = await response.text()
     
     // Extract main content using simple regex patterns
-    const contentMatch = html.match(/<article[^>]*>(.*?)<\/article>/is) ||
-                        html.match(/<main[^>]*>(.*?)<\/main>/is) ||
-                        html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>(.*?)<\/div>/is) ||
-                        html.match(/<div[^>]*class="[^"]*post[^"]*"[^>]*>(.*?)<\/div>/is)
+    const contentMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i) ||
+                        html.match(/<main[^>]*>([\s\S]*?)<\/main>/i) ||
+                        html.match(/<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/i) ||
+                        html.match(/<div[^>]*class="[^"]*post[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
     
     if (contentMatch) {
       return contentMatch[1]
     }
     
     // Fallback: extract content between common content indicators
-    const bodyMatch = html.match(/<body[^>]*>(.*?)<\/body>/is)
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
     if (bodyMatch) {
       return bodyMatch[1]
     }
