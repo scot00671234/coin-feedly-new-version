@@ -251,6 +251,31 @@ async function startup() {
       // Don't exit, let the app continue
     }
     
+    // Enhance existing articles with SEO data
+    console.log('🔍 Enhancing articles with SEO data...')
+    try {
+      const articlesToEnhance = await prisma.article.count({
+        where: {
+          OR: [
+            { slug: null },
+            { seoTitle: null },
+            { keywords: { isEmpty: true } }
+          ]
+        }
+      })
+
+      if (articlesToEnhance > 0) {
+        console.log(`📊 Found ${articlesToEnhance} articles to enhance with SEO data`)
+        // Run SEO enhancement in background
+        execSync('npx tsx scripts/enhance-articles-seo.ts', { stdio: 'inherit' })
+      } else {
+        console.log('ℹ️  All articles already have SEO data')
+      }
+    } catch (error) {
+      console.error('❌ Error during SEO enhancement:', error)
+      // Don't exit, let the app continue
+    }
+    
     console.log('✅ Application startup completed!')
   } catch (error) {
     console.error('❌ Error during startup:', error)

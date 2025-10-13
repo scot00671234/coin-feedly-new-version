@@ -4,9 +4,17 @@ export interface Article {
   description?: string | null
   content?: string | null
   url: string
+  slug?: string
   publishedAt: string | Date
   imageUrl?: string | null
   category: string
+  author?: string | null
+  readingTime?: number | null
+  viewCount?: number
+  seoTitle?: string | null
+  seoDescription?: string | null
+  keywords?: string[]
+  featuredImage?: string | null
   source: {
     id: string
     name: string
