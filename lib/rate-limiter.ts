@@ -34,6 +34,10 @@ class AdvancedRateLimiter {
     }, 300000)
   }
 
+  getConfig(): RateLimitConfig {
+    return this.config
+  }
+
   checkLimit(identifier: string): RateLimitResult {
     const now = Date.now()
     const entry = this.store.get(identifier) || {
@@ -155,7 +159,7 @@ export function withRateLimit(
           headers: {
             'Content-Type': 'application/json',
             'Retry-After': Math.ceil((result.retryAfter || 0) / 1000).toString(),
-            'X-RateLimit-Limit': rateLimiter.config.requests.toString(),
+            'X-RateLimit-Limit': rateLimiter.getConfig().requests.toString(),
             'X-RateLimit-Remaining': result.remaining.toString(),
             'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString()
           }
@@ -166,7 +170,7 @@ export function withRateLimit(
     const response = await handler()
     
     // Add rate limit headers to successful responses
-    response.headers.set('X-RateLimit-Limit', rateLimiter.config.requests.toString())
+    response.headers.set('X-RateLimit-Limit', rateLimiter.getConfig().requests.toString())
     response.headers.set('X-RateLimit-Remaining', result.remaining.toString())
     response.headers.set('X-RateLimit-Reset', Math.ceil(result.resetTime / 1000).toString())
 
