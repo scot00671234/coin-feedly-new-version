@@ -254,21 +254,25 @@ async function startup() {
     // Enhance existing articles with SEO data
     console.log('🔍 Enhancing articles with SEO data...')
     try {
-      // Check if slug column exists first
+      // Check if articles need SEO enhancement
       let articlesToEnhance = 0
       try {
-        articlesToEnhance = await prisma.article.count({
-          where: {
-            OR: [
-              { slug: { equals: null } },
-              { seoTitle: { equals: null } },
-              { keywords: { isEmpty: true } }
-            ]
-          }
+        // Check for articles missing any SEO data
+        const articlesMissingSlug = await prisma.article.count({
+          where: { slug: { equals: null } }
         })
+        const articlesMissingSeoTitle = await prisma.article.count({
+          where: { seoTitle: { equals: null } }
+        })
+        const articlesMissingKeywords = await prisma.article.count({
+          where: { keywords: { isEmpty: true } }
+        })
+        
+        articlesToEnhance = Math.max(articlesMissingSlug, articlesMissingSeoTitle, articlesMissingKeywords)
+        console.log(`📊 Articles missing SEO data - Slug: ${articlesMissingSlug}, SEO Title: ${articlesMissingSeoTitle}, Keywords: ${articlesMissingKeywords}`)
       } catch (columnError) {
-        // If slug column doesn't exist, just count all articles
-        console.log('⚠️  Slug column not available, will enhance all articles')
+        // If columns don't exist, just count all articles
+        console.log('⚠️  Some SEO columns not available, will enhance all articles')
         articlesToEnhance = await prisma.article.count()
       }
 
