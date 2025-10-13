@@ -4,7 +4,7 @@ export interface Article {
   description?: string | null
   content?: string | null
   url: string
-  slug?: string
+  slug?: string | null
   publishedAt: string | Date
   imageUrl?: string | null
   category: string
