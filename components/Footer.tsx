@@ -42,6 +42,31 @@ export default function Footer() {
               </div>
             </div>
           </div>
+
+          {/* Links Section */}
+          <div className="space-y-4">
+            <h3 className="text-white font-semibold text-lg">Resources</h3>
+            <div className="space-y-2">
+              <Link 
+                href="/blog" 
+                className="block text-slate-400 hover:text-white transition-colors text-sm"
+              >
+                Crypto News Blog
+              </Link>
+              <Link 
+                href="/charts" 
+                className="block text-slate-400 hover:text-white transition-colors text-sm"
+              >
+                Price Charts
+              </Link>
+              <Link 
+                href="/api/news" 
+                className="block text-slate-400 hover:text-white transition-colors text-sm"
+              >
+                RSS Feed
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Bottom Section */}

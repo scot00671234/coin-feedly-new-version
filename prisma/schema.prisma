@@ -56,15 +56,22 @@ model CryptoPrice {
 }
 
 model BlogPost {
-  id          String @id @default(cuid())
-  title       String
-  slug        String @unique
-  content     String
-  excerpt     String?
-  keywords    String[]
-  publishedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isPublished Boolean @default(false)
+  id            String @id @default(cuid())
+  title         String
+  slug          String @unique
+  content       String
+  excerpt       String?
+  keywords      String[]
+  metaTitle     String?
+  metaDescription String?
+  featuredImage String?
+  author        String @default("Coin Feedly Team")
+  readingTime   Int? // in minutes
+  viewCount     Int @default(0)
+  publishedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  isPublished   Boolean @default(false)
+  priority      Int @default(0) // for SEO priority ordering
 
   @@map("blog_posts")
 }
