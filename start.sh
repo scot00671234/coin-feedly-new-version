@@ -29,5 +29,8 @@ else
   npx prisma db push
 fi
 
+echo "Running startup script..."
+npx tsx scripts/startup.ts &
+
 echo "Starting application..."
 npm start
