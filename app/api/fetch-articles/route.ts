@@ -2,14 +2,48 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
 
+// Helper function to update article categories
+async function updateArticleCategories(articleId: string, categories: string[]) {
+  try {
+    // Get or create categories
+    const categoryRecords = []
+    for (const categoryName of categories) {
+      const category = await prisma.category.upsert({
+        where: { slug: categoryName.toLowerCase() },
+        update: {},
+        create: {
+          name: categoryName.toUpperCase(),
+          slug: categoryName.toLowerCase()
+        }
+      })
+      categoryRecords.push(category)
+    }
+    
+    // Remove existing category associations
+    await prisma.articleCategory.deleteMany({
+      where: { articleId }
+    })
+    
+    // Add new category associations
+    for (const category of categoryRecords) {
+      await prisma.articleCategory.create({
+        data: {
+          articleId,
+          categoryId: category.id
+        }
+      })
+    }
+  } catch (error) {
+    console.error(`Error updating categories for article ${articleId}:`, error)
+  }
+}
+
 const RSS_FEEDS = [
-  { url: "https://cointelegraph.com/rss", category: "bitcoin", source: "CoinTelegraph" },
-  { url: "https://bitcoinist.com/feed/", category: "bitcoin", source: "Bitcoinist" },
-  { url: "https://decrypt.co/feed", category: "altcoins", source: "Decrypt" },
-  { url: "https://www.blockworks.co/feed", category: "defi", source: "Blockworks" },
-  { url: "https://cointelegraph.com/rss", category: "defi", source: "CoinTelegraph" },
-  { url: "https://cointelegraph.com/rss", category: "macro", source: "CoinTelegraph" },
-  { url: "https://feeds.feedburner.com/CoinDesk", category: "bitcoin", source: "CoinDesk" },
+  { url: "https://cointelegraph.com/rss", categories: ["bitcoin", "altcoins", "defi", "macro"], source: "CoinTelegraph" },
+  { url: "https://bitcoinist.com/feed/", categories: ["bitcoin"], source: "Bitcoinist" },
+  { url: "https://decrypt.co/feed", categories: ["altcoins", "defi", "web3"], source: "Decrypt" },
+  { url: "https://www.blockworks.co/feed", categories: ["defi", "macro"], source: "Blockworks" },
+  { url: "https://feeds.feedburner.com/CoinDesk", categories: ["bitcoin", "macro", "regulation"], source: "CoinDesk" },
 ]
 
 export async function GET() {
@@ -39,7 +73,7 @@ export async function GET() {
             data: {
               name: feed.source,
               url: feed.url,
-              category: feed.category,
+              category: feed.categories[0], // Use first category as primary
               isActive: true
             }
           })
@@ -64,6 +98,27 @@ export async function GET() {
             
             const imageUrl = extractImageUrl(item)
             
+            // Generate slug for the article
+            const generateSlug = (title: string): string => {
+              return title
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim()
+                .substring(0, 100)
+            }
+            
+            let articleSlug = generateSlug(item.title)
+            
+            // Check if slug already exists and make it unique
+            let counter = 1
+            let uniqueSlug = articleSlug
+            while (await prisma.article.findFirst({ where: { slug: uniqueSlug } })) {
+              uniqueSlug = `${articleSlug}-${counter}`
+              counter++
+            }
+            
             // Create article
             const article = await prisma.article.create({
               data: {
@@ -71,12 +126,16 @@ export async function GET() {
                 description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
                 content: item.content || item.description || '',
                 url: item.link,
+                slug: uniqueSlug,
                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
                 imageUrl,
-                category: feed.category.toUpperCase(),
+                primaryCategory: feed.categories[0].toUpperCase(),
                 sourceId: source.id
               }
             })
+            
+            // Add categories to the article
+            await updateArticleCategories(article.id, feed.categories)
             
             totalStored++
             console.log(`✅ Stored: ${article.title.substring(0, 50)}...`)
