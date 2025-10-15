@@ -17,14 +17,11 @@ function generateSlug(title: string): string {
 export const dynamic = 'force-dynamic'
 
 const RSS_FEEDS = [
-  { url: "https://cointelegraph.com/rss", category: "bitcoin", source: "CoinTelegraph" },
-  { url: "https://bitcoinist.com/feed/", category: "bitcoin", source: "Bitcoinist" },
-  { url: "https://decrypt.co/feed", category: "altcoins", source: "Decrypt" },
-  { url: "https://www.blockworks.co/feed", category: "defi", source: "Blockworks" },
-  { url: "https://cointelegraph.com/rss", category: "defi", source: "CoinTelegraph" },
-  { url: "https://cointelegraph.com/rss", category: "macro", source: "CoinTelegraph" },
-  // Fallback feeds
-  { url: "https://feeds.feedburner.com/CoinDesk", category: "bitcoin", source: "CoinDesk" },
+  { url: "https://cointelegraph.com/rss", categories: ["bitcoin", "altcoins", "defi", "macro"], source: "CoinTelegraph" },
+  { url: "https://bitcoinist.com/feed/", categories: ["bitcoin"], source: "Bitcoinist" },
+  { url: "https://decrypt.co/feed", categories: ["altcoins", "defi", "web3"], source: "Decrypt" },
+  { url: "https://www.blockworks.co/feed", categories: ["defi", "macro"], source: "Blockworks" },
+  { url: "https://feeds.feedburner.com/CoinDesk", categories: ["bitcoin", "macro", "regulation"], source: "CoinDesk" },
 ]
 
 export async function GET(request: NextRequest) {
@@ -58,7 +55,11 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
+        filteredArticles = filteredArticles.filter(article => 
+          article.categories?.some(cat => 
+            cat.category.slug === category.toLowerCase()
+          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        )
       }
 
       if (search) {
@@ -86,7 +87,13 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {}
     
     if (category && category !== 'all') {
-      whereClause.category = category.toUpperCase()
+      whereClause.categories = {
+        some: {
+          category: {
+            slug: category.toLowerCase()
+          }
+        }
+      }
     }
 
     if (search) {
@@ -119,7 +126,12 @@ export async function GET(request: NextRequest) {
     const articles = await prisma.article.findMany({
       where: whereClause,
       include: {
-        source: true
+        source: true,
+        categories: {
+          include: {
+            category: true
+          }
+        }
       },
       orderBy,
       skip: offset,
@@ -142,7 +154,11 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
+        filteredArticles = filteredArticles.filter(article => 
+          article.categories?.some(cat => 
+            cat.category.slug === category.toLowerCase()
+          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        )
       }
 
       if (search) {
@@ -200,7 +216,11 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => article.category === category.toUpperCase())
+        filteredArticles = filteredArticles.filter(article => 
+          article.categories?.some(cat => 
+            cat.category.slug === category.toLowerCase()
+          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        )
       }
 
       if (search) {
@@ -247,6 +267,7 @@ export async function GET(request: NextRequest) {
 
 async function fetchAndStoreArticles() {
   const articles = []
+  const processedUrls = new Set<string>() // Track processed URLs to prevent duplicates
 
   // Process feeds in parallel for better performance
   const feedPromises = RSS_FEEDS.map(async (feed) => {
@@ -267,15 +288,31 @@ async function fetchAndStoreArticles() {
             continue
           }
           
+          // Skip if we've already processed this URL
+          if (processedUrls.has(item.link || '')) {
+            continue
+          }
+          
           const imageUrl = extractImageUrl(item)
           
           // Check if article already exists by URL
           const existingArticle = await prisma.article.findFirst({
-            where: { url: item.link || '' }
+            where: { url: item.link || '' },
+            include: {
+              categories: {
+                include: {
+                  category: true
+                }
+              }
+            }
           })
           
           if (existingArticle) {
             console.log(`Article already exists: ${item.title}`)
+            
+            // Update categories for existing article
+            await updateArticleCategories(existingArticle.id, feed.categories)
+            
             // Update the existing article with new data if needed
             try {
               await prisma.article.update({
@@ -293,6 +330,8 @@ async function fetchAndStoreArticles() {
             } catch (updateError) {
               console.error(`Error updating existing article: ${updateError}`)
             }
+            
+            processedUrls.add(item.link || '')
             continue
           }
           
@@ -306,7 +345,7 @@ async function fetchAndStoreArticles() {
               data: {
                 name: feed.source,
                 url: feed.url,
-                category: feed.category,
+                category: feed.categories[0], // Use first category as primary
                 isActive: true
               }
             })
@@ -333,7 +372,7 @@ async function fetchAndStoreArticles() {
               slug: uniqueSlug,
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
               imageUrl,
-              category: feed.category.toUpperCase(),
+              primaryCategory: feed.categories[0].toUpperCase(),
               sourceId: source.id
             },
             include: {
@@ -341,8 +380,12 @@ async function fetchAndStoreArticles() {
             }
           })
           
+          // Add categories to the article
+          await updateArticleCategories(article.id, feed.categories)
+          
           feedArticles.push(article)
-          console.log(`✅ Stored article: ${article.title}`)
+          processedUrls.add(item.link || '')
+          console.log(`✅ Stored article: ${article.title} with categories: ${feed.categories.join(', ')}`)
         } catch (itemError) {
           console.error(`Error processing article from ${feed.source}:`, itemError)
         }
@@ -363,6 +406,42 @@ async function fetchAndStoreArticles() {
     articles.push(...feedArticles)
   }
 
-  console.log(`📊 Fetched and stored ${articles.length} articles from RSS feeds`)
+  console.log(`📊 Fetched and stored ${articles.length} unique articles from RSS feeds`)
   return articles
+}
+
+// Helper function to update article categories
+async function updateArticleCategories(articleId: string, categories: string[]) {
+  try {
+    // Get or create categories
+    const categoryRecords = []
+    for (const categoryName of categories) {
+      const category = await prisma.category.upsert({
+        where: { slug: categoryName.toLowerCase() },
+        update: {},
+        create: {
+          name: categoryName.toUpperCase(),
+          slug: categoryName.toLowerCase()
+        }
+      })
+      categoryRecords.push(category)
+    }
+    
+    // Remove existing category associations
+    await prisma.articleCategory.deleteMany({
+      where: { articleId }
+    })
+    
+    // Add new category associations
+    for (const category of categoryRecords) {
+      await prisma.articleCategory.create({
+        data: {
+          articleId,
+          categoryId: category.id
+        }
+      })
+    }
+  } catch (error) {
+    console.error(`Error updating categories for article ${articleId}:`, error)
+  }
 }

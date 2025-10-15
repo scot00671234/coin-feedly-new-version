@@ -136,7 +136,10 @@ async function getArticle(slug: string) {
       return {
         article,
         relatedArticles: articles.filter((art: any) => 
-          art.category === article.category && art.id !== article.id
+          (art.primaryCategory === article.primaryCategory || 
+           art.categories?.some((cat: any) => 
+             article.categories?.some((artCat: any) => artCat.category.slug === cat.category.slug)
+           )) && art.id !== article.id
         ).slice(0, 4),
         externalContent
       }
@@ -246,7 +249,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
               <li><Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link></li>
               <li>/</li>
-              <li><Link href={`/category/${article.category.toLowerCase()}`} className="hover:text-blue-600 dark:hover:text-blue-400 capitalize">{article.category}</Link></li>
+              <li><Link href={`/category/${article.primaryCategory?.toLowerCase() || 'all'}`} className="hover:text-blue-600 dark:hover:text-blue-400 capitalize">{article.primaryCategory || 'News'}</Link></li>
               <li>/</li>
               <li className="text-gray-900 dark:text-white truncate">{article.title}</li>
             </ol>
@@ -261,7 +264,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   {/* Category and Meta */}
                   <div className="flex items-center gap-4 mb-4">
                     <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm font-medium rounded-full">
-                      {article.category.toUpperCase()}
+                      {article.primaryCategory?.toUpperCase() || 'NEWS'}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
@@ -386,7 +389,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {/* Related Articles */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Related {article.category} News
+                  Related {article.primaryCategory || 'News'} Articles
                 </h3>
                 <div className="space-y-4">
                   {relatedArticles.map((relatedArticle: any) => (
@@ -425,13 +428,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   Stay Updated
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Get the latest {article.category.toLowerCase()} news and crypto market updates delivered to your feed.
+                  Get the latest {article.primaryCategory?.toLowerCase() || 'crypto'} news and market updates delivered to your feed.
                 </p>
                 <Link
-                  href={`/category/${article.category.toLowerCase()}`}
+                  href={`/category/${article.primaryCategory?.toLowerCase() || 'all'}`}
                   className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  View All {article.category} News
+                  View All {article.primaryCategory || 'News'} Articles
                 </Link>
               </div>
             </aside>
