@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
         slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
       // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
         slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
@@ -260,7 +260,7 @@ export async function GET(request: NextRequest) {
       // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
         slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
