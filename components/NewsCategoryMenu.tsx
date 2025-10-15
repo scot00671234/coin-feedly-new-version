@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Image, Gamepad2, Box, Newspaper } from 'lucide-react'
+import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Globe, Image, Gamepad2, Box, Newspaper } from 'lucide-react'
 
 interface NewsCategoryMenuProps {
   currentCategory?: string
