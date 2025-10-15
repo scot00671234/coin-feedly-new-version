@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
         source: true,
         categories: {
           include: {
-            primaryCategory: true
+            category: true
           }
         }
       },
