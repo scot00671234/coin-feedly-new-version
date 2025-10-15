@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { ArrowUp, ArrowDown } from 'lucide-react'
-import UnifiedHeader from '@/components/UnifiedHeader'
 import HeaderTicker from '@/components/HeaderTicker'
 import { useRouter } from 'next/navigation'
 
@@ -125,12 +124,6 @@ export default function ChartsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
-      {/* Unified Header */}
-      <UnifiedHeader 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onSearch={handleSearch}
-      />
       
       {/* Crypto Price Ticker */}
       <HeaderTicker prices={tickerPrices} />
