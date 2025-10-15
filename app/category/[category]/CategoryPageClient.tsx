@@ -20,6 +20,7 @@ export default function CategoryPageClient({ articles, categoryName, category, p
 
   const handleArticleClick = (article: any) => {
     // Convert database article to Article type
+    const sourceData = article.source as any
     const articleData: Article = {
       id: article.id,
       title: article.title,
@@ -31,11 +32,11 @@ export default function CategoryPageClient({ articles, categoryName, category, p
       imageUrl: article.imageUrl,
       primaryCategory: article.primaryCategory,
       source: {
-        id: article.source.id,
-        name: article.source.name,
-        url: article.source.url,
-        primaryCategory: article.source.primaryCategory || 'BITCOIN',
-        isActive: article.source.isActive || true
+        id: sourceData.id,
+        name: sourceData.name,
+        url: sourceData.url,
+        primaryCategory: sourceData.primaryCategory || 'BITCOIN',
+        isActive: sourceData.isActive || true
       },
       author: article.author,
       readingTime: article.readingTime,
