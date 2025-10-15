@@ -112,9 +112,9 @@ export default function ArticleModal({ article, isOpen, onClose }: ArticleModalP
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3 mb-3">
-                <span className={`category-badge ${getCategoryClass(article.category)}`}>
+                <span className={`category-badge ${getCategoryClass(article.primaryCategory || 'bitcoin')}`}>
                   <Tag className="w-3 h-3 mr-1" />
-                  {article.category}
+                  {article.primaryCategory || 'Bitcoin'}
                 </span>
                 <div className="flex items-center space-x-1 text-slate-500 dark:text-slate-400">
                   <Clock className="w-4 h-4" />

@@ -47,7 +47,7 @@ export default function NewsCard({ article }: NewsCardProps) {
   // If no slug exists, we'll use the generated one but the article page will handle the fallback
 
   // Get the best available image - always ensure we have one
-  const imageUrl = getImageUrl(article.imageUrl, article.title, article.category) || getCryptoPlaceholderImage(article.category, article.title)
+  const imageUrl = getImageUrl(article.imageUrl, article.title, article.primaryCategory || 'bitcoin') || getCryptoPlaceholderImage(article.primaryCategory || 'bitcoin', article.title)
   
   // Debug logging
   console.log(`Article "${article.title.substring(0, 30)}..." - Original imageUrl: ${article.imageUrl}, Final imageUrl: ${imageUrl}`)
@@ -75,9 +75,9 @@ export default function NewsCard({ article }: NewsCardProps) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="absolute top-4 left-4">
-          <span className={`category-badge ${getCategoryClass(article.category)}`}>
+          <span className={`category-badge ${getCategoryClass(article.primaryCategory || 'bitcoin')}`}>
             <Tag className="w-3 h-3 mr-1" />
-            {article.category}
+            {article.primaryCategory || 'Bitcoin'}
           </span>
         </div>
       </div>

@@ -72,13 +72,13 @@ async function migrateToMultiCategory() {
           // Update article with primary category
           await prisma.article.update({
             where: { id: article.id },
-            data: { primaryCategory: article.category }
+            data: { primaryCategory: article.primaryCategory }
           })
           
           migratedCount++
           console.log(`✅ Migrated article ${article.id} to category ${category.name}`)
         } else {
-          console.log(`⚠️  No category found for: ${article.category}`)
+          console.log(`⚠️  No category found for: ${article.primaryCategory}`)
         }
       } catch (error) {
         console.error(`❌ Error migrating article ${article.id}:`, error)

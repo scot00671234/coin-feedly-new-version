@@ -127,7 +127,7 @@ export function generateArticleSchema(article: any) {
     timeRequired: article.readingTime ? `PT${article.readingTime}M` : undefined,
     about: {
       '@type': 'Thing',
-      name: article.category
+      name: article.primaryCategory || 'News'
     }
   }
 }
