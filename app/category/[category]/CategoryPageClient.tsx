@@ -34,8 +34,8 @@ export default function CategoryPageClient({ articles, categoryName, category, p
         id: article.source.id,
         name: article.source.name,
         url: article.source.url,
-        primaryCategory: 'BITCOIN',
-        isActive: true
+        primaryCategory: article.source.primaryCategory || 'BITCOIN',
+        isActive: article.source.isActive || true
       },
       author: article.author,
       readingTime: article.readingTime,

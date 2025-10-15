@@ -80,7 +80,15 @@ async function getCategoryArticles(category: string, page: number = 1) {
       skip,
       take: limit,
       include: {
-        source: true,
+        source: {
+          select: {
+            id: true,
+            name: true,
+            url: true,
+            primaryCategory: true,
+            isActive: true
+          }
+        },
         categories: {
           include: {
             category: {
