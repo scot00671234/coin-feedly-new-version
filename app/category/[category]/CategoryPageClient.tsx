@@ -46,10 +46,7 @@ export default function CategoryPageClient({ articles, categoryName, category, p
       seoTitle: article.seoTitle,
       seoDescription: article.seoDescription,
       keywords: article.keywords,
-      featuredImage: article.featuredImage,
-      createdAt: article.createdAt,
-      updatedAt: article.updatedAt,
-      categories: article.categories || []
+      featuredImage: article.featuredImage
     }
     
     setSelectedArticle(articleData)
