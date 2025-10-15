@@ -9,19 +9,25 @@ async function startup() {
     console.log('⏳ Waiting for database to be ready...')
     await new Promise(resolve => setTimeout(resolve, 5000))
     
-    // Run Prisma migration
-    console.log('📊 Running Prisma migration...')
+    // Run database migration
+    console.log('📊 Running database migration...')
     try {
-      execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+      execSync('npx tsx scripts/run-long-term-migration.ts', { stdio: 'inherit' })
       console.log('✅ Database migration completed')
     } catch (error) {
-      console.log('⚠️  Migration failed, trying db push instead...')
+      console.log('⚠️  Long-term migration failed, trying Prisma migration...')
       try {
-        execSync('npx prisma db push', { stdio: 'inherit' })
-        console.log('✅ Database schema updated with db push')
-      } catch (pushError) {
-        console.error('❌ Both migration and db push failed:', pushError)
-        // Don't exit, let the app try to start anyway
+        execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+        console.log('✅ Prisma migration completed')
+      } catch (migrateError) {
+        console.log('⚠️  Prisma migration failed, trying db push...')
+        try {
+          execSync('npx prisma db push', { stdio: 'inherit' })
+          console.log('✅ Database schema updated with db push')
+        } catch (pushError) {
+          console.error('❌ All migration methods failed:', pushError)
+          // Don't exit, let the app try to start anyway
+        }
       }
     }
     
