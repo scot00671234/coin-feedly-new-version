@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Globe, Image, Gamepad2, Box, Newspaper } from 'lucide-react'
+import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Globe, Image, Gamepad2, Box, Newspaper, BarChart3, Moon, Sun, X } from 'lucide-react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface NewsCategoryMenuProps {
   currentCategory?: string
@@ -77,6 +78,7 @@ const categories = [
 export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCategoryMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const { isDarkMode, toggleTheme } = useTheme()
 
   // Close dropdown when clicking outside and manage body scroll
   useEffect(() => {
@@ -106,116 +108,123 @@ export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCatego
       {/* Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md hover:shadow-blue-500/20 hover:ring-1 hover:ring-blue-500/20 rounded-lg transition-all duration-300 group font-medium"
+        className="flex items-center space-x-2 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 group font-medium"
       >
-        <currentCategoryData.icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+        <currentCategoryData.icon className="w-4 h-4" />
         <span className="font-medium">{currentCategoryData.name}</span>
         <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Slide-in Menu Overlay */}
+      {/* Modern Slide-in Menu */}
       {isOpen && (
         <div className="fixed inset-0 z-50">
           {/* Backdrop */}
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Slide-in Menu */}
-          <div className={`absolute right-0 top-0 h-full w-96 max-w-[90vw] bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out ${
-            isOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}>
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-300 ease-in-out">
             <div className="h-full flex flex-col">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                  News Categories
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Menu
                 </h2>
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 >
-                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
 
-              {/* Categories List */}
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="space-y-2">
-                  {categories.map((category) => {
-                    const IconComponent = category.icon
-                    const isActive = category.id === currentCategory
-                    
-                    return (
-                      <Link
-                        key={category.id}
-                        href={category.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`flex items-start space-x-4 p-4 rounded-xl transition-all duration-200 group ${
-                          isActive
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`p-3 rounded-xl ${
-                          isActive
-                            ? 'bg-blue-100 dark:bg-blue-800/30'
-                            : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20'
-                        } transition-colors duration-200`}>
-                          <IconComponent className={`w-5 h-5 ${
+              {/* Navigation Items */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="p-4 space-y-1">
+                  {/* Charts Link */}
+                  <Link
+                    href="/charts"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors group"
+                  >
+                    <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
+                      <BarChart3 className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Charts</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Crypto price charts</div>
+                    </div>
+                  </Link>
+
+                  {/* Theme Toggle */}
+                  <button
+                    onClick={toggleTheme}
+                    className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors group"
+                  >
+                    <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
+                      {isDarkMode ? (
+                        <Sun className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                      ) : (
+                        <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Toggle theme</div>
+                    </div>
+                  </button>
+
+                  {/* Divider */}
+                  <div className="my-4 border-t border-slate-100 dark:border-slate-800"></div>
+
+                  {/* Categories */}
+                  <div className="space-y-1">
+                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      News Categories
+                    </div>
+                    {categories.map((category) => {
+                      const IconComponent = category.icon
+                      const isActive = category.id === currentCategory
+                      
+                      return (
+                        <Link
+                          key={category.id}
+                          href={category.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group ${
                             isActive
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
-                          } transition-colors duration-200`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-semibold text-lg ${
+                              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                              : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          <div className={`p-2 rounded-lg transition-colors ${
                             isActive
-                              ? 'text-blue-700 dark:text-blue-300'
-                              : 'text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300'
-                          } transition-colors duration-200`}>
-                            {category.name}
+                              ? 'bg-blue-100 dark:bg-blue-800/30'
+                              : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20'
+                          }`}>
+                            <IconComponent className={`w-4 h-4 transition-colors ${
+                              isActive
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                            }`} />
                           </div>
-                          <div className={`text-sm mt-1 ${
-                            isActive
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
-                          } transition-colors duration-200`}>
-                            {category.description}
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-medium ${
+                              isActive
+                                ? 'text-blue-700 dark:text-blue-300'
+                                : 'text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300'
+                            }`}>
+                              {category.name}
+                            </div>
                           </div>
-                        </div>
-                        {isActive && (
-                          <div className="w-3 h-3 bg-blue-600 dark:bg-blue-400 rounded-full mt-2 flex-shrink-0"></div>
-                        )}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-              
-              {/* Footer */}
-              <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-6">
-                <div className="text-center">
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                    Stay updated with the latest crypto news
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1 px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-                    >
-                      Close
-                    </button>
-                    <Link
-                      href="/"
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
-                    >
-                      View All News
-                    </Link>
+                          {isActive && (
+                            <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                          )}
+                        </Link>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
