@@ -360,7 +360,7 @@ async function fetchAndStoreArticles() {
               data: {
                 name: feed.source,
                 url: feed.url,
-                category: feed.categories[0], // Use first category as primary
+                primaryCategory: feed.categories[0].toUpperCase() as any, // Use first category as primary
                 isActive: true
               }
             })

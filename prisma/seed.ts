@@ -144,12 +144,12 @@ async function main() {
       where: { url: source.url },
       update: {
         name: source.source,
-        category: source.category
+        primaryCategory: source.category.toUpperCase() as any
       },
       create: {
         name: source.source,
         url: source.url,
-        category: source.category
+        primaryCategory: source.category.toUpperCase() as any
       },
     })
   }
