@@ -66,16 +66,37 @@ async function getCategoryArticles(category: string, page: number = 1) {
 
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
-      where: { category: categoryFilter },
+      where: {
+        categories: {
+          some: {
+            category: {
+              slug: category?.toLowerCase() || 'bitcoin'
+            }
+          }
+        }
+      },
       orderBy: { publishedAt: 'desc' },
       skip,
       take: limit,
       include: {
-        source: true
+        source: true,
+        categories: {
+          include: {
+            category: true
+          }
+        }
       }
     }),
     prisma.article.count({
-      where: { category: categoryFilter }
+      where: {
+        categories: {
+          some: {
+            category: {
+              slug: category?.toLowerCase() || 'bitcoin'
+            }
+          }
+        }
+      }
     })
   ])
 
