@@ -12,21 +12,28 @@ async function startup() {
     // Run database migration
     console.log('📊 Running database migration...')
     try {
-      execSync('npx tsx scripts/run-long-term-migration.ts', { stdio: 'inherit' })
-      console.log('✅ Database migration completed')
+      // First try the simple migration
+      execSync('npx tsx scripts/run-migration-now.ts', { stdio: 'inherit' })
+      console.log('✅ Simple migration completed')
     } catch (error) {
-      console.log('⚠️  Long-term migration failed, trying Prisma migration...')
+      console.log('⚠️  Simple migration failed, trying long-term migration...')
       try {
-        execSync('npx prisma migrate deploy', { stdio: 'inherit' })
-        console.log('✅ Prisma migration completed')
-      } catch (migrateError) {
-        console.log('⚠️  Prisma migration failed, trying db push...')
+        execSync('npx tsx scripts/run-long-term-migration.ts', { stdio: 'inherit' })
+        console.log('✅ Long-term migration completed')
+      } catch (longTermError) {
+        console.log('⚠️  Long-term migration failed, trying Prisma migration...')
         try {
-          execSync('npx prisma db push', { stdio: 'inherit' })
-          console.log('✅ Database schema updated with db push')
-        } catch (pushError) {
-          console.error('❌ All migration methods failed:', pushError)
-          // Don't exit, let the app try to start anyway
+          execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+          console.log('✅ Prisma migration completed')
+        } catch (migrateError) {
+          console.log('⚠️  Prisma migration failed, trying db push...')
+          try {
+            execSync('npx prisma db push', { stdio: 'inherit' })
+            console.log('✅ Database schema updated with db push')
+          } catch (pushError) {
+            console.error('❌ All migration methods failed:', pushError)
+            // Don't exit, let the app try to start anyway
+          }
         }
       }
     }

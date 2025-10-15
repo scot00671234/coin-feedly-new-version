@@ -8,8 +8,12 @@ async function runMigrationNow() {
     
     // Step 1: Add primaryCategory column if it doesn't exist
     console.log('📝 Adding primaryCategory column...')
-    await prisma.$executeRaw`ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "primaryCategory" TEXT;`
-    console.log('✅ primaryCategory column added')
+    try {
+      await prisma.$executeRaw`ALTER TABLE "articles" ADD COLUMN IF NOT EXISTS "primaryCategory" TEXT;`
+      console.log('✅ primaryCategory column added')
+    } catch (error) {
+      console.log('⚠️  Column might already exist, continuing...')
+    }
     
     // Step 2: Copy category to primaryCategory
     console.log('📝 Copying category values to primaryCategory...')
