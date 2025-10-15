@@ -71,28 +71,52 @@ interface ArticlePageProps {
 async function getArticle(slug: string) {
   console.log(`🔍 Looking for article with slug: ${slug}`)
   
-  // Convert slug back to title for search
-  const titleFromSlug = slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-  
-  console.log(`🔍 Searching for title: ${titleFromSlug}`)
-  
-  // Fetch articles from the news API
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=100`, {
+    // First try to fetch from the article API using the slug
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/article/${slug}`, {
       cache: 'no-store'
     })
     
-    if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json()
+      console.log(`✅ Found article in database: ${data.article.title}`)
+      
+      // Fetch external article content if we have a URL
+      let externalContent = null
+      if (data.article.url) {
+        externalContent = await fetchArticleContent(data.article.url)
+      }
+      
+      return {
+        article: data.article,
+        relatedArticles: data.relatedArticles || [],
+        externalContent
+      }
+    }
+    
+    // If not found in database, try to find by title match in news API
+    console.log(`❌ Article not found in database, searching news API...`)
+    
+    const newsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=100`, {
+      cache: 'no-store'
+    })
+    
+    if (!newsResponse.ok) {
       throw new Error('Failed to fetch articles')
     }
     
-    const data = await response.json()
-    const articles = data.articles || []
+    const newsData = await newsResponse.json()
+    const articles = newsData.articles || []
     
-    console.log(`📊 Fetched ${articles.length} articles from API`)
+    console.log(`📊 Fetched ${articles.length} articles from news API`)
+    
+    // Convert slug back to title for search
+    const titleFromSlug = slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    
+    console.log(`🔍 Searching for title: ${titleFromSlug}`)
     
     // Find article by title match
     const article = articles.find((art: any) => 
@@ -101,7 +125,7 @@ async function getArticle(slug: string) {
     )
     
     if (article) {
-      console.log(`✅ Found article: ${article.title}`)
+      console.log(`✅ Found article in news API: ${article.title}`)
       
       // Fetch external article content if we have a URL
       let externalContent = null
@@ -122,7 +146,7 @@ async function getArticle(slug: string) {
     }
     
   } catch (error) {
-    console.error('Error fetching articles:', error)
+    console.error('Error fetching article:', error)
     return null
   }
 }
@@ -143,7 +167,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   return {
     title: `${title} | Coin Feedly`,
     description,
-    keywords: article.keywords.join(', '),
+    keywords: article.keywords ? article.keywords.join(', ') : '',
     openGraph: {
       title: `${title} | Coin Feedly`,
       description,
@@ -199,7 +223,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       '@type': 'WebPage',
       '@id': `https://coinfeedly.com/article/${article.slug}`
     },
-    keywords: article.keywords.join(', '),
+    keywords: article.keywords ? article.keywords.join(', ') : '',
     wordCount: article.content ? article.content.split(' ').length : 0,
     timeRequired: article.readingTime ? `PT${article.readingTime}M` : undefined,
     about: {

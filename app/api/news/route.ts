@@ -3,6 +3,17 @@ import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
 import { getRandomCryptoImage } from '@/lib/crypto-images'
 
+// Generate slug from title
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim()
+    .substring(0, 100)
+}
+
 export const dynamic = 'force-dynamic'
 
 const RSS_FEEDS = [
@@ -57,10 +68,11 @@ export async function GET(request: NextRequest) {
         )
       }
 
-      // Ensure all articles have images
+      // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map(article => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        slug: article.slug || generateSlug(article.title)
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -152,10 +164,11 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Ensure all articles have images
+      // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map(article => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        slug: article.slug || generateSlug(article.title)
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -165,10 +178,11 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Ensure all articles have images (add fallback if missing)
+    // Ensure all articles have images and slugs (add fallback if missing)
     const articlesWithImages = articles.map(article => ({
       ...article,
-      imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+      imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+      slug: article.slug || generateSlug(article.title)
     }))
 
     return NextResponse.json(articlesWithImages, {
@@ -208,10 +222,11 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Ensure all articles have images
+      // Ensure all articles have images and slugs
       const articlesWithImages = filteredArticles.map(article => ({
         ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title)
+        imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
+        slug: article.slug || generateSlug(article.title)
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -280,6 +295,9 @@ async function fetchAndStoreArticles() {
             })
           }
           
+          // Generate slug for the article
+          const articleSlug = generateSlug(item.title || 'untitled')
+          
           // Create article in database
           const article = await prisma.article.create({
             data: {
@@ -287,6 +305,7 @@ async function fetchAndStoreArticles() {
               description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
               content: item.content || item.description || '',
               url: item.link || '',
+              slug: articleSlug,
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
               imageUrl,
               category: feed.category.toUpperCase(),
