@@ -33,7 +33,7 @@ async function migrateToMultiCategory() {
     const articles = await prisma.article.findMany({
       select: {
         id: true,
-        category: true
+        primaryCategory: true
       }
     })
     
@@ -47,8 +47,8 @@ async function migrateToMultiCategory() {
         const category = await prisma.category.findFirst({
           where: { 
             OR: [
-              { name: article.category.toUpperCase() },
-              { slug: article.category.toLowerCase() }
+              { name: article.primaryCategory?.toUpperCase() },
+              { slug: article.primaryCategory?.toLowerCase() }
             ]
           }
         })
