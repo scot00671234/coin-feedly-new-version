@@ -11,7 +11,12 @@ export async function GET(
     const article = await prisma.article.findUnique({
       where: { slug },
       include: {
-        source: true
+        source: true,
+        categories: {
+          include: {
+            category: true
+          }
+        }
       }
     })
 
@@ -22,11 +27,17 @@ export async function GET(
       )
     }
 
-    // Get related articles
+    // Get related articles based on shared categories
     const relatedArticles = await prisma.article.findMany({
       where: {
-        category: article.category,
-        id: { not: article.id }
+        id: { not: article.id },
+        categories: {
+          some: {
+            categoryId: {
+              in: article.categories.map(ac => ac.categoryId)
+            }
+          }
+        }
       },
       orderBy: { publishedAt: 'desc' },
       take: 6,
@@ -38,6 +49,7 @@ export async function GET(
         imageUrl: true,
         publishedAt: true,
         readingTime: true,
+        primaryCategory: true,
         source: {
           select: {
             name: true
