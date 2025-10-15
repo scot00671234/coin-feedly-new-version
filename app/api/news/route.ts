@@ -459,8 +459,15 @@ async function updateArticleCategories(articleId: string, categories: string[]) 
     
     // Add new category associations
     for (const category of categoryRecords) {
-      await prisma.articleCategory.create({
-        data: {
+      await prisma.articleCategory.upsert({
+        where: {
+          articleId_categoryId: {
+            articleId,
+            categoryId: category.id
+          }
+        },
+        update: {},
+        create: {
           articleId,
           categoryId: category.id
         }
