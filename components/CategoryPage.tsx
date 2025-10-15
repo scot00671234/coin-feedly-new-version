@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Article } from '@/types'
-import Header from './Header'
+import UnifiedHeader from './UnifiedHeader'
 import CryptoPriceTicker from './CryptoPriceTicker'
 import NewsFeed from './NewsFeed'
 import Footer from './Footer'
@@ -55,7 +55,7 @@ export default function CategoryPage({ category, articles: initialArticles }: Ca
 
   return (
     <main className="min-h-screen">
-      <Header 
+      <UnifiedHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />

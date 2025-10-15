@@ -82,33 +82,10 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
           {/* Desktop Navigation - Moved to right */}
           <div className="hidden md:flex items-center space-x-1">
             <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
-            <Link
-              href="/charts"
-              className={`px-4 py-2 font-medium transition-colors duration-200 ${
-                isActive('/charts') 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Charts
-            </Link>
           </div>
 
           {/* Right side elements */}
           <div className="flex items-center space-x-2">
-            {/* Theme Toggle */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-md hover:shadow-blue-500/10 hover:ring-1 hover:ring-blue-500/10 rounded-full transition-all duration-300 group"
-              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-              ) : (
-                <Moon className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-              )}
-            </button>
-
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -123,24 +100,11 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
         {isMenuOpen && (
           <div className="md:hidden border-t border-slate-200 dark:border-slate-800 py-4">
             <div className="space-y-2">
-              {/* Mobile News Category Menu */}
+              {/* Mobile Navigation Menu */}
               <div className="px-4 py-2">
-                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">News Categories</div>
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Navigation</div>
                 <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
               </div>
-              
-              {/* Mobile Navigation Links */}
-              <Link
-                href="/charts"
-                onClick={() => setIsMenuOpen(false)}
-                className={`px-6 py-3 font-medium transition-colors duration-200 ${
-                  isActive('/charts') 
-                    ? 'text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 dark:border-blue-400' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                Charts
-              </Link>
 
               {/* Mobile Search */}
               <div className="px-4 py-2">
