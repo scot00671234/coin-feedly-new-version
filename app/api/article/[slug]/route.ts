@@ -14,7 +14,7 @@ export async function GET(
         source: true,
         categories: {
           include: {
-            category: true
+            primaryCategory: true
           }
         }
       }

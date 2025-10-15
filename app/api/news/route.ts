@@ -94,9 +94,7 @@ export async function GET(request: NextRequest) {
     if (category && category !== 'all') {
       whereClause.categories = {
         some: {
-          category: {
-            slug: category.toLowerCase()
-          }
+          slug: category.toLowerCase()
         }
       }
     }
@@ -134,7 +132,7 @@ export async function GET(request: NextRequest) {
         source: true,
         categories: {
           include: {
-            category: true
+            primaryCategory: true
           }
         }
       },
@@ -316,7 +314,7 @@ async function fetchAndStoreArticles() {
             include: {
               categories: {
                 include: {
-                  category: true
+                  primaryCategory: true
                 }
               }
             }
