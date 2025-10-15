@@ -22,7 +22,7 @@ export async function GET() {
         slug: true,
         updatedAt: true,
         publishedAt: true,
-        category: true
+        primaryCategory: true
       },
       orderBy: { publishedAt: 'desc' }
     })

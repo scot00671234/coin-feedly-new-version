@@ -10,8 +10,13 @@ export async function GET() {
         title: true,
         slug: true,
         url: true,
-        category: true,
-        publishedAt: true
+        primaryCategory: true,
+        publishedAt: true,
+        categories: {
+          include: {
+            category: true
+          }
+        }
       },
       orderBy: {
         publishedAt: 'desc'
@@ -25,7 +30,8 @@ export async function GET() {
         title: article.title,
         slug: article.slug,
         url: article.url,
-        category: article.category,
+        primaryCategory: article.primaryCategory,
+        categories: article.categories.map(ac => ac.category.name),
         publishedAt: article.publishedAt
       }))
     })
