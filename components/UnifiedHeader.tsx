@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Search, Moon, Sun, Menu, X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import NewsCategoryMenu from './NewsCategoryMenu'
 
 interface UnifiedHeaderProps {
   searchQuery: string
@@ -80,16 +81,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
 
           {/* Desktop Navigation - Moved to right */}
           <div className="hidden md:flex items-center space-x-1">
-            <Link
-              href="/"
-              className={`px-4 py-2 font-medium transition-colors duration-200 ${
-                isActive('/') 
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Home
-            </Link>
+            <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
             <Link
               href="/charts"
               className={`px-4 py-2 font-medium transition-colors duration-200 ${
@@ -131,18 +123,13 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
         {isMenuOpen && (
           <div className="md:hidden border-t border-slate-200 dark:border-slate-800 py-4">
             <div className="space-y-2">
+              {/* Mobile News Category Menu */}
+              <div className="px-4 py-2">
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">News Categories</div>
+                <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
+              </div>
+              
               {/* Mobile Navigation Links */}
-              <Link
-                href="/"
-                onClick={() => setIsMenuOpen(false)}
-                className={`px-6 py-3 font-medium transition-colors duration-200 ${
-                  isActive('/') 
-                    ? 'text-blue-600 dark:text-blue-400 border-l-4 border-blue-600 dark:border-blue-400' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                Home
-              </Link>
               <Link
                 href="/charts"
                 onClick={() => setIsMenuOpen(false)}
