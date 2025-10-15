@@ -55,11 +55,16 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => 
-          article.categories?.some(cat => 
-            cat.category.slug === category.toLowerCase()
-          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        )
+        filteredArticles = filteredArticles.filter(article => {
+          // Check if article has categories (database articles)
+          if (article.categories) {
+            return article.categories.some(cat => 
+              cat.category.slug === category.toLowerCase()
+            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+          }
+          // For RSS articles without categories, check primaryCategory
+          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        })
       }
 
       if (search) {
@@ -154,11 +159,16 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => 
-          article.categories?.some(cat => 
-            cat.category.slug === category.toLowerCase()
-          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        )
+        filteredArticles = filteredArticles.filter(article => {
+          // Check if article has categories (database articles)
+          if (article.categories) {
+            return article.categories.some(cat => 
+              cat.category.slug === category.toLowerCase()
+            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+          }
+          // For RSS articles without categories, check primaryCategory
+          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        })
       }
 
       if (search) {
@@ -216,11 +226,16 @@ export async function GET(request: NextRequest) {
       let filteredArticles = fetchedArticles
       
       if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => 
-          article.categories?.some(cat => 
-            cat.category.slug === category.toLowerCase()
-          ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        )
+        filteredArticles = filteredArticles.filter(article => {
+          // Check if article has categories (database articles)
+          if (article.categories) {
+            return article.categories.some(cat => 
+              cat.category.slug === category.toLowerCase()
+            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+          }
+          // For RSS articles without categories, check primaryCategory
+          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        })
       }
 
       if (search) {
