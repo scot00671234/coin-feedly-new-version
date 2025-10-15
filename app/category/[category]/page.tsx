@@ -64,17 +64,26 @@ async function getCategoryArticles(category: string, page: number = 1) {
 
   // Ensure category is valid and uppercase
   const categoryFilter = category?.toUpperCase() || 'BITCOIN'
+  
+  console.log(`🔍 Category filter: ${categoryFilter}, slug: ${category?.toLowerCase()}`)
 
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
       where: {
-        categories: {
-          some: {
-            category: {
-              slug: category?.toLowerCase() || 'bitcoin'
+        OR: [
+          {
+            categories: {
+              some: {
+                category: {
+                  slug: category?.toLowerCase() || 'bitcoin'
+                }
+              }
             }
+          },
+          {
+            primaryCategory: categoryFilter
           }
-        }
+        ]
       },
       orderBy: { publishedAt: 'desc' },
       skip,
@@ -104,16 +113,28 @@ async function getCategoryArticles(category: string, page: number = 1) {
     }),
     prisma.article.count({
       where: {
-        categories: {
-          some: {
-            category: {
-              slug: category?.toLowerCase() || 'bitcoin'
+        OR: [
+          {
+            categories: {
+              some: {
+                category: {
+                  slug: category?.toLowerCase() || 'bitcoin'
+                }
+              }
             }
+          },
+          {
+            primaryCategory: categoryFilter
           }
-        }
+        ]
       }
     })
   ])
+
+  console.log(`📊 Found ${articles.length} articles for category ${categoryFilter}`)
+  if (articles.length > 0) {
+    console.log(`📝 Sample article: ${articles[0].title} - Primary: ${articles[0].primaryCategory}`)
+  }
 
   return { articles, total, pages: Math.ceil(total / limit) }
 }
