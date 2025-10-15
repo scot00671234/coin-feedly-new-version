@@ -44,9 +44,9 @@ async function enhanceArticlesWithSEO() {
       try {
         // Generate SEO data
         const slug = generateSlug(article.title)
-        const seoTitle = generateSEOTitle(article.title, article.category)
-        const seoDescription = generateSEODescription(article.description || '', article.category)
-        const keywords = generateKeywords(article.title, article.category, article.description || '')
+        const seoTitle = generateSEOTitle(article.title, article.primaryCategory || 'bitcoin')
+        const seoDescription = generateSEODescription(article.description || '', article.primaryCategory || 'bitcoin')
+        const keywords = generateKeywords(article.title, article.primaryCategory || 'bitcoin', article.description || '')
         const readingTime = article.content ? calculateReadingTime(article.content) : null
 
         // Update article with SEO data (handle missing columns gracefully)
