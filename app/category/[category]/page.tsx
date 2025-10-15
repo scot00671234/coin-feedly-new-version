@@ -155,7 +155,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full">
-                      {article.category}
+                      {article.primaryCategory || 'News'}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       {article.source.name}

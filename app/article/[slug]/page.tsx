@@ -231,7 +231,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     timeRequired: article.readingTime ? `PT${article.readingTime}M` : undefined,
     about: {
       '@type': 'Thing',
-      name: article.category
+      name: article.primaryCategory || 'News'
     }
   }
 
@@ -368,7 +368,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     <ul className="space-y-2 text-gray-600 dark:text-gray-300">
                       <li className="flex items-start gap-2">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Stay updated with the latest {article.category.toLowerCase()} news and market analysis</span>
+                        <span>Stay updated with the latest {article.primaryCategory?.toLowerCase() || 'crypto'} news and market analysis</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
