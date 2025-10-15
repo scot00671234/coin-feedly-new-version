@@ -14,6 +14,24 @@
   display: none;
 }
 
+/* Bloomberg-style ticker animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 60s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
 @layer base {
   * {
     @apply border-dark-700;

@@ -8,8 +8,6 @@ interface HeaderTickerProps {
 }
 
 export default function HeaderTicker({ prices }: HeaderTickerProps) {
-  const [currentIndex, setCurrentIndex] = useState(0)
-
   // Ensure prices is an array
   const pricesArray = Array.isArray(prices) ? prices : []
   
@@ -21,16 +19,6 @@ export default function HeaderTicker({ prices }: HeaderTickerProps) {
       console.log('First price object:', pricesArray[0])
     }
   }, [prices, pricesArray])
-
-  useEffect(() => {
-    if (pricesArray.length === 0) return
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % pricesArray.length)
-    }, 3000) // Change every 3 seconds
-
-    return () => clearInterval(interval)
-  }, [pricesArray.length])
 
   if (pricesArray.length === 0) {
     return (
@@ -45,8 +33,6 @@ export default function HeaderTicker({ prices }: HeaderTickerProps) {
       </div>
     )
   }
-
-  const currentPrice = pricesArray[currentIndex]
 
   const formatPrice = (price: number) => {
     // Handle undefined, null, or invalid price values
@@ -75,11 +61,14 @@ export default function HeaderTicker({ prices }: HeaderTickerProps) {
     return `${sign}${change.toFixed(2)}%`
   }
 
+  // Create a duplicated array for seamless scrolling
+  const duplicatedPrices = [...pricesArray, ...pricesArray]
+
   return (
-    <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-        <div className="flex items-center justify-center space-x-8 overflow-hidden">
-          {pricesArray.slice(0, 8).map((price, index) => {
+    <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="py-2">
+        <div className="flex items-center space-x-8 animate-scroll">
+          {duplicatedPrices.map((price, index) => {
             // Skip if price object is invalid or missing required properties
             if (!price || !price.symbol) {
               return null
@@ -87,12 +76,8 @@ export default function HeaderTicker({ prices }: HeaderTickerProps) {
             
             return (
               <div
-                key={price.symbol}
-                className={`flex items-center space-x-2 whitespace-nowrap transition-all duration-500 ${
-                  index === currentIndex 
-                    ? 'opacity-100 scale-105' 
-                    : 'opacity-60 scale-95'
-                }`}
+                key={`${price.symbol}-${index}`}
+                className="flex items-center space-x-2 whitespace-nowrap"
               >
                 <div className="flex items-center space-x-2">
                   <span className="font-semibold text-slate-900 dark:text-white">
