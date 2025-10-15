@@ -132,7 +132,13 @@ export async function GET(request: NextRequest) {
         source: true,
         categories: {
           include: {
-            category: true
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
           }
         }
       },
@@ -314,7 +320,13 @@ async function fetchAndStoreArticles() {
             include: {
               categories: {
                 include: {
-                  category: true
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true
+                    }
+                  }
                 }
               }
             }

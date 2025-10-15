@@ -14,7 +14,13 @@ export async function GET(
         source: true,
         categories: {
           include: {
-            category: true
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
           }
         }
       }

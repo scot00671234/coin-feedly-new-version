@@ -82,7 +82,13 @@ async function getCategoryArticles(category: string, page: number = 1) {
         source: true,
         categories: {
           include: {
-            category: true
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
           }
         }
       }
