@@ -62,8 +62,8 @@ async function getCategoryArticles(category: string, page: number = 1) {
   const limit = 12
   const skip = (page - 1) * limit
 
-  // Ensure category is valid and uppercase
-  const categoryFilter = category?.toUpperCase() || 'BITCOIN'
+  // Ensure category is valid and uppercase, cast to CategoryType
+  const categoryFilter = (category?.toUpperCase() || 'BITCOIN') as any
   
   console.log(`🔍 Category filter: ${categoryFilter}, slug: ${category?.toLowerCase()}`)
 
