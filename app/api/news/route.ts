@@ -314,7 +314,7 @@ async function fetchAndStoreArticles() {
             include: {
               categories: {
                 include: {
-                  primaryCategory: true
+                  category: true
                 }
               }
             }
