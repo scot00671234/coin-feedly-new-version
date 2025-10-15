@@ -129,7 +129,7 @@ export async function GET() {
                 slug: uniqueSlug,
                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
                 imageUrl,
-                primaryCategory: feed.categories[0].toUpperCase(),
+                primaryCategory: feed.categories[0].toUpperCase() as any,
                 sourceId: source.id
               }
             })
