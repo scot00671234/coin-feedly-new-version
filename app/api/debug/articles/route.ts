@@ -14,7 +14,7 @@ export async function GET() {
         publishedAt: true,
         categories: {
           include: {
-            primaryCategory: true
+            category: true
           }
         }
       },
