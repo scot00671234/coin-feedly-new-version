@@ -92,18 +92,29 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {}
     
     if (category && category !== 'all') {
-      whereClause.categories = {
-        some: {
-          slug: category.toLowerCase()
+      whereClause.OR = [
+        // Check through category relationships
+        {
+          categories: {
+            some: {
+              category: {
+                slug: category.toLowerCase()
+              }
+            }
+          }
+        },
+        // Fallback to primaryCategory field
+        {
+          primaryCategory: category.toUpperCase()
         }
-      }
+      ]
     }
 
     if (search) {
       // Enhanced search with better relevance
       const searchTerms = search.toLowerCase().split(' ').filter(term => term.length > 0)
       
-      whereClause.OR = [
+      const searchConditions = [
         // Exact title matches get highest priority
         { title: { contains: search, mode: 'insensitive' } },
         // Individual word matches in title
@@ -113,6 +124,17 @@ export async function GET(request: NextRequest) {
         // Individual word matches in description
         ...searchTerms.map(term => ({ description: { contains: term, mode: 'insensitive' } }))
       ]
+      
+      if (whereClause.OR) {
+        // If we already have category filters, combine them with search
+        whereClause.AND = [
+          { OR: whereClause.OR },
+          { OR: searchConditions }
+        ]
+        delete whereClause.OR
+      } else {
+        whereClause.OR = searchConditions
+      }
     }
 
     // Determine sort order
@@ -126,6 +148,8 @@ export async function GET(request: NextRequest) {
       orderBy.publishedAt = 'desc' // newest
     }
 
+    console.log('Database query whereClause:', JSON.stringify(whereClause, null, 2))
+    
     const articles = await prisma.article.findMany({
       where: whereClause,
       include: {
@@ -146,6 +170,12 @@ export async function GET(request: NextRequest) {
       skip: offset,
       take: limit
     })
+    
+    console.log(`Found ${articles.length} articles for category: ${category}`)
+    if (articles.length > 0) {
+      console.log('First article categories:', articles[0].categories)
+      console.log('First article primaryCategory:', articles[0].primaryCategory)
+    }
 
     console.log(`Found ${articles.length} articles in database for page ${page}`)
     console.log('Sample article imageUrl:', articles[0]?.imageUrl || 'No image')
