@@ -172,8 +172,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
       title: `${title} | Coin Feedly`,
       description,
       type: 'article',
-      publishedTime: article.publishedAt.toISOString(),
-      modifiedTime: article.updatedAt.toISOString(),
+      publishedTime: new Date(article.publishedAt).toISOString(),
+      modifiedTime: new Date(article.updatedAt).toISOString(),
       authors: article.author ? [article.author] : [article.source.name],
       images: article.featuredImage || article.imageUrl ? [article.featuredImage || article.imageUrl!] : [],
       siteName: 'Coin Feedly',
@@ -217,8 +217,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         url: 'https://coinfeedly.com/icon.svg'
       }
     },
-    datePublished: article.publishedAt.toISOString(),
-    dateModified: article.updatedAt.toISOString(),
+    datePublished: new Date(article.publishedAt).toISOString(),
+    dateModified: new Date(article.updatedAt).toISOString(),
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': `https://coinfeedly.com/article/${article.slug}`

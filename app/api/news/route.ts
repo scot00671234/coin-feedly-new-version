@@ -69,10 +69,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map(article => ({
+      const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
         imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
-        slug: article.slug || generateSlug(article.title)
+        slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -165,10 +165,10 @@ export async function GET(request: NextRequest) {
       })
 
       // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map(article => ({
+      const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
         imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
-        slug: article.slug || generateSlug(article.title)
+        slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -179,10 +179,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Ensure all articles have images and slugs (add fallback if missing)
-    const articlesWithImages = articles.map(article => ({
+    const articlesWithImages = articles.map((article, index) => ({
       ...article,
       imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
-      slug: article.slug || generateSlug(article.title)
+      slug: article.slug || `${generateSlug(article.title)}-${index}`
     }))
 
     return NextResponse.json(articlesWithImages, {
@@ -223,10 +223,10 @@ export async function GET(request: NextRequest) {
       })
 
       // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map(article => ({
+      const articlesWithImages = filteredArticles.map((article, index) => ({
         ...article,
         imageUrl: article.imageUrl || getRandomCryptoImage(article.category, article.title),
-        slug: article.slug || generateSlug(article.title)
+        slug: article.slug || `${generateSlug(article.title)}-${index}`
       }))
 
       return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
@@ -269,13 +269,30 @@ async function fetchAndStoreArticles() {
           
           const imageUrl = extractImageUrl(item)
           
-          // Check if article already exists
+          // Check if article already exists by URL
           const existingArticle = await prisma.article.findFirst({
             where: { url: item.link || '' }
           })
           
           if (existingArticle) {
             console.log(`Article already exists: ${item.title}`)
+            // Update the existing article with new data if needed
+            try {
+              await prisma.article.update({
+                where: { id: existingArticle.id },
+                data: {
+                  title: item.title || existingArticle.title,
+                  description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || existingArticle.description,
+                  content: item.content || item.description || existingArticle.content,
+                  publishedAt: item.pubDate ? new Date(item.pubDate) : existingArticle.publishedAt,
+                  imageUrl: imageUrl || existingArticle.imageUrl,
+                  updatedAt: new Date()
+                }
+              })
+              console.log(`✅ Updated existing article: ${item.title}`)
+            } catch (updateError) {
+              console.error(`Error updating existing article: ${updateError}`)
+            }
             continue
           }
           
@@ -296,7 +313,15 @@ async function fetchAndStoreArticles() {
           }
           
           // Generate slug for the article
-          const articleSlug = generateSlug(item.title || 'untitled')
+          let articleSlug = generateSlug(item.title || 'untitled')
+          
+          // Check if slug already exists and make it unique
+          let counter = 1
+          let uniqueSlug = articleSlug
+          while (await prisma.article.findFirst({ where: { slug: uniqueSlug } })) {
+            uniqueSlug = `${articleSlug}-${counter}`
+            counter++
+          }
           
           // Create article in database
           const article = await prisma.article.create({
@@ -305,7 +330,7 @@ async function fetchAndStoreArticles() {
               description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
               content: item.content || item.description || '',
               url: item.link || '',
-              slug: articleSlug,
+              slug: uniqueSlug,
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
               imageUrl,
               category: feed.category.toUpperCase(),
