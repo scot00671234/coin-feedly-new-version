@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Globe, Image, Gamepad2, Box } from 'lucide-react'
+import { ChevronDown, Bitcoin, Coins, Zap, TrendingUp, Image, Gamepad2, Box, Newspaper } from 'lucide-react'
 
 interface NewsCategoryMenuProps {
   currentCategory?: string
@@ -12,7 +12,7 @@ const categories = [
   { 
     id: 'all', 
     name: 'All News', 
-    icon: Globe,
+    icon: Newspaper,
     description: 'Latest crypto news from all categories',
     href: '/'
   },
@@ -99,7 +99,7 @@ export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCatego
       {/* Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-md hover:shadow-blue-500/10 hover:ring-1 hover:ring-blue-500/10 rounded-lg transition-all duration-300 group"
+        className="flex items-center space-x-2 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md hover:shadow-blue-500/20 hover:ring-1 hover:ring-blue-500/20 rounded-lg transition-all duration-300 group font-medium"
       >
         <currentCategoryData.icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
         <span className="font-medium">{currentCategoryData.name}</span>
@@ -108,7 +108,7 @@ export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCatego
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50 backdrop-blur-xl">
           <div className="p-2">
             {categories.map((category) => {
               const IconComponent = category.icon
