@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
+import SortFilter from '@/components/SortFilter'
 
 interface CategoryPageClientProps {
   articles: any[]
@@ -12,6 +14,40 @@ interface CategoryPageClientProps {
 }
 
 export default function CategoryPageClient({ articles, categoryName, category, page, pages }: CategoryPageClientProps) {
+  const [sortedArticles, setSortedArticles] = useState(articles)
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'relevant'>('newest')
+  const [loading, setLoading] = useState(false)
+
+  // Update sorted articles when sort changes
+  useEffect(() => {
+    setLoading(true)
+    
+    const sorted = [...articles].sort((a, b) => {
+      const dateA = new Date(a.publishedAt)
+      const dateB = new Date(b.publishedAt)
+      
+      switch (sortBy) {
+        case 'oldest':
+          return dateA.getTime() - dateB.getTime()
+        case 'newest':
+          return dateB.getTime() - dateA.getTime()
+        case 'relevant':
+          // For relevance, we'll use a combination of view count and recency
+          const viewScoreA = (a.viewCount || 0) * 0.3
+          const viewScoreB = (b.viewCount || 0) * 0.3
+          const recencyScoreA = (Date.now() - dateA.getTime()) / (1000 * 60 * 60 * 24) // days ago
+          const recencyScoreB = (Date.now() - dateB.getTime()) / (1000 * 60 * 60 * 24)
+          const relevanceScoreA = viewScoreA + (1 / (recencyScoreA + 1)) * 0.7
+          const relevanceScoreB = viewScoreB + (1 / (recencyScoreB + 1)) * 0.7
+          return relevanceScoreB - relevanceScoreA
+        default:
+          return dateB.getTime() - dateA.getTime()
+      }
+    })
+    
+    setSortedArticles(sorted)
+    setLoading(false)
+  }, [articles, sortBy])
   const getCategoryClass = (category: string) => {
     switch (category) {
       case 'bitcoin':
@@ -39,7 +75,7 @@ export default function CategoryPageClient({ articles, categoryName, category, p
       
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             {categoryName} News & Analysis
           </h1>
@@ -49,9 +85,28 @@ export default function CategoryPageClient({ articles, categoryName, category, p
           </p>
         </div>
 
+        {/* Sort Filter */}
+        <div className="flex justify-center mb-8">
+          <SortFilter sortBy={sortBy} setSortBy={setSortBy} />
+        </div>
+
         {/* Articles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {articles.map((article) => (
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden animate-pulse">
+                <div className="aspect-video bg-gray-200 dark:bg-gray-700"></div>
+                <div className="p-6">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-3/4"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))
+          ) : sortedArticles.length > 0 ? (
+            sortedArticles.map((article) => (
             <Link key={article.id} href={`/article/${article.slug || article.id}`}>
               <article className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden cursor-pointer group">
                 {article.imageUrl && (
@@ -97,7 +152,13 @@ export default function CategoryPageClient({ articles, categoryName, category, p
                 </div>
               </article>
             </Link>
-          ))}
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="text-gray-500 dark:text-gray-400 text-lg mb-4">No articles found</div>
+              <div className="text-gray-400 dark:text-gray-500">Try adjusting your search or filter criteria</div>
+            </div>
+          )}
         </div>
 
         {/* Pagination */}
