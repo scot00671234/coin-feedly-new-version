@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       if (category && category !== 'all') {
         filteredArticles = filteredArticles.filter(article => {
           // Check if article has categories (database articles)
-          if ('categories' in article && article.categories) {
+          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
             return article.categories.some(cat => 
               cat.category.slug === category.toLowerCase()
             ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       if (category && category !== 'all') {
         filteredArticles = filteredArticles.filter(article => {
           // Check if article has categories (database articles)
-          if ('categories' in article && article.categories) {
+          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
             return article.categories.some(cat => 
               cat.category.slug === category.toLowerCase()
             ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
       if (category && category !== 'all') {
         filteredArticles = filteredArticles.filter(article => {
           // Check if article has categories (database articles)
-          if ('categories' in article && article.categories) {
+          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
             return article.categories.some(cat => 
               cat.category.slug === category.toLowerCase()
             ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
