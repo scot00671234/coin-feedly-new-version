@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Article } from '@/types'
 import { formatDistanceToNow } from 'date-fns'
 import { ExternalLink, Clock, Tag, Image as ImageIcon } from 'lucide-react'
 import { getImageUrl, getCryptoPlaceholderImage } from '@/lib/image-utils'
-import ArticleModal from './ArticleModal'
 
 interface NewsCardProps {
   article: Article
@@ -13,7 +13,6 @@ interface NewsCardProps {
 
 export default function NewsCard({ article }: NewsCardProps) {
   const [imageError, setImageError] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   
   const getCategoryClass = (category: string) => {
     switch (category) {
@@ -54,11 +53,8 @@ export default function NewsCard({ article }: NewsCardProps) {
   console.log(`Article "${article.title.substring(0, 30)}..." - Original imageUrl: ${article.imageUrl}, Final imageUrl: ${imageUrl}`)
 
   return (
-    <>
-      <article 
-        onClick={() => setIsModalOpen(true)}
-        className="bg-slate-200/40 dark:bg-slate-800/40 hover:bg-slate-300/40 dark:hover:bg-slate-700/40 border border-slate-300/50 dark:border-slate-700/50 hover:border-slate-400/50 dark:hover:border-slate-600/50 rounded-xl p-6 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl group"
-      >
+    <Link href={`/article/${articleSlug}`}>
+      <article className="bg-slate-200/40 dark:bg-slate-800/40 hover:bg-slate-300/40 dark:hover:bg-slate-700/40 border border-slate-300/50 dark:border-slate-700/50 hover:border-slate-400/50 dark:hover:border-slate-600/50 rounded-xl p-6 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl group">
       {/* Image */}
       <div className="relative h-56 w-full mb-6 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-700">
         {!imageError ? (
@@ -128,13 +124,6 @@ export default function NewsCard({ article }: NewsCardProps) {
         </div>
       </div>
       </article>
-
-      {/* Article Modal */}
-      <ArticleModal
-        article={article}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
-    </>
+    </Link>
   )
 }
