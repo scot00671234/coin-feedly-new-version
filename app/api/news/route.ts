@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     
     if (category && category !== 'all') {
       // Use primaryCategory for filtering (most reliable)
-      whereClause.primaryCategory = category.toUpperCase() as any
+      whereClause.primaryCategory = category.toUpperCase()
       console.log(`📊 Filtering by primaryCategory: ${category.toUpperCase()}`)
     }
 
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       
       // Check articles with primaryCategory
       const articlesWithPrimary = await prisma.article.findMany({
-        where: { primaryCategory: category.toUpperCase() as any },
+        where: { primaryCategory: category.toUpperCase() },
         take: 5
       })
       console.log(`📊 Articles with primaryCategory ${category.toUpperCase()}: ${articlesWithPrimary.length}`)
@@ -415,7 +415,7 @@ async function fetchAndStoreArticles() {
               data: {
                 name: feed.source,
                 url: feed.url,
-                primaryCategory: feed.categories[0].toUpperCase() as any, // Use first category as primary
+                primaryCategory: feed.categories[0].toUpperCase(), // Use first category as primary
                 isActive: true
               }
             })
@@ -442,7 +442,7 @@ async function fetchAndStoreArticles() {
               slug: uniqueSlug,
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
               imageUrl,
-              primaryCategory: feed.categories[0].toUpperCase() as any,
+                primaryCategory: feed.categories[0].toUpperCase(),
               sourceId: source.id
             },
             include: {

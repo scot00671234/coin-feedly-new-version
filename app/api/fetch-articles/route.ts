@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
                 data: {
                   name: feed.source,
                   url: feed.url,
-                  primaryCategory: feed.categories[0].toUpperCase() as any,
+                  primaryCategory: feed.categories[0].toUpperCase(),
                   isActive: true
                 }
               })
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
                 slug: uniqueSlug,
                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
                 imageUrl: imageUrl || getRandomCryptoImage(feed.categories[0], item.title),
-                primaryCategory: feed.categories[0].toUpperCase() as any,
+                primaryCategory: feed.categories[0].toUpperCase(),
                 sourceId: source.id
               },
               include: {
