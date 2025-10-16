@@ -214,8 +214,8 @@ export default function Home() {
         <HeaderTicker prices={cryptoPrices} />
         
         {/* Main Content */}
-        <section className="py-8 relative z-10 w-full">
-          <div className="w-full px-6">
+        <section className="py-8 relative z-10">
+          <div className="container mx-auto px-6 max-w-7xl">
             {/* Filters and Sort */}
             <div className="mb-8">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
