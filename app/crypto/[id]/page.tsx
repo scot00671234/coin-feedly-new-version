@@ -54,18 +54,27 @@ export default function CryptoDetailPage() {
   }
 
   const fetchChartData = async () => {
-    if (!crypto) return
+    if (!crypto) {
+      console.log('No crypto data available for chart')
+      return
+    }
     
     try {
+      console.log('Fetching chart data for:', crypto.id, 'timeframe:', timeframe)
       const days = timeframe === '1d' ? 1 : timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90
+      console.log('Days parameter:', days)
+      
       const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
+      console.log('Raw chart data from API:', data.length, 'points')
+      console.log('Sample raw data:', data.slice(0, 3))
       
       const formattedData = data.map(item => ({
         time: item.timestamp / 1000, // Convert to seconds (number, not string)
         value: item.price
       }))
       
-      console.log('Chart data:', formattedData.slice(0, 5)) // Debug log
+      console.log('Formatted chart data:', formattedData.length, 'points')
+      console.log('Sample formatted data:', formattedData.slice(0, 5))
       setChartData(formattedData)
     } catch (error) {
       console.error('Error fetching chart data:', error)

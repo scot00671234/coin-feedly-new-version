@@ -17,9 +17,18 @@ export default function LightChart({ data, height = 400, width, loading = false 
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    if (!chartContainerRef.current || isInitialized) return
+    console.log('Chart initialization useEffect triggered')
+    console.log('Chart container ref:', !!chartContainerRef.current)
+    console.log('Is initialized:', isInitialized)
+    console.log('Height:', height, 'Width:', width)
+    
+    if (!chartContainerRef.current || isInitialized) {
+      console.log('Skipping chart initialization - container:', !!chartContainerRef.current, 'initialized:', isInitialized)
+      return
+    }
 
     try {
+      console.log('Creating chart...')
       // Create chart
       const chart = createChart(chartContainerRef.current, {
         layout: {
@@ -46,15 +55,21 @@ export default function LightChart({ data, height = 400, width, loading = false 
         height: height,
       })
 
+      console.log('Chart created successfully')
+
       // Create line series with proper typing and error handling
       const lineSeries = (chart as any).addLineSeries({
         color: '#3b82f6',
         lineWidth: 2,
       })
 
+      console.log('Line series created successfully')
+
       chartRef.current = chart
       seriesRef.current = lineSeries
       setIsInitialized(true)
+
+      console.log('Chart initialization complete')
 
       // Handle resize
       const handleResize = () => {
@@ -80,6 +95,11 @@ export default function LightChart({ data, height = 400, width, loading = false 
   }, [height, width, isInitialized])
 
   useEffect(() => {
+    console.log('LightChart useEffect triggered with data:', data.length, 'points')
+    console.log('Series ref exists:', !!seriesRef.current)
+    console.log('Chart ref exists:', !!chartRef.current)
+    console.log('Is initialized:', isInitialized)
+    
     if (seriesRef.current && data.length > 0) {
       try {
         console.log('LightChart: Setting data with', data.length, 'points')
@@ -91,16 +111,20 @@ export default function LightChart({ data, height = 400, width, loading = false 
           value: item.value
         }))
         
+        console.log('Converted chart data:', chartData.slice(0, 3))
         seriesRef.current.setData(chartData as any)
         
         if (chartRef.current) {
           chartRef.current.timeScale().fitContent()
         }
+        console.log('Chart data set successfully')
       } catch (error) {
         console.error('Error setting chart data:', error)
       }
+    } else {
+      console.log('LightChart: Not setting data - seriesRef:', !!seriesRef.current, 'data length:', data.length)
     }
-  }, [data])
+  }, [data, isInitialized])
 
   if (loading) {
     return (
