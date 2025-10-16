@@ -47,7 +47,7 @@ export interface CryptoChartData {
 
 // CoinGecko API client with advanced caching and rate limiting
 class CryptoAPI {
-  private baseURL = 'https://api.coingecko.com/api/v3'
+  private baseURL = process.env.COINGECKO_API_URL || 'https://api.coingecko.com/api/v3'
 
   private async makeRequest<T>(
     endpoint: string, 

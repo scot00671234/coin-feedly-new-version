@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft } from 'lucide-react'
 import LightChart from '@/components/LightChart'
+import HeaderTicker from '@/components/HeaderTicker'
 
 export default function CryptoDetailPage() {
   const params = useParams()

@@ -73,7 +73,7 @@ async function getArticle(slug: string) {
   
   try {
     // First try to fetch from the article API using the slug
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/article/${slug}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://coin-feedly.com'}/api/article/${slug}`, {
       cache: 'no-store'
     })
     
