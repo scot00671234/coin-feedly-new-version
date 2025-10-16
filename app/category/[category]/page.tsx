@@ -63,66 +63,83 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 async function getCategoryArticles(category: string, page: number = 1) {
-  const limit = 12
-  const skip = (page - 1) * limit
+  try {
+    const limit = 12
+    const skip = (page - 1) * limit
 
-  // Ensure category is valid and uppercase, cast to CategoryType
-  const categoryFilter = (category?.toUpperCase() || 'BITCOIN') as any
-  
-  console.log(`🔍 Category filter: ${categoryFilter}, slug: ${category?.toLowerCase()}`)
+    // Map category slugs to valid CategoryType values
+    const categoryMap: Record<string, string> = {
+      'bitcoin': 'BITCOIN',
+      'altcoins': 'ALTCOINS', 
+      'defi': 'DEFI',
+      'macro': 'MACRO',
+      'web3': 'WEB3',
+      'nft': 'NFT'
+    }
 
-  const [articles, total] = await Promise.all([
-    prisma.article.findMany({
-      where: {
-        primaryCategory: categoryFilter
-      },
-      orderBy: { publishedAt: 'desc' },
-      skip,
-      take: limit,
-      include: {
-        source: {
-          select: {
-            id: true,
-            name: true,
-            url: true,
-            primaryCategory: true,
-            isActive: true
-          }
+    // Get the valid category or default to BITCOIN
+    const categoryFilter = categoryMap[category?.toLowerCase()] || 'BITCOIN'
+    
+    console.log(`🔍 Category filter: ${categoryFilter}, slug: ${category?.toLowerCase()}`)
+
+    const [articles, total] = await Promise.all([
+      prisma.article.findMany({
+        where: {
+          primaryCategory: categoryFilter as any
         },
-        categories: {
-          include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true
+        orderBy: { publishedAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          source: {
+            select: {
+              id: true,
+              name: true,
+              url: true,
+              primaryCategory: true,
+              isActive: true
+            }
+          },
+          categories: {
+            include: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
               }
             }
           }
         }
-      }
-    }),
-    prisma.article.count({
-      where: {
-        primaryCategory: categoryFilter
-      }
-    })
-  ])
+      }),
+      prisma.article.count({
+        where: {
+          primaryCategory: categoryFilter as any
+        }
+      })
+    ])
 
-  console.log(`📊 Found ${articles.length} articles for category ${categoryFilter}`)
-  if (articles.length > 0) {
-    console.log(`📝 Sample article: ${articles[0].title} - Primary: ${articles[0].primaryCategory}`)
+    console.log(`📊 Found ${articles.length} articles for category ${categoryFilter}`)
+    if (articles.length > 0) {
+      console.log(`📝 Sample article: ${articles[0].title} - Primary: ${articles[0].primaryCategory}`)
+    }
+
+    return { articles, total, pages: Math.ceil(total / limit) }
+  } catch (error) {
+    console.error('Error fetching category articles:', error)
+    // Return empty results instead of throwing
+    return { articles: [], total: 0, pages: 0 }
   }
-
-  return { articles, total, pages: Math.ceil(total / limit) }
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const category = params.category
-  const page = parseInt(searchParams.page || '1')
-  const { articles, total, pages } = await getCategoryArticles(category, page)
+  try {
+    const category = params.category
+    const page = parseInt(searchParams.page || '1')
+    const { articles, total, pages } = await getCategoryArticles(category, page)
 
-  const categoryName = category.charAt(0).toUpperCase() + category.slice(1)
+    const categoryName = category.charAt(0).toUpperCase() + category.slice(1)
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -166,4 +183,28 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       />
     </>
   )
+  } catch (error) {
+    console.error('Error in CategoryPage:', error)
+    // Return a fallback page instead of crashing
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Category Not Found
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              The requested category could not be found or is temporarily unavailable.
+            </p>
+            <a
+              href="/"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go Home
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
 }

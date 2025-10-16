@@ -61,10 +61,11 @@ export default function CryptoDetailPage() {
       const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
       
       const formattedData = data.map(item => ({
-        time: (item.timestamp / 1000).toString(), // Convert to seconds and then to string
+        time: item.timestamp / 1000, // Convert to seconds (number, not string)
         value: item.price
       }))
       
+      console.log('Chart data:', formattedData.slice(0, 5)) // Debug log
       setChartData(formattedData)
     } catch (error) {
       console.error('Error fetching chart data:', error)

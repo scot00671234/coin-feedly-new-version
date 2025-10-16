@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { TrendingUp, TrendingDown, Star, ExternalLink, BarChart3 } from 'lucide-react'
+import LightChart from './LightChart'
 
 interface CryptoChartProps {
   crypto: CryptoPrice
@@ -24,7 +25,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
       const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
       
       const formattedData = data.map(item => ({
-        time: item.timestamp / 1000, // Convert to seconds
+        time: item.timestamp / 1000, // Convert to seconds (number)
         value: item.price
       }))
       
@@ -107,19 +108,11 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
 
       {/* Chart */}
       <div className="p-4">
-        <div className="w-full h-80 bg-slate-700/30 rounded-lg flex items-center justify-center">
-          {loading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : (
-            <div className="text-center text-slate-400">
-              <BarChart3 className="w-12 h-12 mx-auto mb-2" />
-              <p>Chart coming soon</p>
-              <p className="text-sm">Data points: {chartData.length}</p>
-            </div>
-          )}
-        </div>
+        <LightChart 
+          data={chartData} 
+          height={320} 
+          loading={loading}
+        />
       </div>
 
       {/* Stats */}

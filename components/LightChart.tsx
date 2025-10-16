@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
 
 interface LightChartProps {
-  data: Array<{ time: string; value: number }>
+  data: Array<{ time: number; value: number }>
   height?: number
   width?: number
   loading?: boolean
@@ -46,7 +46,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
     })
 
     // Create line series
-    const lineSeries = (chart as any).addSeries('Line', {
+    const lineSeries = chart.addLineSeries({
       color: '#3b82f6',
       lineWidth: 2,
     })
@@ -76,6 +76,8 @@ export default function LightChart({ data, height = 400, width, loading = false 
 
   useEffect(() => {
     if (seriesRef.current && data.length > 0) {
+      console.log('LightChart: Setting data with', data.length, 'points')
+      console.log('Sample data:', data.slice(0, 3))
       seriesRef.current.setData(data)
       
       if (chartRef.current) {
