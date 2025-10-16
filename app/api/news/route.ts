@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
     
     if (category && category !== 'all') {
       // Use primaryCategory for filtering (most reliable)
-      whereClause.primaryCategory = category.toUpperCase()
+      whereClause.primaryCategory = category.toUpperCase() as any
       console.log(`📊 Filtering by primaryCategory: ${category.toUpperCase()}`)
     }
 
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       
       // Check articles with primaryCategory
       const articlesWithPrimary = await prisma.article.findMany({
-        where: { primaryCategory: category.toUpperCase() },
+        where: { primaryCategory: category.toUpperCase() as any },
         take: 5
       })
       console.log(`📊 Articles with primaryCategory ${category.toUpperCase()}: ${articlesWithPrimary.length}`)
