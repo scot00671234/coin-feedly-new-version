@@ -25,13 +25,9 @@ export default function Home() {
   useEffect(() => {
     const search = searchParams.get('search')
     const category = searchParams.get('category')
-    const sort = searchParams.get('sort')
     
     if (search) setSearchQuery(search)
     if (category) setSelectedCategory(category)
-    if (sort && ['newest', 'oldest', 'relevant'].includes(sort)) {
-      setSortBy(sort as 'newest' | 'oldest' | 'relevant')
-    }
   }, [searchParams])
 
   useEffect(() => {
@@ -48,7 +44,7 @@ export default function Home() {
 
   // Load all articles once
   useEffect(() => {
-    fetchNews('all', '', 'newest', 1, true) // Load all articles
+    fetchNews('all', '', 1, true) // Load all articles
   }, [])
 
   // Filter articles on frontend when category/search/sort changes
@@ -88,7 +84,7 @@ export default function Home() {
     setSearching(false)
   }, [allArticles, selectedCategory, searchQuery])
 
-  const fetchNews = async (category = 'all', search = '', sort = 'newest', pageNum = 1, reset = false) => {
+  const fetchNews = async (category = 'all', search = '', pageNum = 1, reset = false) => {
     try {
       if (reset) {
         setLoading(true)
@@ -99,7 +95,7 @@ export default function Home() {
       const params = new URLSearchParams()
       if (category !== 'all') params.append('category', category)
       if (search) params.append('search', search)
-      params.append('sort', sort)
+      params.append('sort', 'newest')
       params.append('page', pageNum.toString())
       params.append('limit', '12')
       
@@ -172,7 +168,7 @@ export default function Home() {
     if (!loadingMore && hasMore) {
       const nextPage = page + 1
       setPage(nextPage)
-      fetchNews(selectedCategory, searchQuery, 'newest', nextPage, false)
+      fetchNews(selectedCategory, searchQuery, nextPage, false)
     }
   }
 

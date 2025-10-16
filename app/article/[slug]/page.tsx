@@ -97,7 +97,7 @@ async function getArticle(slug: string) {
     // If not found in database, try to find by ID (if slug is actually an ID)
     console.log(`❌ Article not found by slug, trying by ID...`)
     
-    const idResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=1000`, {
+    const idResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://coin-feedly.com'}/api/news?limit=1000`, {
       cache: 'no-store'
     })
     
