@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions } from 'lightweight-charts'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
@@ -19,69 +19,85 @@ export default function LightChart({ data, height = 400, width, loading = false 
   useEffect(() => {
     if (!chartContainerRef.current || isInitialized) return
 
-    // Create chart
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#d1d5db',
-      },
-      grid: {
-        vertLines: { color: '#374151' },
-        horzLines: { color: '#374151' },
-      },
-      crosshair: {
-        mode: 1,
-      },
-      rightPriceScale: {
-        borderColor: '#374151',
-        textColor: '#d1d5db',
-      },
-      timeScale: {
-        borderColor: '#374151',
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      width: width || chartContainerRef.current.clientWidth,
-      height: height,
-    })
+    try {
+      // Create chart
+      const chart = createChart(chartContainerRef.current, {
+        layout: {
+          background: { type: ColorType.Solid, color: 'transparent' },
+          textColor: '#d1d5db',
+        },
+        grid: {
+          vertLines: { color: '#374151' },
+          horzLines: { color: '#374151' },
+        },
+        crosshair: {
+          mode: 1,
+        },
+        rightPriceScale: {
+          borderColor: '#374151',
+          textColor: '#d1d5db',
+        },
+        timeScale: {
+          borderColor: '#374151',
+          timeVisible: true,
+          secondsVisible: false,
+        },
+        width: width || chartContainerRef.current.clientWidth,
+        height: height,
+      })
 
-    // Create line series
-    const lineSeries = chart.addSeries('Line', {
-      color: '#3b82f6',
-      lineWidth: 2,
-    })
+      // Create line series with proper typing and error handling
+      const lineSeries = (chart as any).addLineSeries({
+        color: '#3b82f6',
+        lineWidth: 2,
+      })
 
-    chartRef.current = chart
-    seriesRef.current = lineSeries
-    setIsInitialized(true)
+      chartRef.current = chart
+      seriesRef.current = lineSeries
+      setIsInitialized(true)
 
-    // Handle resize
-    const handleResize = () => {
-      if (chartRef.current && chartContainerRef.current) {
-        chartRef.current.applyOptions({
-          width: width || chartContainerRef.current.clientWidth,
-        })
+      // Handle resize
+      const handleResize = () => {
+        if (chartRef.current && chartContainerRef.current) {
+          chartRef.current.applyOptions({
+            width: width || chartContainerRef.current.clientWidth,
+          })
+        }
       }
-    }
 
-    window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize)
 
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      if (chartRef.current) {
-        chartRef.current.remove()
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        if (chartRef.current) {
+          chartRef.current.remove()
+        }
       }
+    } catch (error) {
+      console.error('Error creating chart:', error)
+      setIsInitialized(false)
     }
   }, [height, width, isInitialized])
 
   useEffect(() => {
     if (seriesRef.current && data.length > 0) {
-      console.log('LightChart: Setting data with', data.length, 'points')
-      console.log('Sample data:', data.slice(0, 3))
-      seriesRef.current.setData(data)
-      
-      if (chartRef.current) {
-        chartRef.current.timeScale().fitContent()
+      try {
+        console.log('LightChart: Setting data with', data.length, 'points')
+        console.log('Sample data:', data.slice(0, 3))
+        
+        // Convert data to the format expected by lightweight-charts
+        const chartData = data.map(item => ({
+          time: item.time as any, // Cast to any to avoid type issues
+          value: item.value
+        }))
+        
+        seriesRef.current.setData(chartData as any)
+        
+        if (chartRef.current) {
+          chartRef.current.timeScale().fitContent()
+        }
+      } catch (error) {
+        console.error('Error setting chart data:', error)
       }
     }
   }, [data])
