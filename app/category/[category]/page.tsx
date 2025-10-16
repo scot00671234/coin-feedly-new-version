@@ -170,7 +170,7 @@ async function getCategoryArticles(category: string, page: number = 1) {
           // Apply pagination
           const paginatedArticles = fetchedArticles.slice(skip, skip + limit)
           
-          articles = paginatedArticles.map((article, index) => ({
+          articles = paginatedArticles.map((article: any, index: number) => ({
             ...article,
             id: article.id || `api-${index}`,
             slug: article.slug || `${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`,
