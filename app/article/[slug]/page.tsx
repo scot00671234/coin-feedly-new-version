@@ -263,7 +263,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
               <li><Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link></li>
               <li>/</li>
-              <li><Link href={`/category/${article.primaryCategory?.toLowerCase() || 'all'}`} className="hover:text-blue-600 dark:hover:text-blue-400 capitalize">{article.primaryCategory || 'News'}</Link></li>
+              <li><span className="text-gray-500 dark:text-gray-400 capitalize">{article.primaryCategory || 'News'}</span></li>
               <li>/</li>
               <li className="text-gray-900 dark:text-white truncate">{article.title}</li>
             </ol>
@@ -445,7 +445,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   Get the latest {article.primaryCategory?.toLowerCase() || 'crypto'} news and market updates delivered to your feed.
                 </p>
                 <Link
-                  href={`/category/${article.primaryCategory?.toLowerCase() || 'all'}`}
+                  href="/"
                   className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                 >
                   View All {article.primaryCategory || 'News'} Articles

@@ -199,9 +199,9 @@ export async function GET(request: NextRequest) {
     const articlesWithoutImages = articles.filter(article => !article.imageUrl)
     console.log(`Articles without images: ${articlesWithoutImages.length}`)
 
-    // If no articles in database or many articles missing images, fetch from RSS feeds
-    if (articles.length === 0 || articlesWithoutImages.length > articles.length * 0.5) {
-      console.log('Fetching fresh articles from RSS feeds...')
+    // If no articles in database, fetch from RSS feeds
+    if (articles.length === 0) {
+      console.log('No articles in database, fetching fresh articles from RSS feeds...')
       const fetchedArticles = await fetchAndStoreArticles()
       
       // Apply filters to fetched articles
