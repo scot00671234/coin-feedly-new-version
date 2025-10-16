@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in manual article fetch:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch articles', details: error.message },
+      { error: 'Failed to fetch articles', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
