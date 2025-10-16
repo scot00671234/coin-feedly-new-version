@@ -11,7 +11,8 @@ import { Article, CryptoPrice } from '@/types'
 
 export default function Home() {
   const searchParams = useSearchParams()
-  const [articles, setArticles] = useState<Article[]>([])
+  const [allArticles, setAllArticles] = useState<Article[]>([]) // Store all articles
+  const [filteredArticles, setFilteredArticles] = useState<Article[]>([]) // Display filtered articles
   const [cryptoPrices, setCryptoPrices] = useState<CryptoPrice[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -45,21 +46,60 @@ export default function Home() {
   // Reset pagination when filters change
   useEffect(() => {
     setPage(1)
-    setArticles([])
     setHasMore(true)
   }, [selectedCategory, searchQuery, sortBy])
 
-  // Debounced search effect
+  // Load all articles once
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchQuery || selectedCategory !== 'all') {
-        setSearching(true)
-      }
-      fetchNews(selectedCategory, searchQuery, sortBy, 1, true)
-    }, 500) // 500ms debounce
+    fetchNews('all', '', 'newest', 1, true) // Load all articles
+  }, [])
 
-    return () => clearTimeout(timeoutId)
-  }, [selectedCategory, searchQuery, sortBy])
+  // Filter articles on frontend when category/search/sort changes
+  useEffect(() => {
+    if (allArticles.length === 0) return
+    
+    setSearching(true)
+    
+    let filtered = [...allArticles]
+    
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(article => {
+        const primaryCategory = article.primaryCategory?.toLowerCase()
+        return primaryCategory === selectedCategory.toLowerCase()
+      })
+    }
+    
+    // Filter by search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(article => 
+        article.title.toLowerCase().includes(query) ||
+        (article.description && article.description.toLowerCase().includes(query))
+      )
+    }
+    
+    // Sort articles
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.publishedAt).getTime()
+      const dateB = new Date(b.publishedAt).getTime()
+      
+      switch (sortBy) {
+        case 'oldest':
+          return dateA - dateB
+        case 'newest':
+          return dateB - dateA
+        case 'relevant':
+          // Simple relevance based on recency
+          return dateB - dateA
+        default:
+          return dateB - dateA
+      }
+    })
+    
+    setFilteredArticles(filtered)
+    setSearching(false)
+  }, [allArticles, selectedCategory, searchQuery, sortBy])
 
   const fetchNews = async (category = 'all', search = '', sort = 'newest', pageNum = 1, reset = false) => {
     try {
@@ -92,16 +132,16 @@ export default function Home() {
       } : 'No articles')
       
       if (reset) {
-        setArticles(Array.isArray(data) ? data : [])
+        setAllArticles(Array.isArray(data) ? data : [])
         setHasMore(data.length === 12)
       } else {
-        setArticles(prev => [...prev, ...(Array.isArray(data) ? data : [])])
+        setAllArticles(prev => [...prev, ...(Array.isArray(data) ? data : [])])
         setHasMore(data.length === 12)
       }
     } catch (error) {
       console.error('❌ Error fetching news:', error)
       if (reset) {
-        setArticles([])
+        setAllArticles([])
       }
     } finally {
       setLoading(false)
@@ -218,7 +258,7 @@ export default function Home() {
 
           {/* News Feed */}
           <NewsFeed 
-            articles={articles}
+            articles={filteredArticles}
             loading={loading}
             loadingMore={loadingMore}
             hasMore={hasMore}
