@@ -13,7 +13,7 @@ interface LightChartProps {
 export default function LightChart({ data, height = 400, width, loading = false }: LightChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const seriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const seriesRef = useRef<any>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
@@ -67,28 +67,12 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.log('Chart methods available:', Object.getOwnPropertyNames(chart))
         console.log('Chart prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
 
-        // Create line series with proper typing and error handling
-        let lineSeries
-        try {
-          // Try different methods to find the correct one
-          if (typeof chart.addLineSeries === 'function') {
-            lineSeries = chart.addLineSeries({
-              color: '#3b82f6',
-              lineWidth: 2,
-            })
-          } else if (typeof chart.addSeries === 'function') {
-            lineSeries = chart.addSeries('Line', {
-              color: '#3b82f6',
-              lineWidth: 2,
-            })
-          } else {
-            throw new Error('No valid series creation method found')
-          }
-          console.log('Line series created successfully')
-        } catch (seriesError) {
-          console.error('Error creating line series:', seriesError)
-          throw seriesError
-        }
+        // Create line series using the correct API
+        const lineSeries = (chart as any).addSeries('Line', {
+          color: '#3b82f6',
+          lineWidth: 2,
+        })
+        console.log('Line series created successfully')
 
         chartRef.current = chart
         seriesRef.current = lineSeries
