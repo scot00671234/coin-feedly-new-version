@@ -70,20 +70,7 @@ async function getCategoryArticles(category: string, page: number = 1) {
   const [articles, total] = await Promise.all([
     prisma.article.findMany({
       where: {
-        OR: [
-          {
-            categories: {
-              some: {
-                category: {
-                  slug: category?.toLowerCase() || 'bitcoin'
-                }
-              }
-            }
-          },
-          {
-            primaryCategory: categoryFilter
-          }
-        ]
+        primaryCategory: categoryFilter
       },
       orderBy: { publishedAt: 'desc' },
       skip,
@@ -113,20 +100,7 @@ async function getCategoryArticles(category: string, page: number = 1) {
     }),
     prisma.article.count({
       where: {
-        OR: [
-          {
-            categories: {
-              some: {
-                category: {
-                  slug: category?.toLowerCase() || 'bitcoin'
-                }
-              }
-            }
-          },
-          {
-            primaryCategory: categoryFilter
-          }
-        ]
+        primaryCategory: categoryFilter
       }
     })
   ])

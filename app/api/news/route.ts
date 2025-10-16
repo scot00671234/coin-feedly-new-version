@@ -92,22 +92,9 @@ export async function GET(request: NextRequest) {
     let whereClause: any = {}
     
     if (category && category !== 'all') {
-      whereClause.OR = [
-        // Check through category relationships
-        {
-          categories: {
-            some: {
-              category: {
-                slug: category.toLowerCase()
-              }
-            }
-          }
-        },
-        // Fallback to primaryCategory field
-        {
-          primaryCategory: category.toUpperCase()
-        }
-      ]
+      // Use primaryCategory for filtering (most reliable)
+      whereClause.primaryCategory = category.toUpperCase()
+      console.log(`📊 Filtering by primaryCategory: ${category.toUpperCase()}`)
     }
 
     if (search) {
@@ -178,6 +165,31 @@ export async function GET(request: NextRequest) {
       console.log('📰 First article title:', articles[0].title)
     } else {
       console.log('❌ No articles found in database')
+      // Let's check if there are any articles at all
+      const totalArticles = await prisma.article.count()
+      console.log(`📊 Total articles in database: ${totalArticles}`)
+      
+      // Check articles with primaryCategory
+      const articlesWithPrimary = await prisma.article.findMany({
+        where: { primaryCategory: category.toUpperCase() },
+        take: 5
+      })
+      console.log(`📊 Articles with primaryCategory ${category.toUpperCase()}: ${articlesWithPrimary.length}`)
+      
+      // Check articles with category relationships
+      const articlesWithCategories = await prisma.article.findMany({
+        where: {
+          categories: {
+            some: {
+              category: {
+                slug: category.toLowerCase()
+              }
+            }
+          }
+        },
+        take: 5
+      })
+      console.log(`📊 Articles with category slug ${category.toLowerCase()}: ${articlesWithCategories.length}`)
     }
 
     console.log(`Found ${articles.length} articles in database for page ${page}`)
