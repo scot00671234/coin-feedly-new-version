@@ -153,49 +153,46 @@ async function getCategoryArticles(category: string, page: number = 1) {
       console.log('Database not available or no articles found, fetching from RSS feeds')
     }
 
-    // If no database articles, fetch from RSS feeds
+    // If no database articles, fetch from news API
     if (!databaseAvailable || articles.length === 0) {
-      console.log(`🔄 Fetching articles from RSS feeds for category: ${category}`)
-      
-      // Import the RSS fetching function
-      const { fetchAndStoreArticles } = await import('@/lib/rss-parser')
+      console.log(`🔄 Fetching articles from news API for category: ${category}`)
       
       try {
-        const fetchedArticles = await fetchAndStoreArticles()
-        
-        // Filter articles by category
-        const filteredArticles = fetchedArticles.filter(article => {
-          // Check if article has categories (database articles)
-          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
-            return article.categories.some(cat => 
-              cat.category.slug === category.toLowerCase()
-            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-          }
-          // For RSS articles without categories, check primaryCategory
-          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        // Call the news API to get articles for this category
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://coinfeedly.com'
+        const response = await fetch(`${baseUrl}/api/news?category=${category}&limit=100`, {
+          cache: 'no-store'
         })
-
-        // Apply pagination
-        const paginatedArticles = filteredArticles.slice(skip, skip + limit)
         
-        articles = paginatedArticles.map((article, index) => ({
-          ...article,
-          id: article.id || `rss-${index}`,
-          slug: article.slug || `${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`,
-          source: {
-            id: `source-${index}`,
-            name: article.source || 'RSS Feed',
-            url: '',
-            primaryCategory: article.primaryCategory || 'BITCOIN',
-            isActive: true
-          },
-          categories: []
-        }))
-        
-        total = filteredArticles.length
-        console.log(`📊 Found ${articles.length} articles from RSS for category ${category}`)
-      } catch (rssError) {
-        console.error('Error fetching from RSS feeds:', rssError)
+        if (response.ok) {
+          const fetchedArticles = await response.json()
+          
+          // Apply pagination
+          const paginatedArticles = fetchedArticles.slice(skip, skip + limit)
+          
+          articles = paginatedArticles.map((article, index) => ({
+            ...article,
+            id: article.id || `api-${index}`,
+            slug: article.slug || `${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`,
+            source: {
+              id: `source-${index}`,
+              name: article.source || 'RSS Feed',
+              url: '',
+              primaryCategory: article.primaryCategory || 'BITCOIN',
+              isActive: true
+            },
+            categories: []
+          }))
+          
+          total = fetchedArticles.length
+          console.log(`📊 Found ${articles.length} articles from API for category ${category}`)
+        } else {
+          console.error('Failed to fetch articles from API:', response.status)
+          articles = []
+          total = 0
+        }
+      } catch (apiError) {
+        console.error('Error fetching from news API:', apiError)
         articles = []
         total = 0
       }
