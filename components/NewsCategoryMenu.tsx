@@ -2,51 +2,21 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Newspaper, BarChart3, Moon, Sun, Bitcoin, Coins, Zap, TrendingUp, Globe, Image } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import { 
+  Home, 
+  BarChart3, 
+  TrendingUp, 
+  Coins, 
+  Zap, 
+  Globe,
+  Moon,
+  Sun
+} from 'lucide-react'
 
 interface NewsCategoryMenuProps {
   currentCategory?: string
 }
-
-const categories = [
-  { 
-    id: 'bitcoin', 
-    name: 'Bitcoin', 
-    icon: Bitcoin,
-    href: '/category/bitcoin'
-  },
-  { 
-    id: 'altcoins', 
-    name: 'Altcoins', 
-    icon: Coins,
-    href: '/category/altcoins'
-  },
-  { 
-    id: 'defi', 
-    name: 'DeFi', 
-    icon: Zap,
-    href: '/category/defi'
-  },
-  { 
-    id: 'macro', 
-    name: 'Macro', 
-    icon: TrendingUp,
-    href: '/category/macro'
-  },
-  { 
-    id: 'web3', 
-    name: 'Web3', 
-    icon: Globe,
-    href: '/category/web3'
-  },
-  { 
-    id: 'nft', 
-    name: 'NFT', 
-    icon: Image,
-    href: '/category/nft'
-  },
-]
 
 export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCategoryMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -62,7 +32,15 @@ export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCatego
     }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      // Add a small delay to prevent immediate closing when opening
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+      }, 100)
+      
+      return () => {
+        clearTimeout(timeoutId)
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
     }
 
     return () => {
@@ -70,129 +48,135 @@ export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCatego
     }
   }, [isOpen])
 
+  const navigationItems = [
+    { name: 'All News', href: '/', icon: Home },
+    { name: 'Charts', href: '/charts', icon: BarChart3 }
+  ]
+
+  const categories = [
+    { name: 'Bitcoin', slug: 'bitcoin', icon: TrendingUp },
+    { name: 'Altcoins', slug: 'altcoins', icon: Coins },
+    { name: 'DeFi', slug: 'defi', icon: Zap },
+    { name: 'Macro', slug: 'macro', icon: Globe }
+  ]
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-4 py-2.5 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all duration-200 group font-medium"
+        className="flex items-center justify-center w-12 h-12 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105"
       >
-        <Menu className="w-5 h-5" />
-        <span className="font-medium">Menu</span>
+        <div className="w-6 h-6 relative">
+          {!isOpen ? (
+            // Hamburger menu
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col space-y-1.5 transition-all duration-300">
+              <div className="w-3.5 h-0.5 bg-current transition-all duration-300"></div>
+              <div className="w-3.5 h-0.5 bg-current transition-all duration-300"></div>
+              <div className="w-3.5 h-0.5 bg-current transition-all duration-300"></div>
+            </div>
+          ) : (
+            // X icon
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300">
+              <div className="w-3.5 h-0.5 bg-current rotate-45 transition-all duration-300"></div>
+              <div className="w-3.5 h-0.5 bg-current -rotate-45 -translate-y-0.5 transition-all duration-300"></div>
+            </div>
+          )}
+        </div>
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50">
-          <div className="p-4">
-            {/* Main Navigation */}
-            <div className="space-y-2 mb-4">
-              <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                Navigation
-              </div>
-              
-              {/* All News Link */}
-              <Link
-                href="/"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <Newspaper className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <div className="font-medium">All News</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">Latest crypto news</div>
-                </div>
-              </Link>
-
-              {/* Charts Link */}
-              <Link
-                href="/charts"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <div className="font-medium">Charts</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">Crypto price charts</div>
-                </div>
-              </Link>
-
-              {/* Theme Toggle */}
-              <button
-                onClick={() => {
-                  toggleTheme()
-                  setIsOpen(false)
-                }}
-                className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-              >
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  {isDarkMode ? (
-                    <Sun className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  ) : (
-                    <Moon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                  )}
-                </div>
-                <div>
-                  <div className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">Toggle theme</div>
-                </div>
-              </button>
+        <div 
+          className="absolute left-0 top-full mt-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-xl overflow-hidden animate-in slide-in-from-top-2 fade-in duration-300"
+          data-dropdown="true"
+          style={{ 
+            zIndex: 9999,
+            minWidth: '300px',
+            width: '300px',
+            maxWidth: '90vw'
+          }}
+        >
+          <div className="p-2">
+            {/* Navigation Section */}
+            <div className="mb-2">
+              {navigationItems.map((item, index) => {
+                const IconComponent = item.icon
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => {
+                      setIsOpen(false)
+                    }}
+                    className="flex items-center space-x-3 px-3 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 group animate-in slide-in-from-left-2 fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <IconComponent className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200" />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                )
+              })}
             </div>
 
             {/* Divider */}
-            <div className="border-t border-slate-200 dark:border-slate-700 mb-4"></div>
+            <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
 
-            {/* News Categories */}
-            <div className="space-y-1">
-              <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                News Categories
+            {/* Categories Section */}
+            <div className="mb-2">
+              <div className="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider animate-in slide-in-from-left-2 fade-in" style={{ animationDelay: '100ms' }}>
+                Categories
               </div>
-              {categories.map((category) => {
+              {categories.map((category, index) => {
                 const IconComponent = category.icon
-                const isActive = category.id === currentCategory
-                
+                const isActive = currentCategory === category.slug
                 return (
                   <Link
-                    key={category.id}
-                    href={category.href}
-                    onClick={() => setIsOpen(false)}
-                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                    key={category.slug}
+                    href={`/category/${category.slug}`}
+                    onClick={() => {
+                      setIsOpen(false)
+                    }}
+                    className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group animate-in slide-in-from-left-2 fade-in ${
                       isActive
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
+                    style={{ animationDelay: `${(index + 2) * 50}ms` }}
                   >
-                    <div className={`p-2 rounded-lg ${
+                    <IconComponent className={`w-4 h-4 transition-colors duration-200 ${
                       isActive
-                        ? 'bg-blue-100 dark:bg-blue-800/30'
-                        : 'bg-slate-100 dark:bg-slate-700'
-                    }`}>
-                      <IconComponent className={`w-4 h-4 ${
-                        isActive
-                          ? 'text-blue-600 dark:text-blue-400'
-                          : 'text-slate-500 dark:text-slate-400'
-                      }`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className={`font-medium ${
-                        isActive
-                          ? 'text-blue-700 dark:text-blue-300'
-                          : 'text-slate-900 dark:text-white'
-                      }`}>
-                        {category.name}
-                      </div>
-                    </div>
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                    }`} />
+                    <span className="font-medium">{category.name}</span>
                     {isActive && (
-                      <div className="w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                      <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full animate-in zoom-in duration-200" style={{ animationDelay: `${(index + 2) * 50 + 100}ms` }}></div>
                     )}
                   </Link>
                 )
               })}
             </div>
+
+            {/* Divider */}
+            <div className="border-t border-slate-200 dark:border-slate-700 my-2"></div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => {
+                toggleTheme()
+                setIsOpen(false)
+              }}
+              className="flex items-center space-x-3 px-3 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all duration-200 w-full group animate-in slide-in-from-left-2 fade-in"
+              style={{ animationDelay: '350ms' }}
+            >
+              {isDarkMode ? (
+                <Sun className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors duration-200" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200" />
+              )}
+              <span className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
           </div>
         </div>
       )}

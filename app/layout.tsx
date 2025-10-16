@@ -4,6 +4,7 @@ import Script from 'next/script'
 import './globals.css'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import ClientHeader from '@/components/ClientHeader'
+import PersistentTicker from '@/components/PersistentTicker'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -52,6 +53,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <ClientHeader />
+          <PersistentTicker />
           {children}
         </ThemeProvider>
       </body>

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft } from 'lucide-react'
-import HeaderTicker from '@/components/HeaderTicker'
 import LightChart from '@/components/LightChart'
 
 export default function CryptoDetailPage() {
@@ -84,7 +83,6 @@ export default function CryptoDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
-        <HeaderTicker prices={tickerPrices} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-center h-96">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -97,7 +95,6 @@ export default function CryptoDetailPage() {
   if (error || !crypto) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
-        <HeaderTicker prices={tickerPrices} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">

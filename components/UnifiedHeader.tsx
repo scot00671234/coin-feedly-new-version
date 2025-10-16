@@ -43,8 +43,8 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-lg overflow-visible">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative overflow-visible">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -80,7 +80,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
           </div>
 
           {/* Desktop Navigation - Moved to right */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="flex items-center space-x-1 relative overflow-visible">
             <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
           </div>
 
@@ -103,7 +103,33 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               {/* Mobile Navigation Menu */}
               <div className="px-4 py-2">
                 <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Navigation</div>
-                <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
+                <div className="space-y-2">
+                  <Link href="/" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    All News
+                  </Link>
+                  <Link href="/charts" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    Charts
+                  </Link>
+                </div>
+              </div>
+
+              {/* Mobile Categories */}
+              <div className="px-4 py-2">
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Categories</div>
+                <div className="space-y-2">
+                  <Link href="/category/bitcoin" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    Bitcoin
+                  </Link>
+                  <Link href="/category/altcoins" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    Altcoins
+                  </Link>
+                  <Link href="/category/defi" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    DeFi
+                  </Link>
+                  <Link href="/category/macro" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    Macro
+                  </Link>
+                </div>
               </div>
 
               {/* Mobile Search */}

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { ArrowUp, ArrowDown } from 'lucide-react'
-import HeaderTicker from '@/components/HeaderTicker'
 import { useRouter } from 'next/navigation'
+import Footer from '@/components/Footer'
 
 export default function ChartsPage() {
   const router = useRouter()
@@ -126,7 +126,6 @@ export default function ChartsPage() {
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
       
       {/* Crypto Price Ticker */}
-      <HeaderTicker prices={tickerPrices} />
 
       {/* Filters Section */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
@@ -266,6 +265,9 @@ export default function ChartsPage() {
           </div>
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

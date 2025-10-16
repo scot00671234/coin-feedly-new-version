@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
 const RSS_FEEDS = [
   { url: "https://cointelegraph.com/rss", categories: ["bitcoin", "altcoins", "defi", "macro"], source: "CoinTelegraph" },
   { url: "https://bitcoinist.com/feed/", categories: ["bitcoin"], source: "Bitcoinist" },
-  { url: "https://decrypt.co/feed", categories: ["altcoins", "defi", "web3"], source: "Decrypt" },
+  { url: "https://decrypt.co/feed", categories: ["altcoins", "defi"], source: "Decrypt" },
   { url: "https://www.blockworks.co/feed", categories: ["defi", "macro"], source: "Blockworks" },
   { url: "https://feeds.feedburner.com/CoinDesk", categories: ["bitcoin", "macro", "regulation"], source: "CoinDesk" },
 ]

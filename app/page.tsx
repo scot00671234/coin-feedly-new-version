@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import HeaderTicker from '@/components/HeaderTicker'
 import NewsFeed from '@/components/NewsFeed'
 import CategoryFilter from '@/components/CategoryFilter'
-import SortFilter from '@/components/SortFilter'
 import Footer from '@/components/Footer'
 import { Article, CryptoPrice } from '@/types'
 
@@ -18,7 +16,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'relevant'>('newest')
   const [categoryCounts, setCategoryCounts] = useState({ all: 0, bitcoin: 0, altcoins: 0, defi: 0, macro: 0 })
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -47,7 +44,7 @@ export default function Home() {
   useEffect(() => {
     setPage(1)
     setHasMore(true)
-  }, [selectedCategory, searchQuery, sortBy])
+  }, [selectedCategory, searchQuery])
 
   // Load all articles once
   useEffect(() => {
@@ -80,26 +77,16 @@ export default function Home() {
     }
     
     // Sort articles
+    // Sort by newest first (default)
     filtered.sort((a, b) => {
       const dateA = new Date(a.publishedAt).getTime()
       const dateB = new Date(b.publishedAt).getTime()
-      
-      switch (sortBy) {
-        case 'oldest':
-          return dateA - dateB
-        case 'newest':
-          return dateB - dateA
-        case 'relevant':
-          // Simple relevance based on recency
-          return dateB - dateA
-        default:
-          return dateB - dateA
-      }
+      return dateB - dateA
     })
     
     setFilteredArticles(filtered)
     setSearching(false)
-  }, [allArticles, selectedCategory, searchQuery, sortBy])
+  }, [allArticles, selectedCategory, searchQuery])
 
   const fetchNews = async (category = 'all', search = '', sort = 'newest', pageNum = 1, reset = false) => {
     try {
@@ -185,7 +172,7 @@ export default function Home() {
     if (!loadingMore && hasMore) {
       const nextPage = page + 1
       setPage(nextPage)
-      fetchNews(selectedCategory, searchQuery, sortBy, nextPage, false)
+      fetchNews(selectedCategory, searchQuery, 'newest', nextPage, false)
     }
   }
 
@@ -204,29 +191,22 @@ export default function Home() {
         {/* Blueish subtle glare effect - entire background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-blue-400/8 to-blue-600/12 dark:from-blue-500/15 dark:via-blue-400/8 dark:to-blue-600/12"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/10 via-transparent to-blue-500/8 dark:from-blue-400/10 dark:via-transparent dark:to-blue-500/8"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/25 dark:bg-blue-400/25 rounded-full blur-3xl -translate-x-48 -translate-y-48"></div>
-        <div className="absolute top-1/4 right-0 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-3xl translate-x-40 -translate-y-20"></div>
-        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/25 dark:bg-blue-400/25 rounded-full blur-3xl -translate-x-48 -translate-y-48 max-w-none"></div>
+        <div className="absolute top-1/4 right-0 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-3xl translate-x-40 -translate-y-20 max-w-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32 max-w-none"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48 max-w-none"></div>
         
-        
-        {/* Crypto Price Ticker */}
-        <HeaderTicker prices={cryptoPrices} />
         
         {/* Main Content */}
         <section className="py-8 relative z-10">
           <div className="container mx-auto px-6 max-w-7xl">
-            {/* Filters and Sort */}
+            {/* Filters */}
             <div className="mb-8">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={selectedCategory}
                   setSelectedCategory={handleCategoryChange}
-                />
-                <SortFilter
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
                 />
               </div>
             </div>

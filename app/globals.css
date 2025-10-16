@@ -36,9 +36,31 @@
   * {
     @apply border-dark-700;
   }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
   body {
     @apply text-white font-inter antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* Prevent horizontal overflow */
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Ensure all containers respect viewport width */
+  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl, .max-w-3xl, .max-w-2xl, .max-w-xl, .max-w-lg, .max-w-md, .max-w-sm, .max-w-xs {
+    max-width: 100vw;
+  }
+
+  /* Allow dropdowns to overflow their containers */
+  .max-w-7xl:has([data-dropdown]) {
+    overflow-x: visible;
   }
 }
 
@@ -147,6 +169,7 @@
   white-space: nowrap;
   position: relative;
   width: 100%;
+  max-width: 100vw;
 }
 
 .ticker-content {
@@ -154,6 +177,7 @@
   animation: bloomberg-ticker 180s linear infinite;
   white-space: nowrap;
   will-change: transform;
+  max-width: none;
 }
 
 @keyframes bloomberg-ticker {
@@ -163,6 +187,41 @@
   100% {
     transform: translateX(-100%);
   }
+}
+
+/* Prevent horizontal overflow in all layouts */
+.w-full {
+  max-width: 100vw;
+}
+
+.min-h-screen {
+  max-width: 100vw;
+}
+
+/* Fix for absolute positioned elements that might cause overflow */
+.absolute {
+  max-width: 100vw;
+}
+
+/* Ensure grid layouts don't overflow */
+.grid {
+  max-width: 100%;
+}
+
+/* Fix for flex layouts */
+.flex {
+  max-width: 100%;
+}
+
+/* Prevent images from causing overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for any element with transform that might cause overflow */
+[style*="transform"] {
+  max-width: 100vw;
 }
 
 /* Loading skeleton */
