@@ -89,7 +89,7 @@ export default function CategoryPageClient({ articles, categoryName, category, p
                           {article.primaryCategory || 'News'}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {article.source.name}
+                          {article.source?.name || 'RSS Feed'}
                         </span>
                       </div>
                       
@@ -111,7 +111,7 @@ export default function CategoryPageClient({ articles, categoryName, category, p
                             </>
                           )}
                         </div>
-                        <span>{article.viewCount} views</span>
+                        <span>{article.viewCount || 0} views</span>
                       </div>
                     </div>
                   </article>

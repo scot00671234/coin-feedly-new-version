@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft } from 'lucide-react'
 import LightChart from '@/components/LightChart'
-import HeaderTicker from '@/components/HeaderTicker'
 
 export default function CryptoDetailPage() {
   const params = useParams()
@@ -13,14 +12,12 @@ export default function CryptoDetailPage() {
   const [crypto, setCrypto] = useState<CryptoPrice | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tickerPrices, setTickerPrices] = useState<CryptoPrice[]>([])
   const [timeframe, setTimeframe] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
   const [chartData, setChartData] = useState<any[]>([])
 
   useEffect(() => {
     if (params.id) {
       fetchCryptoData()
-      fetchTickerPrices()
     }
   }, [params.id])
 
@@ -30,14 +27,6 @@ export default function CryptoDetailPage() {
     }
   }, [crypto, timeframe])
 
-  const fetchTickerPrices = async () => {
-    try {
-      const data = await cryptoAPI.getCryptoList(1, 10)
-      setTickerPrices(data)
-    } catch (error) {
-      console.error('Error fetching ticker prices:', error)
-    }
-  }
 
   const fetchCryptoData = async () => {
     try {
@@ -115,10 +104,6 @@ export default function CryptoDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
-      
-      {/* Crypto Price Ticker */}
-      <HeaderTicker prices={tickerPrices} />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Back Button */}
         <button

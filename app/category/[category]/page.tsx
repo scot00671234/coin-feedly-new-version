@@ -76,69 +76,129 @@ async function getCategoryArticles(category: string, page: number = 1) {
     
     console.log(`🔍 Category filter: ${categoryFilter}, slug: ${category?.toLowerCase()}`)
 
-    const [articles, total] = await Promise.all([
-      prisma.article.findMany({
-        where: {
-          OR: [
-            { primaryCategory: categoryFilter as any },
-            {
-              categories: {
-                some: {
-                  category: {
-                    slug: category.toLowerCase()
+    // Check if database is available and has articles
+    let databaseAvailable = false
+    let articles = []
+    let total = 0
+
+    try {
+      await prisma.$connect()
+      const [dbArticles, dbTotal] = await Promise.all([
+        prisma.article.findMany({
+          where: {
+            OR: [
+              { primaryCategory: categoryFilter as any },
+              {
+                categories: {
+                  some: {
+                    category: {
+                      slug: category.toLowerCase()
+                    }
                   }
                 }
               }
-            }
-          ]
-        },
-        orderBy: { publishedAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
-          source: {
-            select: {
-              id: true,
-              name: true,
-              url: true,
-              primaryCategory: true,
-              isActive: true
-            }
+            ]
           },
-          categories: {
-            include: {
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true
+          orderBy: { publishedAt: 'desc' },
+          skip,
+          take: limit,
+          include: {
+            source: {
+              select: {
+                id: true,
+                name: true,
+                url: true,
+                primaryCategory: true,
+                isActive: true
+              }
+            },
+            categories: {
+              include: {
+                category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true
+                  }
                 }
               }
             }
           }
-        }
-      }),
-      prisma.article.count({
-        where: {
-          OR: [
-            { primaryCategory: categoryFilter as any },
-            {
-              categories: {
-                some: {
-                  category: {
-                    slug: category.toLowerCase()
+        }),
+        prisma.article.count({
+          where: {
+            OR: [
+              { primaryCategory: categoryFilter as any },
+              {
+                categories: {
+                  some: {
+                    category: {
+                      slug: category.toLowerCase()
+                    }
                   }
                 }
               }
-            }
-          ]
-        }
-      })
-    ])
+            ]
+          }
+        })
+      ])
 
-    console.log(`📊 Found ${articles.length} articles for category ${categoryFilter}`)
-    if (articles.length > 0) {
-      console.log(`📝 Sample article: ${articles[0].title} - Primary: ${articles[0].primaryCategory}`)
+      if (dbArticles.length > 0) {
+        articles = dbArticles
+        total = dbTotal
+        databaseAvailable = true
+        console.log(`📊 Found ${articles.length} articles in database for category ${categoryFilter}`)
+      }
+    } catch (dbError) {
+      console.log('Database not available or no articles found, fetching from RSS feeds')
+    }
+
+    // If no database articles, fetch from RSS feeds
+    if (!databaseAvailable || articles.length === 0) {
+      console.log(`🔄 Fetching articles from RSS feeds for category: ${category}`)
+      
+      // Import the RSS fetching function
+      const { fetchAndStoreArticles } = await import('@/lib/rss-parser')
+      
+      try {
+        const fetchedArticles = await fetchAndStoreArticles()
+        
+        // Filter articles by category
+        const filteredArticles = fetchedArticles.filter(article => {
+          // Check if article has categories (database articles)
+          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
+            return article.categories.some(cat => 
+              cat.category.slug === category.toLowerCase()
+            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
+          }
+          // For RSS articles without categories, check primaryCategory
+          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        })
+
+        // Apply pagination
+        const paginatedArticles = filteredArticles.slice(skip, skip + limit)
+        
+        articles = paginatedArticles.map((article, index) => ({
+          ...article,
+          id: article.id || `rss-${index}`,
+          slug: article.slug || `${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${index}`,
+          source: {
+            id: `source-${index}`,
+            name: article.source || 'RSS Feed',
+            url: '',
+            primaryCategory: article.primaryCategory || 'BITCOIN',
+            isActive: true
+          },
+          categories: []
+        }))
+        
+        total = filteredArticles.length
+        console.log(`📊 Found ${articles.length} articles from RSS for category ${category}`)
+      } catch (rssError) {
+        console.error('Error fetching from RSS feeds:', rssError)
+        articles = []
+        total = 0
+      }
     }
 
     return { articles, total, pages: Math.ceil(total / limit) }
