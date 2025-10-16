@@ -2,6 +2,17 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
+const categories = [
+  { name: "Bitcoin", slug: "bitcoin" },
+  { name: "Altcoins", slug: "altcoins" },
+  { name: "DeFi", slug: "defi" },
+  { name: "Macro", slug: "macro" },
+  { name: "Web3", slug: "web3" },
+  { name: "NFT", slug: "nft" },
+  { name: "Gaming", slug: "gaming" },
+  { name: "Metaverse", slug: "metaverse" },
+]
+
 const newsSources = [
   { url: "https://www.coindesk.com/feed/", category: "bitcoin", source: "CoinDesk" },
   { url: "https://cointelegraph.com/rss", category: "altcoins", source: "Cointelegraph" },
@@ -137,6 +148,15 @@ const blogPosts = [
 
 async function main() {
   console.log('Starting database seed...')
+
+  // Create categories
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: { slug: category.slug },
+      update: category,
+      create: category,
+    })
+  }
 
   // Create news sources
   for (const source of newsSources) {

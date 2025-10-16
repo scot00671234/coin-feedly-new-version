@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       orderBy.publishedAt = 'desc' // newest
     }
 
-    console.log('Database query whereClause:', JSON.stringify(whereClause, null, 2))
+    console.log('🔍 Database query whereClause:', JSON.stringify(whereClause, null, 2))
     
     const articles = await prisma.article.findMany({
       where: whereClause,
@@ -171,10 +171,13 @@ export async function GET(request: NextRequest) {
       take: limit
     })
     
-    console.log(`Found ${articles.length} articles for category: ${category}`)
+    console.log(`📊 Found ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {
-      console.log('First article categories:', articles[0].categories)
-      console.log('First article primaryCategory:', articles[0].primaryCategory)
+      console.log('📝 First article categories:', articles[0].categories)
+      console.log('🏷️ First article primaryCategory:', articles[0].primaryCategory)
+      console.log('📰 First article title:', articles[0].title)
+    } else {
+      console.log('❌ No articles found in database')
     }
 
     console.log(`Found ${articles.length} articles in database for page ${page}`)

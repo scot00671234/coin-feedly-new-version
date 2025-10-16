@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import HeaderTicker from '@/components/HeaderTicker'
 import NewsFeed from '@/components/NewsFeed'
 import CategoryFilter from '@/components/CategoryFilter'
@@ -9,6 +10,7 @@ import Footer from '@/components/Footer'
 import { Article, CryptoPrice } from '@/types'
 
 export default function Home() {
+  const searchParams = useSearchParams()
   const [articles, setArticles] = useState<Article[]>([])
   const [cryptoPrices, setCryptoPrices] = useState<CryptoPrice[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -20,6 +22,19 @@ export default function Home() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+
+  // Initialize from URL params
+  useEffect(() => {
+    const search = searchParams.get('search')
+    const category = searchParams.get('category')
+    const sort = searchParams.get('sort')
+    
+    if (search) setSearchQuery(search)
+    if (category) setSelectedCategory(category)
+    if (sort && ['newest', 'oldest', 'relevant'].includes(sort)) {
+      setSortBy(sort as 'newest' | 'oldest' | 'relevant')
+    }
+  }, [searchParams])
 
   useEffect(() => {
     fetchNews()
@@ -61,10 +76,20 @@ export default function Home() {
       params.append('page', pageNum.toString())
       params.append('limit', '12')
       
-      console.log('Fetching news with params:', params.toString())
+      console.log('🔍 Fetching news with params:', params.toString())
       const response = await fetch(`/api/news?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
       const data = await response.json()
-      console.log('Received articles:', data.length, 'articles')
+      console.log('📰 Received articles:', data.length, 'articles')
+      console.log('📊 Sample article:', data[0] ? {
+        title: data[0].title,
+        category: data[0].primaryCategory,
+        publishedAt: data[0].publishedAt
+      } : 'No articles')
       
       if (reset) {
         setArticles(Array.isArray(data) ? data : [])
@@ -74,7 +99,7 @@ export default function Home() {
         setHasMore(data.length === 12)
       }
     } catch (error) {
-      console.error('Error fetching news:', error)
+      console.error('❌ Error fetching news:', error)
       if (reset) {
         setArticles([])
       }
