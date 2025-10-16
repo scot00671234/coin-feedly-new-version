@@ -13,34 +13,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
+      url: `${baseUrl}/charts`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly' as const,
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/blog`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/bitcoin`,
-      lastModified: new Date(),
-      changeFrequency: 'hourly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/altcoins`,
-      lastModified: new Date(),
-      changeFrequency: 'hourly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/defi`,
-      lastModified: new Date(),
-      changeFrequency: 'hourly' as const,
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/macro`,
-      lastModified: new Date(),
-      changeFrequency: 'hourly' as const,
-      priority: 0.9,
     },
   ]
 

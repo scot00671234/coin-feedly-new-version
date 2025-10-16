@@ -4,9 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Search, Moon, Sun, Menu, X } from 'lucide-react'
+import { Search, Moon, Sun, Menu, X, Home, BarChart3 } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
-import NewsCategoryMenu from './NewsCategoryMenu'
 
 interface UnifiedHeaderProps {
   searchQuery: string
@@ -43,8 +42,8 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-lg overflow-visible">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative overflow-visible">
+    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -62,38 +61,65 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
             </span>
           </Link>
 
-          {/* Desktop Search - Moved to left */}
+          {/* Desktop Search */}
           <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
             <div className="w-full relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder={getPlaceholderText()}
-                    value={searchQuery}
-                    onChange={handleSearchInputChange}
-                    onKeyPress={handleSearchKeyPress}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
-                  />
+                <input
+                  type="text"
+                  placeholder={getPlaceholderText()}
+                  value={searchQuery}
+                  onChange={handleSearchInputChange}
+                  onKeyPress={handleSearchKeyPress}
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-full text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                />
               </div>
             </div>
           </div>
 
-          {/* Desktop Navigation - Moved to right */}
-          <div className="flex items-center space-x-1 relative overflow-visible">
-            <NewsCategoryMenu currentCategory={pathname.includes('/category/') ? pathname.split('/category/')[1] : 'all'} />
-          </div>
-
-          {/* Right side elements */}
-          <div className="flex items-center space-x-2">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-md hover:shadow-blue-500/10 hover:ring-1 hover:ring-blue-500/10 transition-all duration-300"
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            <Link
+              href="/"
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                isActive('/')
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
             >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <Home className="w-4 h-4" />
+              <span className="font-medium">Home</span>
+            </Link>
+            <Link
+              href="/charts"
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                isActive('/charts')
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="font-medium">Charts</span>
+            </Link>
+            <button
+              onClick={toggleTheme}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span className="font-medium hidden lg:inline">
+                {isDarkMode ? 'Light' : 'Dark'}
+              </span>
             </button>
           </div>
+
+          {/* Mobile menu button */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2.5 rounded-full text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 hover:shadow-md hover:shadow-blue-500/10 hover:ring-1 hover:ring-blue-500/10 transition-all duration-300"
+          >
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
         {/* Mobile Menu */}
@@ -104,32 +130,37 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               <div className="px-4 py-2">
                 <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Navigation</div>
                 <div className="space-y-2">
-                  <Link href="/" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    All News
+                  <Link 
+                    href="/" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                  >
+                    <Home className="w-4 h-4" />
+                    <span>Home</span>
                   </Link>
-                  <Link href="/charts" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    Charts
+                  <Link 
+                    href="/charts" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center space-x-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                  >
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Charts</span>
                   </Link>
                 </div>
               </div>
 
-              {/* Mobile Categories */}
+              {/* Mobile Theme Toggle */}
               <div className="px-4 py-2">
-                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Categories</div>
-                <div className="space-y-2">
-                  <Link href="/category/bitcoin" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    Bitcoin
-                  </Link>
-                  <Link href="/category/altcoins" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    Altcoins
-                  </Link>
-                  <Link href="/category/defi" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    DeFi
-                  </Link>
-                  <Link href="/category/macro" className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
-                    Macro
-                  </Link>
-                </div>
+                <button
+                  onClick={() => {
+                    toggleTheme()
+                    setIsMenuOpen(false)
+                  }}
+                  className="flex items-center space-x-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg w-full"
+                >
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
               </div>
 
               {/* Mobile Search */}
