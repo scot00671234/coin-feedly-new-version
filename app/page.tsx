@@ -199,8 +199,8 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative flex-1">
+    <div className="min-h-screen w-full flex flex-col">
+      <div className="w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative flex-1">
         {/* Blueish subtle glare effect - entire background */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-blue-400/8 to-blue-600/12 dark:from-blue-500/15 dark:via-blue-400/8 dark:to-blue-600/12"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/10 via-transparent to-blue-500/8 dark:from-blue-400/10 dark:via-transparent dark:to-blue-500/8"></div>
@@ -214,8 +214,8 @@ export default function Home() {
         <HeaderTicker prices={cryptoPrices} />
         
         {/* Main Content */}
-        <section className="py-8 relative z-10">
-          <div className="container mx-auto px-6 max-w-7xl">
+        <section className="py-8 relative z-10 w-full">
+          <div className="w-full px-6">
             {/* Filters and Sort */}
             <div className="mb-8">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
