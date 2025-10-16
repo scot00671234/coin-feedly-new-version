@@ -223,7 +223,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: total,
-      itemListElement: articles.map((article, index) => ({
+      itemListElement: articles.map((article: any, index: number) => ({
         '@type': 'ListItem',
         position: index + 1,
         item: {
