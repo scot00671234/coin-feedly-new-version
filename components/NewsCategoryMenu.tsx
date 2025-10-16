@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Newspaper, BarChart3, Moon, Sun, Bitcoin, Coins, Zap, TrendingUp, Globe, Image, Gamepad2, Box } from 'lucide-react'
+import { Menu, X, Newspaper, BarChart3, Moon, Sun, Bitcoin, Coins, Zap, TrendingUp, Globe, Image } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface NewsCategoryMenuProps {
@@ -46,18 +46,6 @@ const categories = [
     icon: Image,
     href: '/category/nft'
   },
-  { 
-    id: 'gaming', 
-    name: 'Gaming', 
-    icon: Gamepad2,
-    href: '/category/gaming'
-  },
-  { 
-    id: 'metaverse', 
-    name: 'Metaverse', 
-    icon: Box,
-    href: '/category/metaverse'
-  }
 ]
 
 export default function NewsCategoryMenu({ currentCategory = 'all' }: NewsCategoryMenuProps) {

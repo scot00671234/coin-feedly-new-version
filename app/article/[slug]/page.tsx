@@ -94,38 +94,52 @@ async function getArticle(slug: string) {
       }
     }
     
-    // If not found in database, try to find by title match in news API
-    console.log(`❌ Article not found in database, searching news API...`)
+    // If not found in database, try to find by ID (if slug is actually an ID)
+    console.log(`❌ Article not found by slug, trying by ID...`)
     
-    const newsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=100`, {
+    const idResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/news?limit=1000`, {
       cache: 'no-store'
     })
     
-    if (!newsResponse.ok) {
+    if (!idResponse.ok) {
       throw new Error('Failed to fetch articles')
     }
     
-    const newsData = await newsResponse.json()
+    const newsData = await idResponse.json()
     const articles = newsData.articles || []
     
     console.log(`📊 Fetched ${articles.length} articles from news API`)
     
-    // Convert slug back to title for search
-    const titleFromSlug = slug
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
+    // Try to find by ID first
+    let article = articles.find((art: any) => art.id === slug)
     
-    console.log(`🔍 Searching for title: ${titleFromSlug}`)
-    
-    // Find article by title match
-    const article = articles.find((art: any) => 
-      art.title.toLowerCase().includes(titleFromSlug.toLowerCase()) ||
-      titleFromSlug.toLowerCase().includes(art.title.toLowerCase())
-    )
+    if (!article) {
+      // Convert slug back to title for search
+      const titleFromSlug = slug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      
+      console.log(`🔍 Searching for title: ${titleFromSlug}`)
+      
+      // Find article by title match (more flexible matching)
+      article = articles.find((art: any) => {
+        const artTitle = art.title.toLowerCase()
+        const searchTitle = titleFromSlug.toLowerCase()
+        
+        // Check for exact match, partial match, or reverse partial match
+        return artTitle === searchTitle ||
+               artTitle.includes(searchTitle) ||
+               searchTitle.includes(artTitle) ||
+               // Also try matching individual words
+               titleFromSlug.split(' ').some(word => 
+                 word.length > 3 && artTitle.includes(word.toLowerCase())
+               )
+      })
+    }
     
     if (article) {
-      console.log(`✅ Found article in news API: ${article.title}`)
+      console.log(`✅ Found article: ${article.title}`)
       
       // Fetch external article content if we have a URL
       let externalContent = null

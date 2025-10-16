@@ -199,73 +199,75 @@ export default function Home() {
   ]
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative">
-      {/* Blueish subtle glare effect - entire background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-blue-400/8 to-blue-600/12 dark:from-blue-500/15 dark:via-blue-400/8 dark:to-blue-600/12"></div>
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/10 via-transparent to-blue-500/8 dark:from-blue-400/10 dark:via-transparent dark:to-blue-500/8"></div>
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/25 dark:bg-blue-400/25 rounded-full blur-3xl -translate-x-48 -translate-y-48"></div>
-      <div className="absolute top-1/4 right-0 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-3xl translate-x-40 -translate-y-20"></div>
-      <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
-      
-      
-      {/* Crypto Price Ticker */}
-      <HeaderTicker prices={cryptoPrices} />
-      
-      {/* Main Content */}
-      <section className="py-8 relative z-10">
-        <div className="container mx-auto px-6 max-w-7xl">
-          {/* Filters and Sort */}
-          <div className="mb-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-              <CategoryFilter
-                categories={categories}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={handleCategoryChange}
-              />
-              <SortFilter
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-              />
+    <div className="min-h-screen flex flex-col">
+      <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950 relative flex-1">
+        {/* Blueish subtle glare effect - entire background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 via-blue-400/8 to-blue-600/12 dark:from-blue-500/15 dark:via-blue-400/8 dark:to-blue-600/12"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-400/10 via-transparent to-blue-500/8 dark:from-blue-400/10 dark:via-transparent dark:to-blue-500/8"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400/25 dark:bg-blue-400/25 rounded-full blur-3xl -translate-x-48 -translate-y-48"></div>
+        <div className="absolute top-1/4 right-0 w-80 h-80 bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-3xl translate-x-40 -translate-y-20"></div>
+        <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-blue-600/15 dark:bg-blue-600/15 rounded-full blur-3xl -translate-x-20 translate-y-32"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/18 dark:bg-blue-500/18 rounded-full blur-3xl translate-x-48 translate-y-48"></div>
+        
+        
+        {/* Crypto Price Ticker */}
+        <HeaderTicker prices={cryptoPrices} />
+        
+        {/* Main Content */}
+        <section className="py-8 relative z-10">
+          <div className="container mx-auto px-6 max-w-7xl">
+            {/* Filters and Sort */}
+            <div className="mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                <CategoryFilter
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={handleCategoryChange}
+                />
+                <SortFilter
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                />
+              </div>
             </div>
-          </div>
-          
-          {/* Search Status */}
-          {(searching || searchQuery || selectedCategory !== 'all') && (
-            <div className="text-center py-4">
-              {searching ? (
-                <div className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span>Searching...</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center space-x-2 text-slate-600 dark:text-slate-400">
-                  <span>Showing results for:</span>
-                  {selectedCategory !== 'all' && (
-                    <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-                      {categories.find(c => c.id === selectedCategory)?.name}
-                    </span>
-                  )}
-                  {searchQuery && (
-                    <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
-                      "{searchQuery}"
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+            
+            {/* Search Status */}
+            {(searching || searchQuery || selectedCategory !== 'all') && (
+              <div className="text-center py-4">
+                {searching ? (
+                  <div className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span>Searching...</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center space-x-2 text-slate-600 dark:text-slate-400">
+                    <span>Showing results for:</span>
+                    {selectedCategory !== 'all' && (
+                      <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                        {categories.find(c => c.id === selectedCategory)?.name}
+                      </span>
+                    )}
+                    {searchQuery && (
+                      <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                        "{searchQuery}"
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* News Feed */}
-          <NewsFeed 
-            articles={filteredArticles}
-            loading={loading}
-            loadingMore={loadingMore}
-            hasMore={hasMore}
-            onLoadMore={loadMore}
-          />
-        </div>
-      </section>
+            {/* News Feed */}
+            <NewsFeed 
+              articles={filteredArticles}
+              loading={loading}
+              loadingMore={loadingMore}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+            />
+          </div>
+        </section>
+      </div>
       
       {/* Footer */}
       <Footer />

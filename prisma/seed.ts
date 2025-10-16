@@ -9,8 +9,6 @@ const categories = [
   { name: "Macro", slug: "macro" },
   { name: "Web3", slug: "web3" },
   { name: "NFT", slug: "nft" },
-  { name: "Gaming", slug: "gaming" },
-  { name: "Metaverse", slug: "metaverse" },
 ]
 
 const newsSources = [

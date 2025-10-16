@@ -22,6 +22,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     'altcoins': 'Altcoin News & Analysis | Ethereum, Solana & Crypto Updates',
     'defi': 'DeFi News & Analysis | Decentralized Finance Updates & Protocols',
     'macro': 'Crypto Market Analysis | Macro Trends & Regulatory News',
+    'web3': 'Web3 News & Analysis | Decentralized Web & Blockchain Technology',
+    'nft': 'NFT News & Analysis | Non-Fungible Tokens & Digital Collectibles',
     'trading': 'Cryptocurrency Trading News | Market Analysis & Trading Insights',
     'blockchain': 'Blockchain Technology News | Network Updates & Innovations'
   }
@@ -31,6 +33,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     'altcoins': 'Comprehensive altcoin news and analysis covering Ethereum, Solana, and other major cryptocurrencies. Stay informed about altcoin market trends and developments.',
     'defi': 'Latest DeFi news, protocol updates, and decentralized finance analysis. Stay ahead of yield farming opportunities and DeFi market trends.',
     'macro': 'Crypto market analysis, regulatory updates, and macroeconomic trends affecting cryptocurrency prices and adoption worldwide.',
+    'web3': 'Web3 news and analysis covering decentralized applications, blockchain technology, and the future of the internet. Stay updated on Web3 developments and innovations.',
+    'nft': 'NFT news and analysis covering non-fungible tokens, digital collectibles, and blockchain-based digital assets. Stay informed about NFT market trends and developments.',
     'trading': 'Cryptocurrency trading news, technical analysis, and market insights for traders and investors. Get the latest crypto trading strategies and updates.',
     'blockchain': 'Blockchain technology news, network upgrades, and enterprise adoption updates. Stay informed about the latest blockchain innovations and developments.'
   }
