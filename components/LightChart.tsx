@@ -22,83 +22,110 @@ export default function LightChart({ data, height = 400, width, loading = false 
     console.log('Is initialized:', isInitialized)
     console.log('Height:', height, 'Width:', width)
     
-    if (!chartContainerRef.current || isInitialized) {
-      console.log('Skipping chart initialization - container:', !!chartContainerRef.current, 'initialized:', isInitialized)
+    if (isInitialized) {
+      console.log('Chart already initialized, skipping')
       return
     }
 
-    try {
-      console.log('Creating chart...')
-      // Create chart
-      const chart = createChart(chartContainerRef.current, {
-        layout: {
-          background: { type: ColorType.Solid, color: 'transparent' },
-          textColor: '#d1d5db',
-        },
-        grid: {
-          vertLines: { color: '#374151' },
-          horzLines: { color: '#374151' },
-        },
-        crosshair: {
-          mode: 1,
-        },
-        rightPriceScale: {
-          borderColor: '#374151',
-          textColor: '#d1d5db',
-        },
-        timeScale: {
-          borderColor: '#374151',
-          timeVisible: true,
-          secondsVisible: false,
-        },
-        width: width || chartContainerRef.current.clientWidth,
-        height: height,
-      })
-
-      console.log('Chart created successfully')
-
-      // Create line series with proper typing and error handling
-      const lineSeries = (chart as any).addLineSeries({
-        color: '#3b82f6',
-        lineWidth: 2,
-      })
-
-      console.log('Line series created successfully')
-
-      chartRef.current = chart
-      seriesRef.current = lineSeries
-      setIsInitialized(true)
-
-      console.log('Chart initialization complete')
-
-      // Handle resize
-      const handleResize = () => {
-        if (chartRef.current && chartContainerRef.current) {
-          chartRef.current.applyOptions({
-            width: width || chartContainerRef.current.clientWidth,
-          })
-        }
+    // Use a timeout to ensure the DOM element is ready
+    const initializeChart = () => {
+      if (!chartContainerRef.current) {
+        console.log('Chart container not ready, retrying...')
+        setTimeout(initializeChart, 100)
+        return
       }
 
-      window.addEventListener('resize', handleResize)
+      try {
+        console.log('Creating chart...')
+        // Create chart
+        const chart = createChart(chartContainerRef.current, {
+          layout: {
+            background: { type: ColorType.Solid, color: 'transparent' },
+            textColor: '#d1d5db',
+          },
+          grid: {
+            vertLines: { color: '#374151' },
+            horzLines: { color: '#374151' },
+          },
+          crosshair: {
+            mode: 1,
+          },
+          rightPriceScale: {
+            borderColor: '#374151',
+            textColor: '#d1d5db',
+          },
+          timeScale: {
+            borderColor: '#374151',
+            timeVisible: true,
+            secondsVisible: false,
+          },
+          width: width || chartContainerRef.current.clientWidth,
+          height: height,
+        })
 
-      return () => {
-        window.removeEventListener('resize', handleResize)
-        if (chartRef.current) {
-          chartRef.current.remove()
+        console.log('Chart created successfully')
+
+        // Create line series with proper typing and error handling
+        const lineSeries = (chart as any).addLineSeries({
+          color: '#3b82f6',
+          lineWidth: 2,
+        })
+
+        console.log('Line series created successfully')
+
+        chartRef.current = chart
+        seriesRef.current = lineSeries
+        setIsInitialized(true)
+
+        console.log('Chart initialization complete')
+
+        // Handle resize
+        const handleResize = () => {
+          if (chartRef.current && chartContainerRef.current) {
+            chartRef.current.applyOptions({
+              width: width || chartContainerRef.current.clientWidth,
+            })
+          }
         }
+
+        window.addEventListener('resize', handleResize)
+
+        return () => {
+          window.removeEventListener('resize', handleResize)
+          if (chartRef.current) {
+            chartRef.current.remove()
+          }
+        }
+      } catch (error) {
+        console.error('Error creating chart:', error)
+        setIsInitialized(false)
       }
-    } catch (error) {
-      console.error('Error creating chart:', error)
-      setIsInitialized(false)
+    }
+
+    // Start initialization
+    initializeChart()
+
+    // Cleanup function
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.remove()
+        chartRef.current = null
+        seriesRef.current = null
+        setIsInitialized(false)
+      }
     }
   }, [height, width, isInitialized])
 
   useEffect(() => {
-    console.log('LightChart useEffect triggered with data:', data.length, 'points')
+    console.log('LightChart data useEffect triggered with data:', data.length, 'points')
     console.log('Series ref exists:', !!seriesRef.current)
     console.log('Chart ref exists:', !!chartRef.current)
     console.log('Is initialized:', isInitialized)
+    
+    if (!isInitialized) {
+      console.log('Chart not initialized yet, waiting...')
+      return
+    }
     
     if (seriesRef.current && data.length > 0) {
       try {
@@ -122,7 +149,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.error('Error setting chart data:', error)
       }
     } else {
-      console.log('LightChart: Not setting data - seriesRef:', !!seriesRef.current, 'data length:', data.length)
+      console.log('LightChart: Not setting data - seriesRef:', !!seriesRef.current, 'data length:', data.length, 'initialized:', isInitialized)
     }
   }, [data, isInitialized])
 
