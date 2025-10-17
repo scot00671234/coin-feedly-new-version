@@ -64,7 +64,7 @@ export default function CryptoDetailPage() {
       console.log('Raw chart data from API:', data.length, 'points')
       console.log('Sample raw data:', data.slice(0, 3))
       
-      const formattedData = data.map(item => ({
+      const formattedData = data.map((item: any) => ({
         time: item.timestamp / 1000, // Convert to seconds (number, not string)
         value: item.price
       }))

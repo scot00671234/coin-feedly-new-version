@@ -32,7 +32,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
       
       const data = await response.json()
       
-      const formattedData = data.map(item => ({
+      const formattedData = data.map((item: any) => ({
         time: item.timestamp / 1000, // Convert to seconds (number)
         value: item.price
       }))
