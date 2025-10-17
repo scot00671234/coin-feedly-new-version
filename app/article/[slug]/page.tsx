@@ -72,6 +72,26 @@ async function getArticle(slug: string) {
   console.log(`🔍 Looking for article with slug: ${slug}`)
   
   try {
+    // First, let's check if any articles exist with this slug pattern
+    const articlesWithSimilarSlug = await prisma.article.findMany({
+      where: {
+        slug: {
+          contains: slug.split('-0')[0], // Remove the -0 suffix
+          mode: 'insensitive'
+        }
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true
+      }
+    })
+    
+    console.log(`📊 Found ${articlesWithSimilarSlug.length} articles with similar slug pattern:`)
+    articlesWithSimilarSlug.forEach(art => {
+      console.log(`  - ID: ${art.id}, Slug: "${art.slug}", Title: "${art.title.substring(0, 50)}..."`)
+    })
+    
     // Directly query the database instead of using fetch
     const article = await prisma.article.findUnique({
       where: { slug },
@@ -135,6 +155,77 @@ async function getArticle(slug: string) {
         article,
         relatedArticles,
         externalContent
+      }
+    }
+    
+    // If exact slug not found, try to find by similar slug (without the counter)
+    if (articlesWithSimilarSlug.length > 0) {
+      console.log(`🔄 Trying to find article with similar slug...`)
+      const similarArticle = articlesWithSimilarSlug[0] // Take the first match
+      
+      const fullArticle = await prisma.article.findUnique({
+        where: { id: similarArticle.id },
+        include: {
+          source: true,
+          categories: {
+            include: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true
+                }
+              }
+            }
+          }
+        }
+      })
+      
+      if (fullArticle) {
+        console.log(`✅ Found article by similar slug: ${fullArticle.title}`)
+        
+        // Get related articles
+        const relatedArticles = await prisma.article.findMany({
+          where: {
+            id: { not: fullArticle.id },
+            categories: {
+              some: {
+                categoryId: {
+                  in: fullArticle.categories.map(ac => ac.categoryId)
+                }
+              }
+            }
+          },
+          orderBy: { publishedAt: 'desc' },
+          take: 6,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            description: true,
+            imageUrl: true,
+            publishedAt: true,
+            readingTime: true,
+            primaryCategory: true,
+            source: {
+              select: {
+                name: true
+              }
+            }
+          }
+        })
+        
+        // Fetch external article content if we have a URL
+        let externalContent = null
+        if (fullArticle.url) {
+          externalContent = await fetchArticleContent(fullArticle.url)
+        }
+        
+        return {
+          article: fullArticle,
+          relatedArticles,
+          externalContent
+        }
       }
     }
     
