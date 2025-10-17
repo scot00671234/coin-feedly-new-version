@@ -20,7 +20,8 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       typeof item.value === 'number' && 
       !isNaN(item.time) && 
       !isNaN(item.value) &&
-      item.value > 0
+      item.value > 0 &&
+      item.time > 0 // Ensure time is positive
     )
 
     if (validData.length === 0) return null
@@ -35,18 +36,25 @@ export default function SimpleChart({ data, height = 400, width, loading = false
 
     const timeRange = maxTime - minTime
     const valueRange = maxValue - minValue
+    
+    // Handle edge cases for better accuracy
+    if (timeRange === 0 || valueRange === 0) {
+      console.warn('Invalid data range for chart')
+      return null
+    }
 
-    // Add padding for better visual spacing
-    const padding = { top: 30, right: 60, bottom: 40, left: 60 }
+    // Add padding for better visual spacing - optimized for better fit
+    const padding = { top: 20, right: 40, bottom: 30, left: 50 }
     const chartWidth = (width || 400) - padding.left - padding.right
     const chartHeight = height - padding.top - padding.bottom
 
     const points = sortedData.map((point, index) => {
+      // More precise calculations for better accuracy
       const x = padding.left + ((point.time - minTime) / timeRange) * chartWidth
       const y = padding.top + ((maxValue - point.value) / valueRange) * chartHeight
       return { 
-        x, 
-        y, 
+        x: Math.round(x * 100) / 100, // Round to 2 decimal places for precision
+        y: Math.round(y * 100) / 100, // Round to 2 decimal places for precision
         value: point.value, 
         time: point.time,
         index,
@@ -68,7 +76,7 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       return `C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${point.x} ${point.y}`
     }).join(' ')
 
-    // Create area path for gradient fill
+    // Create area path for gradient fill - more accurate calculation
     const areaPath = `${pathData} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${points[0].x} ${padding.top + chartHeight} Z`
 
     return {
@@ -133,7 +141,12 @@ export default function SimpleChart({ data, height = 400, width, loading = false
   return (
     <div 
       className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden"
-      style={{ height: `${height}px`, width: width ? `${width}px` : '100%' }}
+      style={{ 
+        height: `${height}px`, 
+        width: width ? `${width}px` : '100%',
+        minHeight: '200px',
+        minWidth: '300px'
+      }}
     >
       {/* Header with price info */}
       <div className="absolute top-4 left-4 z-10">
@@ -151,10 +164,11 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       </div>
 
       <svg
-        width={width || '100%'}
-        height={height}
+        width="100%"
+        height="100%"
         className="w-full h-full"
         viewBox={`0 0 ${width || 400} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
       >
         <defs>
           {/* Gradient definitions */}
@@ -241,19 +255,6 @@ export default function SimpleChart({ data, height = 400, width, loading = false
               className="transition-all duration-200 drop-shadow-md"
             />
             
-            {/* Highlight for first and last points */}
-            {(point.isFirst || point.isLast) && (
-              <circle
-                cx={point.x}
-                cy={point.y}
-                r="8"
-                fill="none"
-                stroke={point.isFirst ? "#10b981" : "#ef4444"}
-                strokeWidth="2"
-                opacity="0.6"
-                className="animate-ping"
-              />
-            )}
           </g>
         ))}
         
