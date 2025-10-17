@@ -36,57 +36,12 @@ export async function GET(request: NextRequest) {
   console.log('API Request - Category:', category, 'Search:', search, 'Sort:', sort, 'Limit:', limit)
 
   try {
-    // Check if database is available and has tables
-    let databaseAvailable = false
-    try {
-      await prisma.$connect()
-      // Try to query a simple table to check if it exists
-      await prisma.article.findFirst()
-      databaseAvailable = true
-    } catch (dbError) {
-      console.log('Database not available or tables missing, fetching fresh articles from RSS feeds')
-      databaseAvailable = false
-    }
-
-    if (!databaseAvailable) {
-      const fetchedArticles = await fetchAndStoreArticles()
-      
-      // Apply filters to fetched articles
-      let filteredArticles = fetchedArticles
-      
-      if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => {
-          // Check if article has categories (database articles)
-          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
-            return article.categories.some(cat => 
-              cat.category.slug === category.toLowerCase()
-            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-          }
-          // For RSS articles without categories, check primaryCategory
-          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        })
-      }
-
-      if (search) {
-        filteredArticles = filteredArticles.filter(article =>
-          article.title.toLowerCase().includes(search.toLowerCase()) ||
-          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
-        )
-      }
-
-      // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map((article, index) => ({
-        ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
-        slug: article.slug || `${generateSlug(article.title)}-${index}`
-      }))
-
-      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-        }
-      })
-    }
+    // Always fetch fresh articles from RSS feeds first
+    console.log('🔄 Fetching fresh articles from RSS feeds...')
+    const fetchedArticles = await fetchAndStoreArticles()
+    
+    // Also get existing articles from database
+    console.log('📚 Fetching existing articles from database...')
 
     // Fetch articles from database
     let whereClause: any = {}
@@ -137,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Database query whereClause:', JSON.stringify(whereClause, null, 2))
     
-    const articles = await prisma.article.findMany({
+    const dbArticles = await prisma.article.findMany({
       where: whereClause,
       include: {
         source: true,
@@ -158,7 +113,55 @@ export async function GET(request: NextRequest) {
       take: limit
     })
     
-    console.log(`📊 Found ${articles.length} articles for category: ${category}`)
+    console.log(`📊 Found ${dbArticles.length} articles in database for category: ${category}`)
+    
+    // Combine fresh articles with database articles
+    let allArticles = [...dbArticles]
+    
+    // If we have fresh articles, add them to the results
+    if (fetchedArticles && fetchedArticles.length > 0) {
+      console.log(`🆕 Adding ${fetchedArticles.length} fresh articles to results`)
+      
+      // Filter fresh articles based on category and search
+      let filteredFreshArticles = fetchedArticles
+      
+      if (category && category !== 'all') {
+        filteredFreshArticles = filteredFreshArticles.filter(article => {
+          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
+        })
+      }
+
+      if (search) {
+        filteredFreshArticles = filteredFreshArticles.filter(article =>
+          article.title.toLowerCase().includes(search.toLowerCase()) ||
+          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
+        )
+      }
+      
+      // Add fresh articles to the beginning (newest first)
+      allArticles = [...filteredFreshArticles, ...allArticles]
+    }
+    
+    // Remove duplicates based on URL
+    const uniqueArticles = allArticles.filter((article, index, self) => 
+      index === self.findIndex(a => a.url === article.url)
+    )
+    
+    // Apply sorting to combined results
+    uniqueArticles.sort((a, b) => {
+      const dateA = new Date(a.publishedAt).getTime()
+      const dateB = new Date(b.publishedAt).getTime()
+      
+      if (sort === 'oldest') {
+        return dateA - dateB
+      } else {
+        return dateB - dateA // newest or relevant
+      }
+    })
+    
+    const articles = uniqueArticles.slice(0, limit)
+    
+    console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {
       console.log('📝 First article categories:', articles[0].categories)
       console.log('🏷️ First article primaryCategory:', articles[0].primaryCategory)
@@ -199,59 +202,7 @@ export async function GET(request: NextRequest) {
     const articlesWithoutImages = articles.filter(article => !article.imageUrl)
     console.log(`Articles without images: ${articlesWithoutImages.length}`)
 
-    // If no articles in database, fetch from RSS feeds
-    if (articles.length === 0) {
-      console.log('No articles in database, fetching fresh articles from RSS feeds...')
-      const fetchedArticles = await fetchAndStoreArticles()
-      
-      // Apply filters to fetched articles
-      let filteredArticles = fetchedArticles
-      
-      if (category && category !== 'all') {
-        filteredArticles = filteredArticles.filter(article => {
-          // Check if article has categories (database articles)
-          if ('categories' in article && article.categories && Array.isArray(article.categories)) {
-            return article.categories.some(cat => 
-              cat.category.slug === category.toLowerCase()
-            ) || article.primaryCategory?.toLowerCase() === category.toLowerCase()
-          }
-          // For RSS articles without categories, check primaryCategory
-          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        })
-      }
-
-      if (search) {
-        filteredArticles = filteredArticles.filter(article =>
-          article.title.toLowerCase().includes(search.toLowerCase()) ||
-          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
-        )
-      }
-
-      // Apply sorting
-      filteredArticles.sort((a, b) => {
-        const dateA = new Date(a.publishedAt).getTime()
-        const dateB = new Date(b.publishedAt).getTime()
-        
-        if (sort === 'oldest') {
-          return dateA - dateB
-        } else {
-          return dateB - dateA // newest or relevant
-        }
-      })
-
-      // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map((article, index) => ({
-        ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
-        slug: article.slug || `${generateSlug(article.title)}-${index}`
-      }))
-
-      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
-        headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-        }
-      })
-    }
+    // Fresh articles are already fetched and combined above
 
     // Ensure all articles have images and slugs (add fallback if missing)
     const articlesWithImages = articles.map((article, index) => ({
