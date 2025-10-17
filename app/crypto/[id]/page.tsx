@@ -64,13 +64,29 @@ export default function CryptoDetailPage() {
       console.log('Raw chart data from API:', data.length, 'points')
       console.log('Sample raw data:', data.slice(0, 3))
       
-      const formattedData = data.map((item: any) => ({
-        time: item.timestamp / 1000, // Convert to seconds (number, not string)
-        value: item.price
-      }))
+      // Validate the data structure
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid data format: expected array')
+      }
+      
+      const formattedData = data.map((item: any) => {
+        if (!item.timestamp || !item.price) {
+          console.warn('Invalid data point:', item)
+          return null
+        }
+        return {
+          time: Math.floor(item.timestamp / 1000), // Convert to seconds and ensure integer
+          value: parseFloat(item.price) // Ensure price is a number
+        }
+      }).filter(item => item !== null) // Remove invalid data points
       
       console.log('Formatted chart data:', formattedData.length, 'points')
       console.log('Sample formatted data:', formattedData.slice(0, 5))
+      
+      if (formattedData.length === 0) {
+        throw new Error('No valid data points found')
+      }
+      
       setChartData(formattedData)
     } catch (error) {
       console.error('Error fetching chart data:', error)

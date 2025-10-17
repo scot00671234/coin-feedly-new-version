@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions, LineData } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions, LineData, LineSeriesPartialOptions } from 'lightweight-charts'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
@@ -76,6 +76,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.log('Chart created successfully')
         console.log('Chart methods available:', Object.getOwnPropertyNames(chart))
         console.log('Chart prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
+        console.log('Chart addSeries method:', typeof chart.addSeries)
 
         // Wait a bit before adding series to ensure chart is fully ready
         setTimeout(() => {
@@ -88,11 +89,33 @@ export default function LightChart({ data, height = 400, width, loading = false 
             }
 
             // Create line series using the correct API
-            const lineSeries = (chart as any).addSeries('Line', {
-              color: '#3b82f6',
-              lineWidth: 2,
-            })
-            console.log('Line series created successfully')
+            let lineSeries;
+            try {
+              // Try the modern API first
+              lineSeries = chart.addSeries('Line' as any, {
+                color: '#3b82f6',
+                lineWidth: 2,
+                priceFormat: {
+                  type: 'price',
+                  precision: 2,
+                  minMove: 0.01,
+                },
+              } as LineSeriesPartialOptions)
+              console.log('Line series created successfully with modern API')
+            } catch (error) {
+              console.warn('Modern API failed, trying legacy method:', error)
+              // Fallback to legacy method
+              lineSeries = (chart as any).addLineSeries({
+                color: '#3b82f6',
+                lineWidth: 2,
+                priceFormat: {
+                  type: 'price',
+                  precision: 2,
+                  minMove: 0.01,
+                },
+              })
+              console.log('Line series created successfully with legacy API')
+            }
 
             chartRef.current = chart
             seriesRef.current = lineSeries
@@ -102,6 +125,10 @@ export default function LightChart({ data, height = 400, width, loading = false 
           } catch (seriesError) {
             console.error('Error creating series:', seriesError)
             setIsInitialized(false)
+            // Clean up the chart if series creation fails
+            if (chart) {
+              chart.remove()
+            }
           }
         }, 100)
 
@@ -158,14 +185,28 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.log('LightChart: Setting data with', data.length, 'points')
         console.log('Sample data:', data.slice(0, 3))
         
+        // Validate data before processing
+        const validData = data.filter(item => 
+          typeof item.time === 'number' && 
+          typeof item.value === 'number' && 
+          !isNaN(item.time) && 
+          !isNaN(item.value) &&
+          item.value > 0
+        )
+        
+        if (validData.length === 0) {
+          console.warn('No valid data points found')
+          return
+        }
+        
         // Convert data to the format expected by lightweight-charts
-        const chartData = data.map(item => ({
-          time: item.time as any, // Convert to UTCTimestamp
+        const chartData = validData.map(item => ({
+          time: Math.floor(item.time), // Ensure time is an integer (seconds since epoch)
           value: item.value
         }))
         
         console.log('Converted chart data:', chartData.slice(0, 3))
-        seriesRef.current.setData(chartData as any)
+        seriesRef.current.setData(chartData)
         
         if (chartRef.current) {
           chartRef.current.timeScale().fitContent()
@@ -199,6 +240,21 @@ export default function LightChart({ data, height = 400, width, loading = false 
         <div className="text-center">
           <p className="text-lg font-medium">No data available</p>
           <p className="text-sm">Try selecting a different timeframe</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if chart failed to initialize after data is available
+  if (!isInitialized && data.length > 0) {
+    return (
+      <div 
+        className="flex items-center justify-center bg-slate-100 dark:bg-slate-700/30 rounded-lg text-slate-500 dark:text-slate-400"
+        style={{ height, width: width || '100%' }}
+      >
+        <div className="text-center">
+          <p className="text-lg font-medium">Chart failed to load</p>
+          <p className="text-sm">Please refresh the page</p>
         </div>
       </div>
     )
