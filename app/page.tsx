@@ -194,11 +194,11 @@ export default function Home() {
         
         
         {/* Main Content */}
-        <section className="py-8 relative z-10">
-          <div className="container mx-auto px-6 max-w-7xl">
+        <section className="py-6 sm:py-8 relative z-10">
+          <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
             {/* Filters */}
-            <div className="mb-8">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4 sm:mb-6">
                 <CategoryFilter
                   categories={categories}
                   selectedCategory={selectedCategory}

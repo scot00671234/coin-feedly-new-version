@@ -130,7 +130,42 @@ export default function ChartsPage() {
       {/* Filters Section */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          {/* Mobile Layout */}
+          <div className="block sm:hidden space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Sort by:</span>
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors duration-200"
+              >
+                {sortOrder === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                <span>{sortOrder === 'asc' ? 'Asc' : 'Desc'}</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'market_cap', label: 'Market Cap' },
+                { value: 'price', label: 'Price' },
+                { value: 'volume', label: 'Volume' },
+                { value: 'change_24h', label: '24h Change' }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value as any)}
+                  className={`px-3 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${
+                    sortBy === option.value
+                      ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Sort by:</span>
               <div className="flex items-center space-x-1">
@@ -178,7 +213,84 @@ export default function ChartsPage() {
                 <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Cryptocurrencies</h2>
               </div>
               
-              <div className="overflow-x-auto">
+              {/* Mobile Layout - Cards */}
+              <div className="block sm:hidden">
+                <div className="space-y-3 p-4">
+                  {sortedCryptos.map((crypto) => (
+                    <div
+                      key={crypto.id}
+                      onClick={() => handleCryptoClick(crypto)}
+                      className="bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 rounded-xl p-4 hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-300/50 dark:hover:border-blue-400/50 transition-all duration-300 cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                            #{crypto.market_cap_rank}
+                          </div>
+                          <img
+                            src={crypto.image}
+                            alt={crypto.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                          <div>
+                            <div className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                              {crypto.name}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 uppercase">
+                              {crypto.symbol}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                            {formatPrice(crypto.current_price)}
+                          </div>
+                          <div className={`text-xs flex items-center justify-end ${
+                            crypto.price_change_percentage_24h >= 0 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-red-600 dark:text-red-400'
+                          }`}>
+                            {crypto.price_change_percentage_24h >= 0 ? (
+                              <ArrowUp className="w-3 h-3 mr-1" />
+                            ) : (
+                              <ArrowDown className="w-3 h-3 mr-1" />
+                            )}
+                            {formatPercentage(crypto.price_change_percentage_24h)}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-4 text-xs">
+                        <div>
+                          <div className="text-slate-500 dark:text-slate-400 mb-1">1h</div>
+                          <div className={`font-medium ${
+                            crypto.price_change_percentage_1h_in_currency >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                          }`}>
+                            {formatPercentage(crypto.price_change_percentage_1h_in_currency)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 dark:text-slate-400 mb-1">7d</div>
+                          <div className={`font-medium ${
+                            crypto.price_change_percentage_7d_in_currency >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                          }`}>
+                            {formatPercentage(crypto.price_change_percentage_7d_in_currency)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-slate-500 dark:text-slate-400 mb-1">Market Cap</div>
+                          <div className="font-medium text-slate-900 dark:text-white">
+                            {formatMarketCap(crypto.market_cap)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Layout - Table */}
+              <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-slate-100 dark:bg-slate-700/50">
                     <tr>

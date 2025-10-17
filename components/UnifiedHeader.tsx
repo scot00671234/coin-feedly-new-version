@@ -84,7 +84,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               href="/"
               className={`group relative flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 ${
                 isActive('/')
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
               }`}
             >
@@ -101,7 +101,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               href="/charts"
               className={`group relative flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 ${
                 isActive('/charts')
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/20'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
               }`}
             >
@@ -149,7 +149,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                     onClick={() => setIsMenuOpen(false)}
                     className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                       isActive('/')
-                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                     }`}
                   >
@@ -166,7 +166,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                     onClick={() => setIsMenuOpen(false)}
                     className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                       isActive('/charts')
-                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
                     }`}
                   >

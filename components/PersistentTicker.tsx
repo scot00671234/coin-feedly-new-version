@@ -72,9 +72,9 @@ export default function PersistentTicker() {
   if (loading) {
     return (
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
-        <div className="py-2">
+        <div className="py-1.5 sm:py-2">
           <div className="flex items-center justify-center">
-            <div className="animate-pulse text-slate-400 text-sm">
+            <div className="animate-pulse text-slate-400 text-xs sm:text-sm">
               Loading crypto prices...
             </div>
           </div>
@@ -105,24 +105,24 @@ export default function PersistentTicker() {
 
   return (
     <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-40 w-full max-w-full overflow-hidden">
-      <div className="py-2 overflow-hidden w-full" ref={tickerRef}>
-        <div className="ticker-content flex items-center space-x-8 w-full">
+      <div className="py-1.5 sm:py-2 overflow-hidden w-full" ref={tickerRef}>
+        <div className="ticker-content flex items-center space-x-4 sm:space-x-8 w-full">
           {/* Duplicate the prices for seamless loop */}
           {Array.from({ length: 2 }, (_, duplicateIndex) => 
             sortedPrices.map((crypto, index) => (
               <div
                 key={`${crypto.symbol}-${duplicateIndex}-${index}`}
-                className="flex items-center space-x-3 whitespace-nowrap flex-shrink-0"
+                className="flex items-center space-x-2 sm:space-x-3 whitespace-nowrap flex-shrink-0"
               >
-                <div className="flex items-center space-x-2">
-                  <span className="font-bold text-white text-sm">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <span className="font-bold text-white text-xs sm:text-sm">
                     {crypto.symbol}
                   </span>
-                  <span className="text-slate-200 font-semibold text-sm">
+                  <span className="text-slate-200 font-semibold text-xs sm:text-sm">
                     {formatPrice(crypto.current_price)}
                   </span>
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    className={`text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full ${
                       (crypto.price_change_percentage_24h || 0) >= 0
                         ? 'text-green-300 bg-green-900/30'
                         : 'text-red-300 bg-red-900/30'
