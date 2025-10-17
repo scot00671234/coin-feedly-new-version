@@ -35,6 +35,16 @@ export default function LightChart({ data, height = 400, width, loading = false 
         return
       }
 
+      // Ensure the container has dimensions
+      const containerWidth = chartContainerRef.current.clientWidth || 400
+      const containerHeight = chartContainerRef.current.clientHeight || height
+      
+      if (containerWidth === 0 || containerHeight === 0) {
+        console.log('Chart container has no dimensions, retrying...')
+        setTimeout(initializeChart, 100)
+        return
+      }
+
       try {
         console.log('Creating chart...')
         // Create chart
@@ -59,7 +69,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
             timeVisible: true,
             secondsVisible: false,
           },
-          width: width || chartContainerRef.current.clientWidth,
+          width: Math.max(width || containerWidth, 300),
           height: height,
         })
 
@@ -67,18 +77,26 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.log('Chart methods available:', Object.getOwnPropertyNames(chart))
         console.log('Chart prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
 
-        // Create line series using the correct API
-        const lineSeries = (chart as any).addSeries('Line', {
-          color: '#3b82f6',
-          lineWidth: 2,
-        })
-        console.log('Line series created successfully')
+        // Wait a bit before adding series to ensure chart is fully ready
+        setTimeout(() => {
+          try {
+            // Create line series using the correct API
+            const lineSeries = (chart as any).addSeries('Line', {
+              color: '#3b82f6',
+              lineWidth: 2,
+            })
+            console.log('Line series created successfully')
 
-        chartRef.current = chart
-        seriesRef.current = lineSeries
-        setIsInitialized(true)
+            chartRef.current = chart
+            seriesRef.current = lineSeries
+            setIsInitialized(true)
 
-        console.log('Chart initialization complete')
+            console.log('Chart initialization complete')
+          } catch (seriesError) {
+            console.error('Error creating series:', seriesError)
+            setIsInitialized(false)
+          }
+        }, 50)
 
         // Handle resize
         const handleResize = () => {
