@@ -80,6 +80,13 @@ export default function LightChart({ data, height = 400, width, loading = false 
         // Wait a bit before adding series to ensure chart is fully ready
         setTimeout(() => {
           try {
+            // Ensure chart container still exists and has dimensions
+            if (!chartContainerRef.current || chartContainerRef.current.clientWidth === 0) {
+              console.error('Chart container not ready for series creation')
+              setIsInitialized(false)
+              return
+            }
+
             // Create line series using the correct API
             const lineSeries = (chart as any).addSeries('Line', {
               color: '#3b82f6',
@@ -96,7 +103,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
             console.error('Error creating series:', seriesError)
             setIsInitialized(false)
           }
-        }, 50)
+        }, 100)
 
         // Handle resize
         const handleResize = () => {

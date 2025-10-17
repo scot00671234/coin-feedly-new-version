@@ -63,17 +63,25 @@ class CryptoAPI {
     }
 
     try {
+      const headers: any = {
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate'
+      }
+      
+      // Add API key to headers if available
+      if (process.env.COINGECKO_API_KEY) {
+        headers['x-cg-demo-api-key'] = process.env.COINGECKO_API_KEY
+        console.log('Using CoinGecko API key for higher rate limits')
+      } else {
+        console.log('No CoinGecko API key found, using free tier with rate limits')
+      }
+
       const response = await axios.get(`${this.baseURL}${endpoint}`, {
         params: {
-          ...params,
-          x_cg_demo_api_key: process.env.COINGECKO_API_KEY // Optional API key for higher limits
+          ...params
         },
         timeout: 15000, // Increased timeout for reliability
-        headers: {
-          'User-Agent': 'CoinFeedly/1.0',
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip, deflate'
-        }
+        headers
       })
 
       return response.data
