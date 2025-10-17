@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions, LineData } from 'lightweight-charts'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
@@ -135,7 +135,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
         
         // Convert data to the format expected by lightweight-charts
         const chartData = data.map(item => ({
-          time: item.time as any, // Cast to any to avoid type issues
+          time: item.time as any, // Convert to UTCTimestamp
           value: item.value
         }))
         
