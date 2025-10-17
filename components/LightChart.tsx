@@ -27,11 +27,18 @@ export default function LightChart({ data, height = 400, width, loading = false 
       return
     }
 
+    // Reset initialization state if we're retrying
+    if (chartRef.current) {
+      chartRef.current.remove()
+      chartRef.current = null
+      seriesRef.current = null
+    }
+
     // Use a timeout to ensure the DOM element is ready
     const initializeChart = () => {
       if (!chartContainerRef.current) {
         console.log('Chart container not ready, retrying...')
-        setTimeout(initializeChart, 100)
+        setTimeout(initializeChart, 50)
         return
       }
 
@@ -41,8 +48,16 @@ export default function LightChart({ data, height = 400, width, loading = false 
       
       if (containerWidth === 0 || containerHeight === 0) {
         console.log('Chart container has no dimensions, retrying...')
-        setTimeout(initializeChart, 100)
+        setTimeout(initializeChart, 50)
         return
+      }
+
+      // Force minimum dimensions if needed
+      if (containerWidth < 300) {
+        chartContainerRef.current.style.width = '300px'
+      }
+      if (containerHeight < 200) {
+        chartContainerRef.current.style.height = '200px'
       }
 
       try {
@@ -78,59 +93,57 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.log('Chart prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(chart)))
         console.log('Chart addSeries method:', typeof chart.addSeries)
 
-        // Wait a bit before adding series to ensure chart is fully ready
-        setTimeout(() => {
-          try {
-            // Ensure chart container still exists and has dimensions
-            if (!chartContainerRef.current || chartContainerRef.current.clientWidth === 0) {
-              console.error('Chart container not ready for series creation')
-              setIsInitialized(false)
-              return
-            }
-
-            // Create line series using the correct API
-            let lineSeries;
-            try {
-              // Try the modern API first
-              lineSeries = chart.addSeries('Line' as any, {
-                color: '#3b82f6',
-                lineWidth: 2,
-                priceFormat: {
-                  type: 'price',
-                  precision: 2,
-                  minMove: 0.01,
-                },
-              } as LineSeriesPartialOptions)
-              console.log('Line series created successfully with modern API')
-            } catch (error) {
-              console.warn('Modern API failed, trying legacy method:', error)
-              // Fallback to legacy method
-              lineSeries = (chart as any).addLineSeries({
-                color: '#3b82f6',
-                lineWidth: 2,
-                priceFormat: {
-                  type: 'price',
-                  precision: 2,
-                  minMove: 0.01,
-                },
-              })
-              console.log('Line series created successfully with legacy API')
-            }
-
-            chartRef.current = chart
-            seriesRef.current = lineSeries
-            setIsInitialized(true)
-
-            console.log('Chart initialization complete')
-          } catch (seriesError) {
-            console.error('Error creating series:', seriesError)
+        // Create line series immediately after chart creation
+        try {
+          // Ensure chart container still exists and has dimensions
+          if (!chartContainerRef.current || chartContainerRef.current.clientWidth === 0) {
+            console.error('Chart container not ready for series creation')
             setIsInitialized(false)
-            // Clean up the chart if series creation fails
-            if (chart) {
-              chart.remove()
-            }
+            return
           }
-        }, 100)
+
+          // Create line series using the correct API
+          let lineSeries;
+          try {
+            // Try the modern API first
+            lineSeries = chart.addSeries('Line' as any, {
+              color: '#3b82f6',
+              lineWidth: 2,
+              priceFormat: {
+                type: 'price',
+                precision: 2,
+                minMove: 0.01,
+              },
+            } as LineSeriesPartialOptions)
+            console.log('Line series created successfully with modern API')
+          } catch (error) {
+            console.warn('Modern API failed, trying legacy method:', error)
+            // Fallback to legacy method
+            lineSeries = (chart as any).addLineSeries({
+              color: '#3b82f6',
+              lineWidth: 2,
+              priceFormat: {
+                type: 'price',
+                precision: 2,
+                minMove: 0.01,
+              },
+            })
+            console.log('Line series created successfully with legacy API')
+          }
+
+          chartRef.current = chart
+          seriesRef.current = lineSeries
+          setIsInitialized(true)
+
+          console.log('Chart initialization complete')
+        } catch (seriesError) {
+          console.error('Error creating series:', seriesError)
+          setIsInitialized(false)
+          // Clean up the chart if series creation fails
+          if (chart) {
+            chart.remove()
+          }
+        }
 
         // Handle resize
         const handleResize = () => {
@@ -175,7 +188,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
     console.log('Chart ref exists:', !!chartRef.current)
     console.log('Is initialized:', isInitialized)
     
-    if (!isInitialized) {
+    if (!isInitialized || !seriesRef.current) {
       console.log('Chart not initialized yet, waiting...')
       return
     }
@@ -219,6 +232,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
       console.log('LightChart: Not setting data - seriesRef:', !!seriesRef.current, 'data length:', data.length, 'initialized:', isInitialized)
     }
   }, [data, isInitialized])
+
 
   if (loading) {
     return (
@@ -264,7 +278,12 @@ export default function LightChart({ data, height = 400, width, loading = false 
     <div 
       ref={chartContainerRef}
       className="w-full rounded-lg overflow-hidden"
-      style={{ height, width: width || '100%' }}
+      style={{ 
+        height: `${height}px`, 
+        width: width ? `${width}px` : '100%',
+        minHeight: '200px',
+        minWidth: '300px'
+      }}
     />
   )
 }
