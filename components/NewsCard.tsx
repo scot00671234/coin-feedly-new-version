@@ -29,18 +29,8 @@ export default function NewsCard({ article }: NewsCardProps) {
     }
   }
 
-  // Generate slug for the article if it doesn't exist
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
-      .substring(0, 100)
-  }
-
-  const articleSlug = article.slug || generateSlug(article.title)
+  // Use the actual slug from the database, or fallback to ID if no slug exists
+  const articleSlug = article.slug || article.id
   
   console.log(`🔗 NewsCard - Article: "${article.title.substring(0, 50)}..." -> Slug: "${articleSlug}"`)
   

@@ -206,6 +206,86 @@ async function getArticle(slug: string) {
       }
     }
     
+    // If still not found, try to find by title match (for backward compatibility)
+    console.log(`❌ Article not found by ID, trying title match...`)
+    
+    const titleFromSlug = slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+    
+    console.log(`🔍 Searching for title: ${titleFromSlug}`)
+    
+    const articleByTitle = await prisma.article.findFirst({
+      where: {
+        title: {
+          contains: titleFromSlug,
+          mode: 'insensitive'
+        }
+      },
+      include: {
+        source: true,
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        }
+      }
+    })
+    
+    if (articleByTitle) {
+      console.log(`✅ Found article by title: ${articleByTitle.title}`)
+      
+      // Get related articles
+      const relatedArticles = await prisma.article.findMany({
+        where: {
+          id: { not: articleByTitle.id },
+          categories: {
+            some: {
+              categoryId: {
+                in: articleByTitle.categories.map(ac => ac.categoryId)
+              }
+            }
+          }
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          imageUrl: true,
+          publishedAt: true,
+          readingTime: true,
+          primaryCategory: true,
+          source: {
+            select: {
+              name: true
+            }
+          }
+        }
+      })
+      
+      // Fetch external article content if we have a URL
+      let externalContent = null
+      if (articleByTitle.url) {
+        externalContent = await fetchArticleContent(articleByTitle.url)
+      }
+      
+      return {
+        article: articleByTitle,
+        relatedArticles,
+        externalContent
+      }
+    }
+    
     console.log(`❌ No article found for slug: ${slug}`)
     return null
     
