@@ -22,7 +22,15 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
     try {
       setLoading(true)
       const days = timeframe === '1d' ? 1 : timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90
-      const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
+      
+      // Use backend API instead of direct CoinGecko API call
+      const response = await fetch(`/api/crypto?action=chart&id=${crypto.id}&days=${days}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
       
       const formattedData = data.map(item => ({
         time: item.timestamp / 1000, // Convert to seconds (number)

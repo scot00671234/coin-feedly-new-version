@@ -53,7 +53,14 @@ export default function CryptoDetailPage() {
       const days = timeframe === '1d' ? 1 : timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90
       console.log('Days parameter:', days)
       
-      const data = await cryptoAPI.getCryptoChartData(crypto.id, days)
+      // Use backend API instead of direct CoinGecko API call
+      const response = await fetch(`/api/crypto?action=chart&id=${crypto.id}&days=${days}`)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
       console.log('Raw chart data from API:', data.length, 'points')
       console.log('Sample raw data:', data.slice(0, 3))
       
