@@ -73,7 +73,7 @@ async function getArticle(slug: string) {
   
   try {
     // First try to fetch from the article API using the slug
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://coin-feedly.com'}/api/article/${slug}`, {
+    const response = await fetch(`/api/article/${slug}`, {
       cache: 'no-store'
     })
     
@@ -97,7 +97,7 @@ async function getArticle(slug: string) {
     // If not found in database, try to find by ID (if slug is actually an ID)
     console.log(`❌ Article not found by slug, trying by ID...`)
     
-    const idResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://coin-feedly.com'}/api/news?limit=1000`, {
+    const idResponse = await fetch(`/api/news?limit=1000`, {
       cache: 'no-store'
     })
     
