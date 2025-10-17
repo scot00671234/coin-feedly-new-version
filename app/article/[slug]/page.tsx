@@ -72,74 +72,58 @@ async function getArticle(slug: string) {
   console.log(`🔍 Looking for article with slug: ${slug}`)
   
   try {
-    // First try to fetch from the article API using the slug
-    const response = await fetch(`/api/article/${slug}`, {
-      cache: 'no-store'
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      console.log(`✅ Found article in database: ${data.article.title}`)
-      
-      // Fetch external article content if we have a URL
-      let externalContent = null
-      if (data.article.url) {
-        externalContent = await fetchArticleContent(data.article.url)
+    // Directly query the database instead of using fetch
+    const article = await prisma.article.findUnique({
+      where: { slug },
+      include: {
+        source: true,
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        }
       }
-      
-      return {
-        article: data.article,
-        relatedArticles: data.relatedArticles || [],
-        externalContent
-      }
-    }
-    
-    // If not found in database, try to find by ID (if slug is actually an ID)
-    console.log(`❌ Article not found by slug, trying by ID...`)
-    
-    const idResponse = await fetch(`/api/news?limit=1000`, {
-      cache: 'no-store'
     })
-    
-    if (!idResponse.ok) {
-      throw new Error('Failed to fetch articles')
-    }
-    
-    const newsData = await idResponse.json()
-    const articles = newsData.articles || []
-    
-    console.log(`📊 Fetched ${articles.length} articles from news API`)
-    
-    // Try to find by ID first
-    let article = articles.find((art: any) => art.id === slug)
-    
-    if (!article) {
-      // Convert slug back to title for search
-      const titleFromSlug = slug
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-      
-      console.log(`🔍 Searching for title: ${titleFromSlug}`)
-      
-      // Find article by title match (more flexible matching)
-      article = articles.find((art: any) => {
-        const artTitle = art.title.toLowerCase()
-        const searchTitle = titleFromSlug.toLowerCase()
-        
-        // Check for exact match, partial match, or reverse partial match
-        return artTitle === searchTitle ||
-               artTitle.includes(searchTitle) ||
-               searchTitle.includes(artTitle) ||
-               // Also try matching individual words
-               titleFromSlug.split(' ').some(word => 
-                 word.length > 3 && artTitle.includes(word.toLowerCase())
-               )
-      })
-    }
-    
+
     if (article) {
-      console.log(`✅ Found article: ${article.title}`)
+      console.log(`✅ Found article in database: ${article.title}`)
+      
+      // Get related articles based on shared categories
+      const relatedArticles = await prisma.article.findMany({
+        where: {
+          id: { not: article.id },
+          categories: {
+            some: {
+              categoryId: {
+                in: article.categories.map(ac => ac.categoryId)
+              }
+            }
+          }
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          imageUrl: true,
+          publishedAt: true,
+          readingTime: true,
+          primaryCategory: true,
+          source: {
+            select: {
+              name: true
+            }
+          }
+        }
+      })
       
       // Fetch external article content if we have a URL
       let externalContent = null
@@ -149,18 +133,81 @@ async function getArticle(slug: string) {
       
       return {
         article,
-        relatedArticles: articles.filter((art: any) => 
-          (art.primaryCategory === article.primaryCategory || 
-           art.categories?.some((cat: any) => 
-             article.categories?.some((artCat: any) => artCat.category.slug === cat.category.slug)
-           )) && art.id !== article.id
-        ).slice(0, 4),
+        relatedArticles,
         externalContent
       }
-    } else {
-      console.log(`❌ No article found for slug: ${slug}`)
-      return null
     }
+    
+    // If not found by slug, try to find by ID (if slug is actually an ID)
+    console.log(`❌ Article not found by slug, trying by ID...`)
+    
+    const articleById = await prisma.article.findUnique({
+      where: { id: slug },
+      include: {
+        source: true,
+        categories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true
+              }
+            }
+          }
+        }
+      }
+    })
+    
+    if (articleById) {
+      console.log(`✅ Found article by ID: ${articleById.title}`)
+      
+      // Get related articles
+      const relatedArticles = await prisma.article.findMany({
+        where: {
+          id: { not: articleById.id },
+          categories: {
+            some: {
+              categoryId: {
+                in: articleById.categories.map(ac => ac.categoryId)
+              }
+            }
+          }
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          description: true,
+          imageUrl: true,
+          publishedAt: true,
+          readingTime: true,
+          primaryCategory: true,
+          source: {
+            select: {
+              name: true
+            }
+          }
+        }
+      })
+      
+      // Fetch external article content if we have a URL
+      let externalContent = null
+      if (articleById.url) {
+        externalContent = await fetchArticleContent(articleById.url)
+      }
+      
+      return {
+        article: articleById,
+        relatedArticles,
+        externalContent
+      }
+    }
+    
+    console.log(`❌ No article found for slug: ${slug}`)
+    return null
     
   } catch (error) {
     console.error('Error fetching article:', error)
