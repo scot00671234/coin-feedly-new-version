@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     console.log(`📊 Found ${dbArticles.length} articles in database for category: ${category}`)
     
     // Combine fresh articles with database articles
-    let allArticles = [...dbArticles]
+    let allArticles: any[] = [...dbArticles]
     
     // If we have fresh articles, add them to the results
     if (fetchedArticles && fetchedArticles.length > 0) {
@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    const articles = uniqueArticles.slice(0, limit)
+    const articles: any[] = uniqueArticles.slice(0, limit)
     
     console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {
