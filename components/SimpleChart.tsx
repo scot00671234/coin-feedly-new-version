@@ -43,8 +43,8 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       return null
     }
 
-    // Add padding for better visual spacing - optimized for better fit
-    const padding = { top: 20, right: 40, bottom: 30, left: 50 }
+    // Add padding for better visual spacing - optimized for rectangular containers
+    const padding = { top: 30, right: 50, bottom: 40, left: 60 }
     const chartWidth = (width || 400) - padding.left - padding.right
     const chartHeight = height - padding.top - padding.bottom
 
@@ -96,15 +96,19 @@ export default function SimpleChart({ data, height = 400, width, loading = false
   if (loading) {
     return (
       <div 
-        className="flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg"
-        style={{ height: `${height}px`, width: width ? `${width}px` : '100%' }}
+        className="flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-2xl backdrop-blur-sm"
+        style={{ 
+          height: `${height}px`, 
+          width: width ? `${width}px` : '100%',
+          aspectRatio: width ? `${width}/${height}` : '16/9'
+        }}
       >
         <div className="text-center">
           <div className="relative">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 dark:border-slate-600 border-t-blue-500"></div>
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-slate-200 dark:border-slate-600 border-t-blue-500 shadow-lg"></div>
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-300 animate-pulse"></div>
           </div>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-4 font-medium">Loading chart...</p>
+          <p className="text-lg text-slate-700 dark:text-slate-300 mt-6 font-semibold">Loading chart...</p>
         </div>
       </div>
     )
@@ -113,17 +117,21 @@ export default function SimpleChart({ data, height = 400, width, loading = false
   if (!chartData) {
     return (
       <div 
-        className="flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg"
-        style={{ height: `${height}px`, width: width ? `${width}px` : '100%' }}
+        className="flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-2xl backdrop-blur-sm"
+        style={{ 
+          height: `${height}px`, 
+          width: width ? `${width}px` : '100%',
+          aspectRatio: width ? `${width}/${height}` : '16/9'
+        }}
       >
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-lg">
+            <svg className="w-10 h-10 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">No data available</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Try selecting a different timeframe</p>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-3">No data available</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Try selecting a different timeframe</p>
         </div>
       </div>
     )
@@ -140,23 +148,24 @@ export default function SimpleChart({ data, height = 400, width, loading = false
 
   return (
     <div 
-      className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden"
+      className="relative bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-2xl overflow-hidden backdrop-blur-sm"
       style={{ 
         height: `${height}px`, 
         width: width ? `${width}px` : '100%',
         minHeight: '200px',
-        minWidth: '300px'
+        minWidth: '300px',
+        aspectRatio: width ? `${width}/${height}` : '16/9' // Better aspect ratio for rectangular containers
       }}
     >
-      {/* Header with price info */}
+      {/* Header with price info - enhanced styling */}
       <div className="absolute top-4 left-4 z-10">
-        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm">
-          <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-xl px-4 py-3 shadow-xl border border-white/20 dark:border-slate-700/30">
+          <div className="flex items-center space-x-3">
+            <div className={`w-3 h-3 rounded-full ${isPositive ? 'bg-emerald-500' : 'bg-red-500'} shadow-lg`}></div>
+            <span className="text-lg font-bold text-slate-800 dark:text-slate-200">
               ${lastPrice.toLocaleString('en-US', { maximumFractionDigits: 2 })}
             </span>
-            <span className={`text-xs font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`text-sm font-semibold px-2 py-1 rounded-lg ${isPositive ? 'text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30' : 'text-red-700 bg-red-100 dark:bg-red-900/30'}`}>
               {isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%
             </span>
           </div>
@@ -171,30 +180,37 @@ export default function SimpleChart({ data, height = 400, width, loading = false
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>
-          {/* Gradient definitions */}
+          {/* Enhanced gradient definitions */}
           <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.05" />
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
+            <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.05" />
           </linearGradient>
           
           <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#06b6d4" />
+            <stop offset="30%" stopColor="#8b5cf6" />
+            <stop offset="70%" stopColor="#06b6d4" />
+            <stop offset="100%" stopColor="#10b981" />
           </linearGradient>
 
-          {/* Grid pattern */}
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" strokeWidth="0.5" opacity="0.5"/>
+          {/* Enhanced grid pattern */}
+          <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" strokeWidth="0.3" opacity="0.4"/>
           </pattern>
 
-          {/* Glow filter */}
+          {/* Enhanced glow filter */}
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
             <feMerge> 
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
+          </filter>
+
+          {/* Subtle shadow filter */}
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.1"/>
           </filter>
         </defs>
 
@@ -218,16 +234,16 @@ export default function SimpleChart({ data, height = 400, width, loading = false
           className="animate-pulse"
         />
         
-        {/* Price line with glow */}
+        {/* Price line with enhanced styling */}
         <path
           d={pathData}
           fill="none"
           stroke="url(#lineGradient)"
-          strokeWidth="3"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
           filter="url(#glow)"
-          className="drop-shadow-lg"
+          className="drop-shadow-xl"
         />
         
         {/* Data points with hover effects */}
@@ -248,11 +264,12 @@ export default function SimpleChart({ data, height = 400, width, loading = false
             <circle
               cx={point.x}
               cy={point.y}
-              r={hoveredPoint === index ? "6" : "4"}
+              r={hoveredPoint === index ? "8" : "5"}
               fill={hoveredPoint === index ? "#ffffff" : "#3b82f6"}
               stroke={hoveredPoint === index ? "#3b82f6" : "#ffffff"}
-              strokeWidth={hoveredPoint === index ? "3" : "2"}
-              className="transition-all duration-200 drop-shadow-md"
+              strokeWidth={hoveredPoint === index ? "4" : "3"}
+              className="transition-all duration-300 drop-shadow-lg"
+              filter="url(#shadow)"
             />
             
           </g>
@@ -294,31 +311,32 @@ export default function SimpleChart({ data, height = 400, width, loading = false
           {new Date(chartData.maxTime * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </text>
 
-        {/* Hover tooltip */}
+        {/* Enhanced hover tooltip */}
         {hoveredPoint !== null && (
           <g>
             <rect
-              x={points[hoveredPoint].x - 40}
-              y={points[hoveredPoint].y - 50}
-              width="80"
-              height="30"
-              fill="rgba(0, 0, 0, 0.8)"
-              rx="6"
-              className="drop-shadow-lg"
+              x={points[hoveredPoint].x - 50}
+              y={points[hoveredPoint].y - 60}
+              width="100"
+              height="40"
+              fill="rgba(15, 23, 42, 0.95)"
+              rx="12"
+              className="drop-shadow-2xl"
+              filter="url(#shadow)"
             />
             <text
               x={points[hoveredPoint].x}
-              y={points[hoveredPoint].y - 35}
+              y={points[hoveredPoint].y - 40}
               textAnchor="middle"
-              className="text-xs fill-white font-medium"
+              className="text-sm fill-white font-bold"
             >
               ${points[hoveredPoint].value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
             </text>
             <text
               x={points[hoveredPoint].x}
-              y={points[hoveredPoint].y - 20}
+              y={points[hoveredPoint].y - 25}
               textAnchor="middle"
-              className="text-xs fill-slate-300"
+              className="text-xs fill-slate-300 font-medium"
             >
               {new Date(points[hoveredPoint].time * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </text>
@@ -326,12 +344,6 @@ export default function SimpleChart({ data, height = 400, width, loading = false
         )}
       </svg>
 
-      {/* Chart type indicator */}
-      <div className="absolute bottom-4 right-4">
-        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg px-2 py-1 shadow-sm">
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Simple Chart</span>
-        </div>
-      </div>
     </div>
   )
 }

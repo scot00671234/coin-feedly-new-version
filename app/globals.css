@@ -14,23 +14,6 @@
   display: none;
 }
 
-/* Bloomberg-style ticker animation */
-@keyframes scroll {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
-.animate-scroll {
-  animation: scroll 60s linear infinite;
-}
-
-.animate-scroll:hover {
-  animation-play-state: paused;
-}
 
 @layer base {
   * {
@@ -77,29 +60,6 @@
     @apply bg-slate-800/40 border border-slate-700/50 rounded-xl p-6 shadow-lg;
   }
   
-  .ticker-item {
-    @apply whitespace-nowrap text-sm font-semibold flex-shrink-0;
-    min-width: fit-content;
-  }
-  
-  .ticker-content {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-  }
-  
-  .animate-scroll {
-    animation: scroll 30s linear infinite;
-  }
-  
-  @keyframes scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
   
   .news-card {
     @apply bg-slate-900/60 hover:bg-slate-800/60 border border-slate-800/50 hover:border-slate-700/50 rounded-2xl p-6 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 backdrop-blur-sm;
@@ -174,19 +134,23 @@
 
 .ticker-content {
   display: inline-flex;
-  animation: bloomberg-ticker 180s linear infinite;
   white-space: nowrap;
   will-change: transform;
   max-width: none;
 }
 
-@keyframes bloomberg-ticker {
+/* Seamless infinite scroll animation */
+@keyframes seamless-scroll {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
+}
+
+.animate-seamless-scroll {
+  animation: seamless-scroll 60s linear infinite;
 }
 
 /* Prevent horizontal overflow in all layouts */

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Search, Moon, Sun, Menu, X, Home, BarChart3 } from 'lucide-react'
+import { Search, Moon, Sun, Menu, X } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface UnifiedHeaderProps {
@@ -79,39 +79,27 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-1">
             <Link
               href="/"
-              className={`group relative flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                 isActive('/')
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
-              <Home className={`w-4 h-4 transition-all duration-300 ${
-                isActive('/') ? 'scale-110' : 'group-hover:scale-105'
-              }`} />
-              <span className="font-medium text-sm tracking-wide">Home</span>
-              {isActive('/') && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></div>
-              )}
+              Home
             </Link>
             
             <Link
               href="/charts"
-              className={`group relative flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 ${
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
                 isActive('/charts')
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
-              <BarChart3 className={`w-4 h-4 transition-all duration-300 ${
-                isActive('/charts') ? 'scale-110' : 'group-hover:scale-105'
-              }`} />
-              <span className="font-medium text-sm tracking-wide">Charts</span>
-              {isActive('/charts') && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></div>
-              )}
+              Charts
             </Link>
             
             <button
@@ -143,40 +131,28 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               {/* Mobile Navigation Menu */}
               <div className="px-4 py-2">
                 <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-4 tracking-wider uppercase">Navigation</div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Link 
                     href="/" 
                     onClick={() => setIsMenuOpen(false)}
-                    className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                       isActive('/')
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <Home className={`w-4 h-4 transition-all duration-300 ${
-                      isActive('/') ? 'scale-110' : 'group-hover:scale-105'
-                    }`} />
-                    <span className="font-medium text-sm tracking-wide">Home</span>
-                    {isActive('/') && (
-                      <div className="ml-auto w-2 h-2 bg-current rounded-full"></div>
-                    )}
+                    Home
                   </Link>
                   <Link 
                     href="/charts" 
                     onClick={() => setIsMenuOpen(false)}
-                    className={`group flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
                       isActive('/charts')
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <BarChart3 className={`w-4 h-4 transition-all duration-300 ${
-                      isActive('/charts') ? 'scale-110' : 'group-hover:scale-105'
-                    }`} />
-                    <span className="font-medium text-sm tracking-wide">Charts</span>
-                    {isActive('/charts') && (
-                      <div className="ml-auto w-2 h-2 bg-current rounded-full"></div>
-                    )}
+                    Charts
                   </Link>
                 </div>
               </div>

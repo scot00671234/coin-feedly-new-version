@@ -36,7 +36,7 @@ export default function PersistentTicker() {
     return () => clearInterval(interval)
   }, [])
 
-  // Smooth continuous animation
+  // Smooth continuous animation with seamless loop
   useEffect(() => {
     if (prices.length === 0 || !tickerRef.current) return
 
@@ -47,12 +47,14 @@ export default function PersistentTicker() {
 
     let position = 0
     const speed = 0.5 // pixels per frame
+    const contentWidth = tickerContent.scrollWidth / 3 // Since we have 3 copies, use one-third width
 
     const animate = () => {
       position -= speed
       
-      // Reset position when we've scrolled past the first set of items
-      if (position <= -tickerContent.scrollWidth / 2) {
+      // Reset position when we've scrolled past one complete set of items
+      // This creates a seamless loop since we have triplicated content
+      if (position <= -contentWidth) {
         position = 0
       }
       
@@ -107,8 +109,8 @@ export default function PersistentTicker() {
     <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-40 w-full max-w-full overflow-hidden">
       <div className="py-1.5 sm:py-2 overflow-hidden w-full" ref={tickerRef}>
         <div className="ticker-content flex items-center space-x-4 sm:space-x-8 w-full">
-          {/* Duplicate the prices for seamless loop */}
-          {Array.from({ length: 2 }, (_, duplicateIndex) => 
+          {/* Duplicate the prices for seamless loop - we need at least 3 copies for truly seamless scrolling */}
+          {Array.from({ length: 3 }, (_, duplicateIndex) => 
             sortedPrices.map((crypto, index) => (
               <div
                 key={`${crypto.symbol}-${duplicateIndex}-${index}`}
