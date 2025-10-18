@@ -128,40 +128,11 @@ export async function GET(request: NextRequest) {
     
     console.log(`📊 Found ${dbArticles.length} articles in database for category: ${category}`)
     
-    // Combine fresh articles with database articles
-    let allArticles: any[] = [...dbArticles]
+    // Use database articles as the main source
+    const allArticles = dbArticles
     
-    // If we have fresh articles, add them to the results
-    if (fetchedArticles && fetchedArticles.length > 0) {
-      console.log(`🆕 Adding ${fetchedArticles.length} fresh articles to results`)
-      
-      // Filter fresh articles based on category and search
-      let filteredFreshArticles = fetchedArticles
-      
-      if (category && category !== 'all') {
-        filteredFreshArticles = filteredFreshArticles.filter(article => {
-          return article.primaryCategory?.toLowerCase() === category.toLowerCase()
-        })
-      }
-
-      if (search) {
-        filteredFreshArticles = filteredFreshArticles.filter(article =>
-          article.title.toLowerCase().includes(search.toLowerCase()) ||
-          (article.description && article.description.toLowerCase().includes(search.toLowerCase()))
-        )
-      }
-      
-      // Add fresh articles to the beginning (newest first)
-      allArticles = [...filteredFreshArticles, ...allArticles]
-    }
-    
-    // Remove duplicates based on URL
-    const uniqueArticles = allArticles.filter((article, index, self) => 
-      index === self.findIndex(a => a.url === article.url)
-    )
-    
-    // Apply sorting to combined results
-    uniqueArticles.sort((a, b) => {
+    // Apply sorting to results
+    allArticles.sort((a, b) => {
       const dateA = new Date(a.publishedAt).getTime()
       const dateB = new Date(b.publishedAt).getTime()
       
@@ -172,7 +143,7 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    const articles: any[] = uniqueArticles.slice(0, limit)
+    const articles: any[] = allArticles.slice(0, limit)
     
     console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {
