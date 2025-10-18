@@ -56,57 +56,8 @@ export async function GET(request: NextRequest) {
       await fetchAndStoreArticles()
     }
 
-    // Fetch articles from database
-    let whereClause: any = {}
-    
-    if (category && category !== 'all') {
-      // Use primaryCategory for filtering (most reliable)
-      whereClause.primaryCategory = category.toUpperCase()
-      console.log(`📊 Filtering by primaryCategory: ${category.toUpperCase()}`)
-    }
-
-    if (search) {
-      // Enhanced search with better relevance
-      const searchTerms = search.toLowerCase().split(' ').filter(term => term.length > 0)
-      
-      const searchConditions = [
-        // Exact title matches get highest priority
-        { title: { contains: search, mode: 'insensitive' } },
-        // Individual word matches in title
-        ...searchTerms.map(term => ({ title: { contains: term, mode: 'insensitive' } })),
-        // Description matches
-        { description: { contains: search, mode: 'insensitive' } },
-        // Individual word matches in description
-        ...searchTerms.map(term => ({ description: { contains: term, mode: 'insensitive' } }))
-      ]
-      
-      if (whereClause.OR) {
-        // If we already have category filters, combine them with search
-        whereClause.AND = [
-          { OR: whereClause.OR },
-          { OR: searchConditions }
-        ]
-        delete whereClause.OR
-      } else {
-        whereClause.OR = searchConditions
-      }
-    }
-
-    // Determine sort order
-    let orderBy: any = {}
-    if (sort === 'oldest') {
-      orderBy.publishedAt = 'asc'
-    } else if (sort === 'relevant' && search) {
-      // For relevance, we'll sort by publishedAt desc but this could be enhanced with full-text search
-      orderBy.publishedAt = 'desc'
-    } else {
-      orderBy.publishedAt = 'desc' // newest
-    }
-
-    console.log('🔍 Database query whereClause:', JSON.stringify(whereClause, null, 2))
-    
+    // Fetch ALL articles from database (let frontend handle filtering)
     const dbArticles = await prisma.article.findMany({
-      where: whereClause,
       include: {
         source: true,
         categories: {
@@ -121,9 +72,7 @@ export async function GET(request: NextRequest) {
           }
         }
       },
-      orderBy,
-      skip: offset,
-      take: limit
+      orderBy: { publishedAt: 'desc' }
     })
     
     console.log(`📊 Found ${dbArticles.length} articles in database for category: ${category}`)
@@ -143,7 +92,8 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    const articles: any[] = allArticles.slice(0, limit)
+    // Return all articles - let frontend handle pagination and filtering
+    const articles: any[] = allArticles
     
     console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {

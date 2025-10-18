@@ -31,7 +31,7 @@ export default function Home() {
   }, [searchParams])
 
   useEffect(() => {
-    fetchNews()
+    fetchNews(true)
     fetchCryptoPrices()
     fetchCategoryCounts()
   }, [])
@@ -44,7 +44,7 @@ export default function Home() {
 
   // Load all articles once
   useEffect(() => {
-    fetchNews('all', '', 1, true) // Load all articles
+    fetchNews(true) // Load all articles
   }, [])
 
   // Filter articles on frontend when category/search/sort changes
@@ -73,35 +73,34 @@ export default function Home() {
       )
     }
     
+    // Remove duplicates based on URL and title
+    const uniqueArticles = filtered.filter((article, index, self) => 
+      index === self.findIndex(a => 
+        a.url === article.url || 
+        (a.title === article.title && a.title !== 'Untitled')
+      )
+    )
+    
     // Sort articles
     // Sort by newest first (default)
-    filtered.sort((a, b) => {
+    uniqueArticles.sort((a, b) => {
       const dateA = new Date(a.publishedAt).getTime()
       const dateB = new Date(b.publishedAt).getTime()
       return dateB - dateA
     })
     
-    setFilteredArticles(filtered)
+    setFilteredArticles(uniqueArticles)
     setSearching(false)
   }, [allArticles, selectedCategory, searchQuery])
 
-  const fetchNews = async (category = 'all', search = '', pageNum = 1, reset = false) => {
+  const fetchNews = async (reset = false) => {
     try {
       if (reset) {
         setLoading(true)
-      } else {
-        setLoadingMore(true)
       }
       
-      const params = new URLSearchParams()
-      if (category !== 'all') params.append('category', category)
-      if (search) params.append('search', search)
-      params.append('sort', 'newest')
-      params.append('page', pageNum.toString())
-      params.append('limit', '12')
-      
-      console.log('🔍 Fetching news with params:', params.toString())
-      const response = await fetch(`/api/news?${params.toString()}`)
+      console.log('🔍 Fetching all articles from API...')
+      const response = await fetch('/api/news')
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -115,13 +114,8 @@ export default function Home() {
         publishedAt: data[0].publishedAt
       } : 'No articles')
       
-      if (reset) {
-        setAllArticles(Array.isArray(data) ? data : [])
-        setHasMore(data.length === 12)
-      } else {
-        setAllArticles(prev => [...prev, ...(Array.isArray(data) ? data : [])])
-        setHasMore(data.length === 12)
-      }
+      setAllArticles(Array.isArray(data) ? data : [])
+      setHasMore(false) // No pagination needed since we get all articles
     } catch (error) {
       console.error('❌ Error fetching news:', error)
       if (reset) {
@@ -169,7 +163,7 @@ export default function Home() {
     if (!loadingMore && hasMore) {
       const nextPage = page + 1
       setPage(nextPage)
-      fetchNews(selectedCategory, searchQuery, nextPage, false)
+      fetchNews(false)
     }
   }
 
