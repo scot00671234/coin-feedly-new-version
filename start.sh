@@ -35,7 +35,11 @@ else
 fi
 
 echo "Running startup script..."
-npx tsx scripts/startup.ts &
+if npx tsx scripts/startup.ts; then
+  echo "Startup script completed successfully"
+else
+  echo "Startup script failed, continuing with application start..."
+fi
 
 echo "Starting application..."
 npm start
