@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { slug } = params
 
-    const article = await prisma.article.findUnique({
+    const article = await prisma.article.findFirst({
       where: { slug },
       include: {
         source: true,
@@ -85,8 +85,21 @@ export async function PUT(
     const { slug } = params
     const body = await request.json()
 
+    // First find the article by slug
+    const existingArticle = await prisma.article.findFirst({
+      where: { slug }
+    })
+
+    if (!existingArticle) {
+      return NextResponse.json(
+        { error: 'Article not found' },
+        { status: 404 }
+      )
+    }
+
+    // Update using the article ID
     const article = await prisma.article.update({
-      where: { slug },
+      where: { id: existingArticle.id },
       data: body
     })
 

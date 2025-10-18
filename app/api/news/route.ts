@@ -58,6 +58,9 @@ export async function GET(request: NextRequest) {
 
     // Fetch ALL articles from database (let frontend handle filtering)
     const dbArticles = await prisma.article.findMany({
+      where: {
+        slug: { not: null } // Only get articles that have slugs
+      },
       include: {
         source: true,
         categories: {
@@ -92,8 +95,18 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    // Return all articles - let frontend handle pagination and filtering
-    const articles: any[] = allArticles
+    // Ensure all articles have slugs and images
+    const articles: any[] = allArticles.map((article, index) => ({
+      ...article,
+      slug: article.slug || `${generateSlug(article.title)}-${index}`,
+      imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title)
+    }))
+
+    return NextResponse.json(articles, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
+    })
     
     console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
     if (articles.length > 0) {
@@ -191,14 +204,7 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Ensure all articles have images and slugs
-      const articlesWithImages = filteredArticles.map((article, index) => ({
-        ...article,
-        imageUrl: article.imageUrl || getRandomCryptoImage(article.primaryCategory || 'bitcoin', article.title),
-        slug: article.slug || `${generateSlug(article.title)}-${index}`
-      }))
-
-      return NextResponse.json(articlesWithImages.slice(offset, offset + limit), {
+      return NextResponse.json(filteredArticles.slice(offset, offset + limit), {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
@@ -312,7 +318,7 @@ async function fetchAndStoreArticles() {
           // Check if slug already exists and make it unique
           let counter = 1
           let uniqueSlug = articleSlug
-          while (await prisma.article.findFirst({ where: { slug: uniqueSlug } })) {
+          while (await prisma.article.findFirst({ where: { slug: { equals: uniqueSlug } } })) {
             uniqueSlug = `${articleSlug}-${counter}`
             counter++
           }
