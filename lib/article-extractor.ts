@@ -528,7 +528,7 @@ function extractImagesFromRSS(rssItem: any): string[] {
   const content = rssItem.content || rssItem.contentEncoded || rssItem.description || ''
   const imgMatches = content.match(/<img[^>]+src="([^"]+)"/gi)
   if (imgMatches) {
-    imgMatches.forEach(match => {
+    imgMatches.forEach((match: string) => {
       const srcMatch = match.match(/src="([^"]+)"/)
       if (srcMatch && isValidImageUrl(srcMatch[1])) {
         images.push(srcMatch[1])
