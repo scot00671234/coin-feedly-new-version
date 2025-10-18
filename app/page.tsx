@@ -58,8 +58,9 @@ export default function Home() {
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(article => {
-        const primaryCategory = article.primaryCategory?.toLowerCase()
-        return primaryCategory === selectedCategory.toLowerCase()
+        const primaryCategory = article.primaryCategory?.toUpperCase()
+        const selectedCategoryUpper = selectedCategory.toUpperCase()
+        return primaryCategory === selectedCategoryUpper
       })
     }
     

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
+import { detectArticleCategories } from '@/lib/category-detector'
 import { getRandomCryptoImage } from '@/lib/crypto-images'
 
 // Generate slug from title
@@ -93,6 +94,19 @@ export async function POST(request: NextRequest) {
               counter++
             }
             
+            // Detect categories based on article content
+            const detectedCategories = detectArticleCategories(
+              item.title || '',
+              item.description || '',
+              item.content
+            )
+            
+            console.log(`🎯 Detected categories for "${item.title}":`, {
+              primary: detectedCategories.primary,
+              secondary: detectedCategories.secondary,
+              confidence: detectedCategories.confidence
+            })
+            
             // Create article in database
             const article = await prisma.article.create({
               data: {
@@ -102,8 +116,8 @@ export async function POST(request: NextRequest) {
                 url: item.link || '',
                 slug: uniqueSlug,
                 publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
-                imageUrl: imageUrl || getRandomCryptoImage(feed.categories[0], item.title),
-                primaryCategory: feed.categories[0].toUpperCase(),
+                imageUrl: imageUrl || getRandomCryptoImage(detectedCategories.primary, item.title),
+                primaryCategory: detectedCategories.primary.toUpperCase(),
                 sourceId: source.id
               },
               include: {
@@ -111,12 +125,13 @@ export async function POST(request: NextRequest) {
               }
             })
             
-            // Add categories to the article
-            await updateArticleCategories(article.id, feed.categories)
+            // Add detected categories to the article
+            const allCategories = [detectedCategories.primary, ...detectedCategories.secondary]
+            await updateArticleCategories(article.id, allCategories)
             
             feedArticles.push(article)
             processedUrls.add(item.link || '')
-            console.log(`✅ Stored article: ${article.title}`)
+            console.log(`✅ Stored article: ${article.title} with detected categories: ${allCategories.join(', ')} (confidence: ${detectedCategories.confidence})`)
           } catch (itemError) {
             console.error(`Error processing article from ${feed.source}:`, itemError)
           }

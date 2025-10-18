@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
+import { detectArticleCategories } from '@/lib/category-detector'
 import { getRandomCryptoImage } from '@/lib/crypto-images'
 
 // Generate slug from title
@@ -36,12 +37,24 @@ export async function GET(request: NextRequest) {
   console.log('API Request - Category:', category, 'Search:', search, 'Sort:', sort, 'Limit:', limit)
 
   try {
-    // Always fetch fresh articles from RSS feeds first
-    console.log('🔄 Fetching fresh articles from RSS feeds...')
-    const fetchedArticles = await fetchAndStoreArticles()
+    // Only fetch fresh articles if explicitly requested or if no articles exist
+    console.log('📚 Fetching articles from database...')
     
-    // Also get existing articles from database
-    console.log('📚 Fetching existing articles from database...')
+    // Check if we need to fetch fresh articles (only if database is empty or very old)
+    const articleCount = await prisma.article.count()
+    const lastFetch = await prisma.article.findFirst({
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true }
+    })
+    
+    const shouldFetchFresh = articleCount === 0 || 
+      !lastFetch || 
+      (Date.now() - lastFetch.createdAt.getTime()) > 30 * 60 * 1000 // 30 minutes
+    
+    if (shouldFetchFresh) {
+      console.log('🔄 Fetching fresh articles from RSS feeds...')
+      await fetchAndStoreArticles()
+    }
 
     // Fetch articles from database
     let whereClause: any = {}
@@ -303,16 +316,25 @@ async function fetchAndStoreArticles() {
             continue
           }
           
-          // Skip if we've already processed this URL
-          if (processedUrls.has(item.link || '')) {
+          const articleUrl = item.link || ''
+          const articleTitle = item.title || ''
+          
+          // Skip if we've already processed this URL or title
+          if (processedUrls.has(articleUrl) || processedUrls.has(articleTitle)) {
+            console.log(`⏭️ Duplicate detected - URL: ${articleUrl}, Title: ${articleTitle}`)
             continue
           }
           
           const imageUrl = extractImageUrl(item)
           
-          // Check if article already exists by URL
+          // Check if article already exists by URL or title
           const existingArticle = await prisma.article.findFirst({
-            where: { url: item.link || '' },
+            where: { 
+              OR: [
+                { url: articleUrl },
+                { title: articleTitle }
+              ]
+            },
             include: {
               categories: {
                 include: {
@@ -329,32 +351,22 @@ async function fetchAndStoreArticles() {
           })
           
           if (existingArticle) {
-            console.log(`Article already exists: ${item.title}`)
-            
-            // Update categories for existing article
-            await updateArticleCategories(existingArticle.id, feed.categories)
-            
-            // Update the existing article with new data if needed
-            try {
-              await prisma.article.update({
-                where: { id: existingArticle.id },
-                data: {
-                  title: item.title || existingArticle.title,
-                  description: item.description?.replace(/<[^>]*>/g, '').substring(0, 500) || existingArticle.description,
-                  content: item.content || item.description || existingArticle.content,
-                  publishedAt: item.pubDate ? new Date(item.pubDate) : existingArticle.publishedAt,
-                  imageUrl: imageUrl || existingArticle.imageUrl,
-                  updatedAt: new Date()
-                }
-              })
-              console.log(`✅ Updated existing article: ${item.title}`)
-            } catch (updateError) {
-              console.error(`Error updating existing article: ${updateError}`)
-            }
-            
-            processedUrls.add(item.link || '')
+            console.log(`⏭️ Article already exists: ${articleTitle}`)
             continue
           }
+          
+          // Detect categories based on article content
+          const detectedCategories = detectArticleCategories(
+            articleTitle,
+            item.description || '',
+            item.content
+          )
+          
+          console.log(`🎯 Detected categories for "${articleTitle}":`, {
+            primary: detectedCategories.primary,
+            secondary: detectedCategories.secondary,
+            confidence: detectedCategories.confidence
+          })
           
           // Create or find source
           let source = await prisma.newsSource.findFirst({
@@ -393,7 +405,7 @@ async function fetchAndStoreArticles() {
               slug: uniqueSlug,
               publishedAt: item.pubDate ? new Date(item.pubDate) : new Date(),
               imageUrl,
-                primaryCategory: feed.categories[0].toUpperCase(),
+              primaryCategory: detectedCategories.primary.toUpperCase(),
               sourceId: source.id
             },
             include: {
@@ -401,12 +413,13 @@ async function fetchAndStoreArticles() {
             }
           })
           
-          // Add categories to the article
-          await updateArticleCategories(article.id, feed.categories)
+          // Add detected categories to the article
+          const allCategories = [detectedCategories.primary, ...detectedCategories.secondary]
+          await updateArticleCategories(article.id, allCategories)
           
           feedArticles.push(article)
           processedUrls.add(item.link || '')
-          console.log(`✅ Stored article: ${article.title} with categories: ${feed.categories.join(', ')}`)
+          console.log(`✅ Stored article: ${article.title} with detected categories: ${allCategories.join(', ')} (confidence: ${detectedCategories.confidence})`)
         } catch (itemError) {
           console.error(`Error processing article from ${feed.source}:`, itemError)
         }
