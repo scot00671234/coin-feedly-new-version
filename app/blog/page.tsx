@@ -40,27 +40,15 @@ interface BlogPost {
 interface BlogPageProps {
   searchParams: {
     page?: string
-    search?: string
-    keyword?: string
   }
 }
 
-async function getBlogPosts(page: number = 1, search?: string, keyword?: string) {
+async function getBlogPosts(page: number = 1) {
   const limit = 12
   const skip = (page - 1) * limit
 
   const where = {
-    isPublished: true,
-    ...(search && {
-      OR: [
-        { title: { contains: search, mode: 'insensitive' as const } },
-        { content: { contains: search, mode: 'insensitive' as const } },
-        { excerpt: { contains: search, mode: 'insensitive' as const } }
-      ]
-    }),
-    ...(keyword && {
-      keywords: { has: keyword }
-    })
+    isPublished: true
   }
 
   const [posts, total] = await Promise.all([
@@ -95,11 +83,7 @@ async function getBlogPosts(page: number = 1, search?: string, keyword?: string)
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   const page = parseInt(searchParams.page || '1')
-  const { posts, total, pages } = await getBlogPosts(
-    page,
-    searchParams.search,
-    searchParams.keyword
-  )
+  const { posts, total, pages } = await getBlogPosts(page)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
@@ -115,24 +99,6 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
           </p>
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search blog posts..."
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
-            />
-            <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white">
-              <option value="">All Categories</option>
-              <option value="bitcoin">Bitcoin</option>
-              <option value="ethereum">Ethereum</option>
-              <option value="defi">DeFi</option>
-              <option value="trading">Trading</option>
-              <option value="blockchain">Blockchain</option>
-            </select>
-          </div>
-        </div>
 
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">

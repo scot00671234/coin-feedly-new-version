@@ -6,23 +6,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
-    const search = searchParams.get('search') || ''
-    const keyword = searchParams.get('keyword') || ''
 
     const skip = (page - 1) * limit
 
     const where = {
-      isPublished: true,
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' as const } },
-          { content: { contains: search, mode: 'insensitive' as const } },
-          { excerpt: { contains: search, mode: 'insensitive' as const } }
-        ]
-      }),
-      ...(keyword && {
-        keywords: { has: keyword }
-      })
+      isPublished: true
     }
 
     const [posts, total] = await Promise.all([
