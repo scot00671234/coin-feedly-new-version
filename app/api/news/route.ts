@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { parseRSSFeed, extractImageUrl } from '@/lib/rss-parser'
+import { parseRSSFeed, extractImageUrl, extractImages } from '@/lib/rss-parser'
 import { detectArticleCategories } from '@/lib/category-detector'
 import { getRandomCryptoImage } from '@/lib/crypto-images'
 
@@ -247,6 +247,7 @@ async function fetchAndStoreArticles() {
           }
           
           const imageUrl = extractImageUrl(item)
+          const images = extractImages(item)
           
           // Check if article already exists by URL or title
           const existingArticle = await prisma.article.findFirst({
