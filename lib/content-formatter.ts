@@ -474,7 +474,7 @@ export function formatForDisplay(content: string, options: FormattingOptions = {
       const allowedAttrs = ['href', 'src', 'alt', 'title', 'class', 'id']
       const attrMatches = attributes.match(/(\w+)=["']([^"']*)["']/g) || []
       const cleanAttrs = attrMatches
-        .filter(attr => {
+        .filter((attr: string) => {
           const name = attr.split('=')[0]
           return allowedAttrs.includes(name)
         })
