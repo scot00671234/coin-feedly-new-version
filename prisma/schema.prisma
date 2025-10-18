@@ -30,7 +30,7 @@ model Article {
   description   String?
   content       String?
   url           String @unique
-  slug          String? @unique
+  slug          String @unique
   publishedAt   DateTime
   imageUrl      String?
   primaryCategory String
