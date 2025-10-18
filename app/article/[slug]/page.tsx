@@ -592,26 +592,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     )}
                   </div>
 
-                  {/* SEO Content Enhancement */}
-                  <div className="mt-12 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                      Key Takeaways
-                    </h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-                      <li className="flex items-start gap-2">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Stay updated with the latest {article.primaryCategory?.toLowerCase() || 'crypto'} news and market analysis</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Get expert insights on cryptocurrency trends and developments</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
-                        <span>Access real-time crypto prices and market data</span>
-                      </li>
-                    </ul>
-                  </div>
                 </div>
               </div>
             </article>
