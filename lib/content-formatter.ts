@@ -1,5 +1,4 @@
 // Enhanced content formatting and sanitization for embedded articles
-import { JSDOM } from 'jsdom'
 
 export interface FormattedContent {
   title: string
@@ -86,47 +85,87 @@ export function formatContent(
 // Clean content by removing unwanted elements and normalizing
 function cleanContent(content: string, options: FormattingOptions): string {
   try {
-    const dom = new JSDOM(content)
-    const document = dom.window.document
+    let cleaned = content
     
-    // Remove unwanted elements
+    // Remove unwanted elements using regex
     if (options.removeAds) {
-      removeUnwantedElements(document, [
-        '.advertisement', '.ads', '.ad', '.banner',
-        '[class*="ad-"]', '[id*="ad-"]',
-        '.sponsored', '.promo', '.promotion'
-      ])
+      const adPatterns = [
+        /<[^>]*class=["'][^"']*advertisement[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ads[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ad[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*banner[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*ad-[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*sponsored[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promo[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promotion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      adPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
     if (options.removeSocial) {
-      removeUnwantedElements(document, [
-        '.social-share', '.share', '.social',
-        '.facebook', '.twitter', '.linkedin',
-        '.instagram', '.youtube', '.tiktok',
-        '[class*="social"]', '[id*="social"]'
-      ])
+      const socialPatterns = [
+        /<[^>]*class=["'][^"']*social-share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*facebook[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*twitter[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*linkedin[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*instagram[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*youtube[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*tiktok[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      socialPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
     if (options.removeComments) {
-      removeUnwantedElements(document, [
-        '.comments', '.comment', '.discussion',
-        '.feedback', '.reviews', '.replies',
-        '[class*="comment"]', '[id*="comment"]'
-      ])
+      const commentPatterns = [
+        /<[^>]*class=["'][^"']*comments[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*discussion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*feedback[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*reviews[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*replies[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      commentPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
     // Remove other unwanted elements
-    removeUnwantedElements(document, [
-      'script', 'style', 'nav', 'header', 'footer',
-      '.menu', '.navigation', '.sidebar',
-      '.related', '.recommended', '.suggested',
-      '.newsletter', '.subscribe', '.signup',
-      '.cookie', '.privacy', '.terms',
-      '.disclaimer', '.legal', '.footer'
-    ])
+    const unwantedPatterns = [
+      /<script[^>]*>[\s\S]*?<\/script>/gi,
+      /<style[^>]*>[\s\S]*?<\/style>/gi,
+      /<nav[^>]*>[\s\S]*?<\/nav>/gi,
+      /<header[^>]*>[\s\S]*?<\/header>/gi,
+      /<footer[^>]*>[\s\S]*?<\/footer>/gi,
+      /<[^>]*class=["'][^"']*menu[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*navigation[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*sidebar[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*related[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*recommended[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*suggested[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*newsletter[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*subscribe[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*signup[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*cookie[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*privacy[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*terms[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*disclaimer[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+      /<[^>]*class=["'][^"']*legal[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+    ]
     
-    // Get cleaned content
-    let cleaned = document.body?.textContent || content
+    unwantedPatterns.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '')
+    })
+    
+    // Extract text content
+    cleaned = cleaned.replace(/<[^>]*>/g, '')
     
     // Normalize whitespace
     cleaned = cleaned
@@ -148,18 +187,6 @@ function cleanContent(content: string, options: FormattingOptions): string {
   }
 }
 
-// Remove unwanted elements from DOM
-function removeUnwantedElements(document: Document, selectors: string[]): void {
-  selectors.forEach(selector => {
-    try {
-      document.querySelectorAll(selector).forEach(element => {
-        element.remove()
-      })
-    } catch (error) {
-      // Ignore invalid selectors
-    }
-  })
-}
 
 // Simple text cleaning fallback
 function simpleTextClean(content: string, options: FormattingOptions): string {
@@ -389,52 +416,74 @@ export function formatForDisplay(content: string, options: FormattingOptions = {
   const opts = { ...DEFAULT_OPTIONS, ...options }
   
   try {
-    const dom = new JSDOM(content)
-    const document = dom.window.document
+    let cleaned = content
     
-    // Remove unwanted elements
+    // Remove unwanted elements using regex
     if (opts.removeAds) {
-      removeUnwantedElements(document, [
-        '.advertisement', '.ads', '.ad', '.banner',
-        '[class*="ad-"]', '[id*="ad-"]',
-        '.sponsored', '.promo', '.promotion'
-      ])
+      const adPatterns = [
+        /<[^>]*class=["'][^"']*advertisement[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ads[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ad[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*banner[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*ad-[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*sponsored[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promo[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promotion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      adPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
     if (opts.removeSocial) {
-      removeUnwantedElements(document, [
-        '.social-share', '.share', '.social',
-        '.facebook', '.twitter', '.linkedin',
-        '.instagram', '.youtube', '.tiktok',
-        '[class*="social"]', '[id*="social"]'
-      ])
+      const socialPatterns = [
+        /<[^>]*class=["'][^"']*social-share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*facebook[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*twitter[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*linkedin[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*instagram[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*youtube[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*tiktok[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      socialPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
     if (opts.removeComments) {
-      removeUnwantedElements(document, [
-        '.comments', '.comment', '.discussion',
-        '.feedback', '.reviews', '.replies',
-        '[class*="comment"]', '[id*="comment"]'
-      ])
+      const commentPatterns = [
+        /<[^>]*class=["'][^"']*comments[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*discussion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*feedback[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*reviews[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*replies[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      commentPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
     }
     
-    // Clean up remaining elements
-    document.querySelectorAll('*').forEach(element => {
-      // Remove empty elements
-      if (!element.textContent?.trim() && !element.querySelector('img')) {
-        element.remove()
-      }
+    // Clean up attributes (simplified regex approach)
+    cleaned = cleaned.replace(/<([^>]+)>/g, (match, attributes) => {
+      // Keep only essential attributes
+      const allowedAttrs = ['href', 'src', 'alt', 'title', 'class', 'id']
+      const attrMatches = attributes.match(/(\w+)=["']([^"']*)["']/g) || []
+      const cleanAttrs = attrMatches
+        .filter(attr => {
+          const name = attr.split('=')[0]
+          return allowedAttrs.includes(name)
+        })
+        .join(' ')
       
-      // Clean up attributes
-      const allowedAttributes = ['href', 'src', 'alt', 'title', 'class', 'id']
-      Array.from(element.attributes).forEach(attr => {
-        if (!allowedAttributes.includes(attr.name)) {
-          element.removeAttribute(attr.name)
-        }
-      })
+      return cleanAttrs ? `<${cleanAttrs}>` : match
     })
     
-    return document.body?.innerHTML || content
+    return cleaned
     
   } catch (error) {
     console.error('Error formatting content for display:', error)
@@ -447,18 +496,24 @@ export function extractLinks(content: string): Array<{ url: string; text: string
   const links: Array<{ url: string; text: string; title?: string }> = []
   
   try {
-    const dom = new JSDOM(content)
-    const document = dom.window.document
-    
-    document.querySelectorAll('a[href]').forEach(link => {
-      const url = link.getAttribute('href')
-      const text = link.textContent?.trim() || ''
-      const title = link.getAttribute('title') || undefined
-      
-      if (url && text) {
-        links.push({ url, text, title })
-      }
-    })
+    const linkMatches = content.match(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)
+    if (linkMatches) {
+      linkMatches.forEach(match => {
+        const urlMatch = match.match(/href=["']([^"']+)["']/i)
+        const textMatch = match.match(/>([\s\S]*?)<\/a>/i)
+        const titleMatch = match.match(/title=["']([^"']+)["']/i)
+        
+        if (urlMatch && textMatch) {
+          const url = urlMatch[1]
+          const text = textMatch[1].replace(/<[^>]*>/g, '').trim()
+          const title = titleMatch ? titleMatch[1] : undefined
+          
+          if (url && text) {
+            links.push({ url, text, title })
+          }
+        }
+      })
+    }
     
   } catch (error) {
     console.error('Error extracting links:', error)
@@ -472,20 +527,26 @@ export function extractImages(content: string): Array<{ src: string; alt?: strin
   const images: Array<{ src: string; alt?: string; title?: string; width?: string; height?: string }> = []
   
   try {
-    const dom = new JSDOM(content)
-    const document = dom.window.document
-    
-    document.querySelectorAll('img[src]').forEach(img => {
-      const src = img.getAttribute('src')
-      const alt = img.getAttribute('alt') || undefined
-      const title = img.getAttribute('title') || undefined
-      const width = img.getAttribute('width') || undefined
-      const height = img.getAttribute('height') || undefined
-      
-      if (src) {
-        images.push({ src, alt, title, width, height })
-      }
-    })
+    const imgMatches = content.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)
+    if (imgMatches) {
+      imgMatches.forEach(match => {
+        const srcMatch = match.match(/src=["']([^"']+)["']/i)
+        const altMatch = match.match(/alt=["']([^"']*)["']/i)
+        const titleMatch = match.match(/title=["']([^"']*)["']/i)
+        const widthMatch = match.match(/width=["']?(\d+)["']?/i)
+        const heightMatch = match.match(/height=["']?(\d+)["']?/i)
+        
+        if (srcMatch) {
+          images.push({
+            src: srcMatch[1],
+            alt: altMatch ? altMatch[1] : undefined,
+            title: titleMatch ? titleMatch[1] : undefined,
+            width: widthMatch ? widthMatch[1] : undefined,
+            height: heightMatch ? heightMatch[1] : undefined
+          })
+        }
+      })
+    }
     
   } catch (error) {
     console.error('Error extracting images:', error)

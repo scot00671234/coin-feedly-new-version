@@ -1,5 +1,4 @@
 // Enhanced article content extraction with multiple fallback strategies
-import { JSDOM } from 'jsdom'
 
 export interface ExtractedContent {
   title: string
@@ -125,11 +124,8 @@ async function fetchWithRetry(url: string, options: ExtractionOptions): Promise<
 // Extract content from HTML using multiple strategies
 async function extractFromHTML(html: string, url: string, options: ExtractionOptions): Promise<ExtractedContent> {
   try {
-    const dom = new JSDOM(html, { url })
-    const document = dom.window.document
-    
     // Strategy 1: Look for structured data (JSON-LD, microdata)
-    const structuredData = extractStructuredData(document)
+    const structuredData = extractStructuredData(html)
     if (structuredData) {
       return {
         ...structuredData,
@@ -139,28 +135,30 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
       }
     }
     
-    // Strategy 2: Common article selectors
-    const articleSelectors = [
-      'article',
-      '[role="main"]',
-      '.article-content',
-      '.post-content',
-      '.entry-content',
-      '.content',
-      '.story-body',
-      '.article-body',
-      '.post-body',
-      'main'
+    // Strategy 2: Common article selectors using regex
+    const articlePatterns = [
+      /<article[^>]*>([\s\S]*?)<\/article>/i,
+      /<main[^>]*>([\s\S]*?)<\/main>/i,
+      /<div[^>]*class="[^"]*article-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*post-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*entry-content[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*content[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*story-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*article-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      /<div[^>]*class="[^"]*post-body[^"]*"[^>]*>([\s\S]*?)<\/div>/i
     ]
     
-    let articleElement: Element | null = null
-    for (const selector of articleSelectors) {
-      articleElement = document.querySelector(selector)
-      if (articleElement) break
+    let articleContent = ''
+    for (const pattern of articlePatterns) {
+      const match = html.match(pattern)
+      if (match && match[1]) {
+        articleContent = match[1]
+        break
+      }
     }
     
-    if (articleElement) {
-      const content = extractContentFromElement(articleElement, options)
+    if (articleContent) {
+      const content = extractContentFromHTML(articleContent, options)
       return {
         ...content,
         success: true,
@@ -170,7 +168,7 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
     }
     
     // Strategy 3: Heuristic content extraction
-    const heuristicContent = extractContentHeuristically(document, options)
+    const heuristicContent = extractContentHeuristically(html, options)
     return {
       ...heuristicContent,
       success: true,
@@ -185,43 +183,54 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
 }
 
 // Extract structured data from JSON-LD and microdata
-function extractStructuredData(document: Document): Partial<ExtractedContent> | null {
+function extractStructuredData(html: string): Partial<ExtractedContent> | null {
   try {
     // Try JSON-LD first
-    const jsonLdScripts = document.querySelectorAll('script[type="application/ld+json"]')
-    for (const script of jsonLdScripts) {
-      try {
-        const data = JSON.parse(script.textContent || '')
-        if (data['@type'] === 'Article' || data['@type'] === 'NewsArticle') {
-          return {
-            title: data.headline || data.name || '',
-            description: data.description || '',
-            content: data.articleBody || '',
-            author: data.author?.name || data.author?.[0]?.name || '',
-            publishedAt: data.datePublished ? new Date(data.datePublished) : undefined,
-            source: data.publisher?.name || '',
-            images: extractImagesFromStructuredData(data)
+    const jsonLdMatch = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)
+    if (jsonLdMatch) {
+      for (const script of jsonLdMatch) {
+        try {
+          const contentMatch = script.match(/<script[^>]*>([\s\S]*?)<\/script>/i)
+          if (contentMatch && contentMatch[1]) {
+            const data = JSON.parse(contentMatch[1])
+            if (data['@type'] === 'Article' || data['@type'] === 'NewsArticle') {
+              return {
+                title: data.headline || data.name || '',
+                description: data.description || '',
+                content: data.articleBody || '',
+                author: data.author?.name || data.author?.[0]?.name || '',
+                publishedAt: data.datePublished ? new Date(data.datePublished) : undefined,
+                source: data.publisher?.name || '',
+                images: extractImagesFromStructuredData(data)
+              }
+            }
           }
+        } catch (e) {
+          continue
         }
-      } catch (e) {
-        continue
       }
     }
     
     // Try microdata
-    const articleElement = document.querySelector('[itemtype*="Article"], [itemtype*="NewsArticle"]')
-    if (articleElement) {
+    const microdataMatch = html.match(/<[^>]*itemtype=["'][^"']*Article[^"']*["'][^>]*>([\s\S]*?)<\/[^>]*>/i)
+    if (microdataMatch) {
+      const articleHtml = microdataMatch[0]
+      const titleMatch = articleHtml.match(/<[^>]*itemprop=["']headline["'][^>]*>([^<]+)<\/[^>]*>/i) || 
+                        articleHtml.match(/<[^>]*itemprop=["']name["'][^>]*>([^<]+)<\/[^>]*>/i)
+      const descMatch = articleHtml.match(/<[^>]*itemprop=["']description["'][^>]*>([^<]+)<\/[^>]*>/i)
+      const contentMatch = articleHtml.match(/<[^>]*itemprop=["']articleBody["'][^>]*>([\s\S]*?)<\/[^>]*>/i)
+      const authorMatch = articleHtml.match(/<[^>]*itemprop=["']author["'][^>]*>([^<]+)<\/[^>]*>/i)
+      const dateMatch = articleHtml.match(/<[^>]*itemprop=["']datePublished["'][^>]*content=["']([^"']+)["'][^>]*>/i)
+      const sourceMatch = articleHtml.match(/<[^>]*itemprop=["']publisher["'][^>]*>([^<]+)<\/[^>]*>/i)
+      
       return {
-        title: articleElement.querySelector('[itemprop="headline"], [itemprop="name"]')?.textContent?.trim() || '',
-        description: articleElement.querySelector('[itemprop="description"]')?.textContent?.trim() || '',
-        content: articleElement.querySelector('[itemprop="articleBody"]')?.textContent?.trim() || '',
-        author: articleElement.querySelector('[itemprop="author"]')?.textContent?.trim() || '',
-        publishedAt: articleElement.querySelector('[itemprop="datePublished"]')?.getAttribute('content') ? 
-          new Date(articleElement.querySelector('[itemprop="datePublished"]')!.getAttribute('content')!) : undefined,
-        source: articleElement.querySelector('[itemprop="publisher"]')?.textContent?.trim() || '',
-        images: Array.from(articleElement.querySelectorAll('[itemprop="image"]')).map(img => 
-          img.getAttribute('src') || img.getAttribute('content') || ''
-        ).filter(Boolean)
+        title: titleMatch ? cleanText(titleMatch[1]) : '',
+        description: descMatch ? cleanText(descMatch[1]) : '',
+        content: contentMatch ? cleanText(contentMatch[1]) : '',
+        author: authorMatch ? cleanText(authorMatch[1]) : '',
+        publishedAt: dateMatch ? new Date(dateMatch[1]) : undefined,
+        source: sourceMatch ? cleanText(sourceMatch[1]) : '',
+        images: extractImagesFromMicrodata(articleHtml)
       }
     }
     
@@ -232,15 +241,15 @@ function extractStructuredData(document: Document): Partial<ExtractedContent> | 
   }
 }
 
-// Extract content from a specific element
-function extractContentFromElement(element: Element, options: ExtractionOptions): Partial<ExtractedContent> {
-  const title = extractTitle(element)
-  const description = extractDescription(element)
-  const content = extractMainContent(element, options)
-  const images = options.includeImages ? extractImages(element) : []
-  const author = extractAuthor(element)
-  const publishedAt = extractPublishedDate(element)
-  const source = extractSource(element)
+// Extract content from HTML string
+function extractContentFromHTML(html: string, options: ExtractionOptions): Partial<ExtractedContent> {
+  const title = extractTitleFromHTML(html)
+  const description = extractDescriptionFromHTML(html)
+  const content = extractMainContentFromHTML(html, options)
+  const images = options.includeImages ? extractImagesFromHTML(html) : []
+  const author = extractAuthorFromHTML(html)
+  const publishedAt = extractPublishedDateFromHTML(html)
+  const source = extractSourceFromHTML(html)
   
   return {
     title,
@@ -254,81 +263,99 @@ function extractContentFromElement(element: Element, options: ExtractionOptions)
 }
 
 // Heuristic content extraction when no clear article structure is found
-function extractContentHeuristically(document: Document, options: ExtractionOptions): Partial<ExtractedContent> {
+function extractContentHeuristically(html: string, options: ExtractionOptions): Partial<ExtractedContent> {
   // Find the largest text block (likely main content)
-  const textBlocks = Array.from(document.querySelectorAll('p, div, section'))
-    .map(el => ({ element: el, textLength: el.textContent?.length || 0 }))
+  const textBlocks = html.match(/<(p|div|section)[^>]*>([\s\S]*?)<\/(p|div|section)>/gi) || []
+  const sortedBlocks = textBlocks
+    .map(block => ({ 
+      content: block, 
+      textLength: (block.replace(/<[^>]*>/g, '').length || 0) 
+    }))
     .sort((a, b) => b.textLength - a.textLength)
   
-  const mainContent = textBlocks[0]?.element
+  const mainContent = sortedBlocks[0]?.content || ''
   
   return {
-    title: extractTitle(document.body),
-    description: extractDescription(document.body),
-    content: mainContent ? extractMainContent(mainContent, options) : '',
-    images: options.includeImages ? extractImages(document.body) : [],
-    author: extractAuthor(document.body),
-    publishedAt: extractPublishedDate(document.body),
-    source: extractSource(document.body)
+    title: extractTitleFromHTML(html),
+    description: extractDescriptionFromHTML(html),
+    content: mainContent ? extractMainContentFromHTML(mainContent, options) : '',
+    images: options.includeImages ? extractImagesFromHTML(html) : [],
+    author: extractAuthorFromHTML(html),
+    publishedAt: extractPublishedDateFromHTML(html),
+    source: extractSourceFromHTML(html)
   }
 }
 
 // Helper functions for extracting specific content parts
-function extractTitle(element: Element): string {
-  const titleSelectors = [
-    'h1',
-    '[itemprop="headline"]',
-    '.title',
-    '.headline',
-    '.article-title',
-    '.post-title'
+function extractTitleFromHTML(html: string): string {
+  const titlePatterns = [
+    /<h1[^>]*>([^<]+)<\/h1>/i,
+    /<[^>]*itemprop=["']headline["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*title[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*headline[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*article-title[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*post-title[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<title[^>]*>([^<]+)<\/title>/i
   ]
   
-  for (const selector of titleSelectors) {
-    const titleEl = element.querySelector(selector)
-    if (titleEl?.textContent?.trim()) {
-      return titleEl.textContent.trim()
+  for (const pattern of titlePatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return cleanText(match[1])
     }
   }
   
   return ''
 }
 
-function extractDescription(element: Element): string {
-  const descSelectors = [
-    '[itemprop="description"]',
-    '.description',
-    '.excerpt',
-    '.summary',
-    'meta[name="description"]'
+function extractDescriptionFromHTML(html: string): string {
+  const descPatterns = [
+    /<[^>]*itemprop=["']description["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*description[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*excerpt[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*summary[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["'][^>]*>/i
   ]
   
-  for (const selector of descSelectors) {
-    const descEl = element.querySelector(selector)
-    if (descEl) {
-      const content = descEl.getAttribute('content') || descEl.textContent?.trim()
-      if (content) return content
+  for (const pattern of descPatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return cleanText(match[1])
     }
   }
   
   return ''
 }
 
-function extractMainContent(element: Element, options: ExtractionOptions): string {
+function extractMainContentFromHTML(html: string, options: ExtractionOptions): string {
+  // Remove unwanted elements using regex
+  let content = html
+  
+  // Remove script and style tags
+  content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+  content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+  
   // Remove unwanted elements
-  const unwantedSelectors = [
-    'script', 'style', 'nav', 'header', 'footer', 'aside',
-    '.advertisement', '.ads', '.social-share', '.comments',
-    '.related-articles', '.sidebar', '.menu'
+  const unwantedPatterns = [
+    /<nav[^>]*>[\s\S]*?<\/nav>/gi,
+    /<header[^>]*>[\s\S]*?<\/header>/gi,
+    /<footer[^>]*>[\s\S]*?<\/footer>/gi,
+    /<aside[^>]*>[\s\S]*?<\/aside>/gi,
+    /<[^>]*class=["'][^"']*advertisement[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*ads[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*social-share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*comments[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*related-articles[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*sidebar[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+    /<[^>]*class=["'][^"']*menu[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
   ]
   
-  const clone = element.cloneNode(true) as Element
-  unwantedSelectors.forEach(selector => {
-    clone.querySelectorAll(selector).forEach(el => el.remove())
+  unwantedPatterns.forEach(pattern => {
+    content = content.replace(pattern, '')
   })
   
   // Extract text content
-  let content = clone.textContent || ''
+  content = content.replace(/<[^>]*>/g, '')
   
   if (options.sanitizeContent) {
     content = sanitizeContent(content)
@@ -337,69 +364,68 @@ function extractMainContent(element: Element, options: ExtractionOptions): strin
   return content
 }
 
-function extractImages(element: Element): string[] {
+function extractImagesFromHTML(html: string): string[] {
   const images: string[] = []
   
   // Extract from img tags
-  element.querySelectorAll('img[src]').forEach(img => {
-    const src = img.getAttribute('src')
-    if (src && isValidImageUrl(src)) {
-      images.push(src)
-    }
-  })
+  const imgMatches = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)
+  if (imgMatches) {
+    imgMatches.forEach(match => {
+      const srcMatch = match.match(/src=["']([^"']+)["']/i)
+      if (srcMatch && isValidImageUrl(srcMatch[1])) {
+        images.push(srcMatch[1])
+      }
+    })
+  }
   
   // Extract from background images
-  element.querySelectorAll('*').forEach(el => {
-    const style = el.getAttribute('style')
-    if (style) {
-      const bgMatch = style.match(/background-image:\s*url\(['"]?([^'")]+)['"]?\)/i)
-      if (bgMatch && isValidImageUrl(bgMatch[1])) {
-        images.push(bgMatch[1])
+  const bgMatches = html.match(/background-image:\s*url\(['"]?([^'")]+)['"]?\)/gi)
+  if (bgMatches) {
+    bgMatches.forEach(match => {
+      const urlMatch = match.match(/url\(['"]?([^'")]+)['"]?\)/i)
+      if (urlMatch && isValidImageUrl(urlMatch[1])) {
+        images.push(urlMatch[1])
       }
-    }
-  })
+    })
+  }
   
   return [...new Set(images)] // Remove duplicates
 }
 
-function extractAuthor(element: Element): string {
-  const authorSelectors = [
-    '[itemprop="author"]',
-    '.author',
-    '.byline',
-    '.writer',
-    'meta[name="author"]'
+function extractAuthorFromHTML(html: string): string {
+  const authorPatterns = [
+    /<[^>]*itemprop=["']author["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*author[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*byline[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*writer[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<meta[^>]*name=["']author["'][^>]*content=["']([^"']+)["'][^>]*>/i
   ]
   
-  for (const selector of authorSelectors) {
-    const authorEl = element.querySelector(selector)
-    if (authorEl) {
-      const content = authorEl.getAttribute('content') || authorEl.textContent?.trim()
-      if (content) return content
+  for (const pattern of authorPatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return cleanText(match[1])
     }
   }
   
   return ''
 }
 
-function extractPublishedDate(element: Element): Date | undefined {
-  const dateSelectors = [
-    '[itemprop="datePublished"]',
-    '.date',
-    '.published',
-    '.timestamp',
-    'time[datetime]'
+function extractPublishedDateFromHTML(html: string): Date | undefined {
+  const datePatterns = [
+    /<[^>]*itemprop=["']datePublished["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    /<[^>]*class=["'][^"']*date[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*published[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*timestamp[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<time[^>]*datetime=["']([^"']+)["'][^>]*>/i
   ]
   
-  for (const selector of dateSelectors) {
-    const dateEl = element.querySelector(selector)
-    if (dateEl) {
-      const dateStr = dateEl.getAttribute('datetime') || dateEl.getAttribute('content') || dateEl.textContent?.trim()
-      if (dateStr) {
-        const date = new Date(dateStr)
-        if (!isNaN(date.getTime())) {
-          return date
-        }
+  for (const pattern of datePatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      const date = new Date(match[1])
+      if (!isNaN(date.getTime())) {
+        return date
       }
     }
   }
@@ -407,18 +433,18 @@ function extractPublishedDate(element: Element): Date | undefined {
   return undefined
 }
 
-function extractSource(element: Element): string {
-  const sourceSelectors = [
-    '[itemprop="publisher"]',
-    '.source',
-    '.publication',
-    '.site-name'
+function extractSourceFromHTML(html: string): string {
+  const sourcePatterns = [
+    /<[^>]*itemprop=["']publisher["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*source[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*publication[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i,
+    /<[^>]*class=["'][^"']*site-name[^"']*["'][^>]*>([^<]+)<\/[^>]*>/i
   ]
   
-  for (const selector of sourceSelectors) {
-    const sourceEl = element.querySelector(selector)
-    if (sourceEl?.textContent?.trim()) {
-      return sourceEl.textContent.trim()
+  for (const pattern of sourcePatterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return cleanText(match[1])
     }
   }
   
@@ -510,6 +536,32 @@ function extractImagesFromStructuredData(data: any): string[] {
   }
   
   return images.filter(isValidImageUrl)
+}
+
+// Extract images from microdata
+function extractImagesFromMicrodata(html: string): string[] {
+  const images: string[] = []
+  
+  const imgMatches = html.match(/<[^>]*itemprop=["']image["'][^>]*>/gi)
+  if (imgMatches) {
+    imgMatches.forEach(match => {
+      const srcMatch = match.match(/src=["']([^"']+)["']/i) || 
+                      match.match(/content=["']([^"']+)["']/i)
+      if (srcMatch && isValidImageUrl(srcMatch[1])) {
+        images.push(srcMatch[1])
+      }
+    })
+  }
+  
+  return images
+}
+
+// Clean text by removing unwanted characters and normalizing
+function cleanText(text: string): string {
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/\n\s*\n/g, '\n\n')
+    .trim()
 }
 
 // API-based extraction (placeholder for services like Mercury API)
