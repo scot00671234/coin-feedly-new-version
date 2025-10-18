@@ -128,9 +128,15 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
     const structuredData = extractStructuredData(html)
     if (structuredData) {
       return {
-        ...structuredData,
+        title: structuredData.title || '',
+        description: structuredData.description || '',
+        content: structuredData.content || '',
+        images: structuredData.images || [],
+        author: structuredData.author,
+        publishedAt: structuredData.publishedAt,
+        source: structuredData.source,
         success: true,
-        extractionMethod: 'html',
+        extractionMethod: 'html' as const,
         confidence: 0.9
       }
     }
@@ -160,9 +166,15 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
     if (articleContent) {
       const content = extractContentFromHTML(articleContent, options)
       return {
-        ...content,
+        title: content.title || '',
+        description: content.description || '',
+        content: content.content || '',
+        images: content.images || [],
+        author: content.author,
+        publishedAt: content.publishedAt,
+        source: content.source,
         success: true,
-        extractionMethod: 'html',
+        extractionMethod: 'html' as const,
         confidence: 0.8
       }
     }
@@ -170,9 +182,15 @@ async function extractFromHTML(html: string, url: string, options: ExtractionOpt
     // Strategy 3: Heuristic content extraction
     const heuristicContent = extractContentHeuristically(html, options)
     return {
-      ...heuristicContent,
+      title: heuristicContent.title || '',
+      description: heuristicContent.description || '',
+      content: heuristicContent.content || '',
+      images: heuristicContent.images || [],
+      author: heuristicContent.author,
+      publishedAt: heuristicContent.publishedAt,
+      source: heuristicContent.source,
       success: true,
-      extractionMethod: 'html',
+      extractionMethod: 'html' as const,
       confidence: 0.6
     }
     
@@ -252,10 +270,10 @@ function extractContentFromHTML(html: string, options: ExtractionOptions): Parti
   const source = extractSourceFromHTML(html)
   
   return {
-    title,
-    description,
-    content,
-    images,
+    title: title || '',
+    description: description || '',
+    content: content || '',
+    images: images || [],
     author,
     publishedAt,
     source
@@ -276,8 +294,8 @@ function extractContentHeuristically(html: string, options: ExtractionOptions): 
   const mainContent = sortedBlocks[0]?.content || ''
   
   return {
-    title: extractTitleFromHTML(html),
-    description: extractDescriptionFromHTML(html),
+    title: extractTitleFromHTML(html) || '',
+    description: extractDescriptionFromHTML(html) || '',
     content: mainContent ? extractMainContentFromHTML(mainContent, options) : '',
     images: options.includeImages ? extractImagesFromHTML(html) : [],
     author: extractAuthorFromHTML(html),
