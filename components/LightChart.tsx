@@ -119,32 +119,23 @@ export default function LightChart({ data, height = 400, width, loading = false 
 
         console.log('Chart created successfully')
 
-        // Create line series
-        let lineSeries
-        try {
-          lineSeries = chart.addSeries('Line' as any, {
-            color: '#3b82f6',
-            lineWidth: 2,
-            priceFormat: {
-              type: 'price',
-              precision: 2,
-              minMove: 0.01,
-            },
-          } as LineSeriesPartialOptions)
-          console.log('Line series created successfully')
-        } catch (seriesError) {
-          console.warn('Modern API failed, trying legacy method:', seriesError)
-          lineSeries = (chart as any).addLineSeries({
-            color: '#3b82f6',
-            lineWidth: 2,
-            priceFormat: {
-              type: 'price',
-              precision: 2,
-              minMove: 0.01,
-            },
-          })
-          console.log('Line series created with legacy API')
+        // Create line series (Lightweight Charts API)
+        if (typeof (chart as any).addLineSeries !== 'function') {
+          console.warn('addLineSeries is not available on chart instance, falling back to simple chart')
+          setUseSimpleChart(true)
+          return
         }
+
+        const lineSeries = (chart as any).addLineSeries({
+          color: '#3b82f6',
+          lineWidth: 2,
+          priceFormat: {
+            type: 'price',
+            precision: 2,
+            minMove: 0.01,
+          },
+        })
+        console.log('Line series created successfully')
 
         chartRef.current = chart
         seriesRef.current = lineSeries
