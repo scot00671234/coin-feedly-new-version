@@ -47,19 +47,16 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
     {
       href: '/charts',
       label: 'Charts',
-      icon: <BarChart3 className="w-4 h-4" />,
       description: 'Real-time crypto charts'
     },
     {
       href: '/predictions',
       label: 'Predictions',
-      icon: <TrendingUp className="w-4 h-4" />,
       description: 'AI-powered price predictions'
     },
     {
       href: '/fear-greed',
       label: 'Fear & Greed',
-      icon: <Activity className="w-4 h-4" />,
       description: 'Market sentiment indicator'
     }
   ]
@@ -68,13 +65,11 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
     {
       href: '/polymarket',
       label: 'Polymarket',
-      icon: <Zap className="w-4 h-4" />,
       description: 'Prediction markets'
     },
     {
       href: '/brokers',
       label: 'Brokers',
-      icon: <BarChart3 className="w-4 h-4" />,
       description: 'Crypto broker comparison'
     }
   ]
@@ -131,20 +126,14 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
             
             <DropdownMenu
               trigger={
-                <span className="flex items-center space-x-1">
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Markets</span>
-                </span>
+                <span>Markets</span>
               }
               items={marketItems}
             />
             
             <DropdownMenu
               trigger={
-                <span className="flex items-center space-x-1">
-                  <Zap className="w-4 h-4" />
-                  <span>Tools</span>
-                </span>
+                <span>Tools</span>
               }
               items={toolsItems}
             />
@@ -197,15 +186,12 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                       key={index}
                       href={item.href} 
                       onClick={() => setIsMenuOpen(false)}
-                      className={`flex items-center space-x-3 px-3 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
+                      className={`flex items-center px-3 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
                         isActive(item.href)
                           ? 'bg-blue-600 text-white'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
-                      <div className="w-4 h-4 text-slate-400 dark:text-slate-500">
-                        {item.icon}
-                      </div>
                       <div>
                         <div>{item.label}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.description}</div>
@@ -220,15 +206,12 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                       key={index}
                       href={item.href} 
                       onClick={() => setIsMenuOpen(false)}
-                      className={`flex items-center space-x-3 px-3 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
+                      className={`flex items-center px-3 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${
                         isActive(item.href)
                           ? 'bg-blue-600 text-white'
                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                     >
-                      <div className="w-4 h-4 text-slate-400 dark:text-slate-500">
-                        {item.icon}
-                      </div>
                       <div>
                         <div>{item.label}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.description}</div>

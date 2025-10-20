@@ -52,14 +52,16 @@ export default function DropdownMenu({ trigger, items, className = '' }: Dropdow
               key={index}
               href={item.href}
               onClick={() => setIsOpen(false)}
-              className="flex items-center space-x-3 px-3 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150 group first:rounded-t-lg last:rounded-b-lg"
+              className={`px-3 py-2.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150 group first:rounded-t-lg last:rounded-b-lg ${
+                item.icon ? 'flex items-center space-x-3' : 'block'
+              }`}
             >
               {item.icon && (
                 <div className="flex-shrink-0 w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-150">
                   {item.icon}
                 </div>
               )}
-              <div className="flex-1 min-w-0">
+              <div className={item.icon ? "flex-1 min-w-0" : ""}>
                 <div className="font-medium text-sm text-slate-900 dark:text-slate-100 group-hover:text-slate-700 dark:group-hover:text-white transition-colors duration-150">
                   {item.label}
                 </div>
