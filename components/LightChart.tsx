@@ -214,7 +214,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
   }, [data, isInitialized])
 
 
-  // If we should use simple chart or have no data, use SimpleChart
+  // If we should use simple chart or have no data, use SimpleChart with candlesticks
   if (useSimpleChart || data.length === 0 || loading) {
     return (
       <SimpleChart 
@@ -222,6 +222,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
         height={height} 
         width={width} 
         loading={loading}
+        chartType="candlestick"
       />
     )
   }

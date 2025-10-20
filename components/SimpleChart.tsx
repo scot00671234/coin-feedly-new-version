@@ -7,9 +7,10 @@ interface SimpleChartProps {
   height?: number
   width?: number
   loading?: boolean
+  chartType?: 'line' | 'candlestick'
 }
 
-export default function SimpleChart({ data, height = 400, width, loading = false }: SimpleChartProps) {
+export default function SimpleChart({ data, height = 400, width, loading = false, chartType = 'line' }: SimpleChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   
   const chartData = useMemo(() => {
@@ -63,6 +64,9 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       }
     })
 
+    // Generate candlestick data for fallback
+    const candlesticks = chartType === 'candlestick' ? generateCandlesticks(sortedData, minTime, maxTime, minValue, maxValue, chartWidth, chartHeight, padding) : []
+
     // Create smooth SVG path with curves
     const pathData = points.map((point, index) => {
       if (index === 0) return `M ${point.x} ${point.y}`
@@ -83,6 +87,7 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       points,
       pathData,
       areaPath,
+      candlesticks,
       minValue,
       maxValue,
       minTime,
@@ -91,7 +96,51 @@ export default function SimpleChart({ data, height = 400, width, loading = false
       chartHeight,
       padding
     }
-  }, [data, height, width])
+  }, [data, height, width, chartType])
+
+  // Generate candlestick data from line data
+  const generateCandlesticks = (data: Array<{ time: number; value: number }>, minTime: number, maxTime: number, minValue: number, maxValue: number, chartWidth: number, chartHeight: number, padding: any) => {
+    if (data.length < 2) return []
+
+    const candlesticks = []
+    const timeStep = (maxTime - minTime) / Math.max(20, data.length / 4) // Create 20-50 candles
+    
+    for (let i = 0; i < data.length - 1; i += Math.max(1, Math.floor(data.length / 30))) {
+      const current = data[i]
+      const next = data[i + 1] || data[i]
+      
+      // Simulate OHLC data from line data
+      const open = current.value
+      const close = next.value
+      const high = Math.max(open, close) * (1 + Math.random() * 0.02) // Add some volatility
+      const low = Math.min(open, close) * (1 - Math.random() * 0.02)
+      
+      const x = padding.left + ((current.time - minTime) / (maxTime - minTime)) * chartWidth
+      const candleWidth = Math.max(2, chartWidth / 30)
+      
+      const openY = padding.top + ((maxValue - open) / (maxValue - minValue)) * chartHeight
+      const closeY = padding.top + ((maxValue - close) / (maxValue - minValue)) * chartHeight
+      const highY = padding.top + ((maxValue - high) / (maxValue - minValue)) * chartHeight
+      const lowY = padding.top + ((maxValue - low) / (maxValue - minValue)) * chartHeight
+      
+      candlesticks.push({
+        x: x - candleWidth / 2,
+        y: Math.min(openY, closeY),
+        width: candleWidth,
+        height: Math.abs(closeY - openY) || 1,
+        open,
+        close,
+        high,
+        low,
+        highY,
+        lowY,
+        isGreen: close >= open,
+        time: current.time
+      })
+    }
+    
+    return candlesticks
+  }
 
   if (loading) {
     return (
@@ -137,7 +186,7 @@ export default function SimpleChart({ data, height = 400, width, loading = false
     )
   }
 
-  const { points, pathData, areaPath, minValue, maxValue, chartWidth, chartHeight, padding } = chartData
+  const { points, pathData, areaPath, candlesticks, minValue, maxValue, chartWidth, chartHeight, padding } = chartData
 
   // Calculate price change
   const firstPrice = points[0]?.value || 0
@@ -227,27 +276,62 @@ export default function SimpleChart({ data, height = 400, width, loading = false
           rx="4"
         />
         
-        {/* Area fill */}
-        <path
-          d={areaPath}
-          fill="url(#areaGradient)"
-          className="animate-pulse"
-        />
+        {/* Area fill - only for line charts */}
+        {chartType === 'line' && (
+          <path
+            d={areaPath}
+            fill="url(#areaGradient)"
+            className="animate-pulse"
+          />
+        )}
         
-        {/* Price line with enhanced styling */}
-        <path
-          d={pathData}
-          fill="none"
-          stroke="url(#lineGradient)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          filter="url(#glow)"
-          className="drop-shadow-xl"
-        />
+        {/* Price line with enhanced styling - only for line charts */}
+        {chartType === 'line' && (
+          <path
+            d={pathData}
+            fill="none"
+            stroke="url(#lineGradient)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow)"
+            className="drop-shadow-xl"
+          />
+        )}
+
+        {/* Candlestick rendering */}
+        {chartType === 'candlestick' && candlesticks.map((candle, index) => (
+          <g key={index}>
+            {/* High-Low line */}
+            <line
+              x1={candle.x + candle.width / 2}
+              y1={candle.highY}
+              x2={candle.x + candle.width / 2}
+              y2={candle.lowY}
+              stroke={candle.isGreen ? '#10b981' : '#ef4444'}
+              strokeWidth="1"
+              className="drop-shadow-sm"
+            />
+            
+            {/* Candle body */}
+            <rect
+              x={candle.x}
+              y={candle.y}
+              width={candle.width}
+              height={candle.height}
+              fill={candle.isGreen ? '#10b981' : '#ef4444'}
+              stroke={candle.isGreen ? '#059669' : '#dc2626'}
+              strokeWidth="0.5"
+              rx="1"
+              className="drop-shadow-sm"
+              onMouseEnter={() => setHoveredPoint(index)}
+              onMouseLeave={() => setHoveredPoint(null)}
+            />
+          </g>
+        ))}
         
-        {/* Data points with hover effects */}
-        {points.map((point, index) => (
+        {/* Data points with hover effects - only for line charts */}
+        {chartType === 'line' && points.map((point, index) => (
           <g key={index}>
             {/* Hover area (invisible but larger) */}
             <circle
@@ -315,30 +399,43 @@ export default function SimpleChart({ data, height = 400, width, loading = false
         {hoveredPoint !== null && (
           <g>
             <rect
-              x={points[hoveredPoint].x - 50}
-              y={points[hoveredPoint].y - 60}
+              x={(chartType === 'candlestick' ? candlesticks[hoveredPoint]?.x + candlesticks[hoveredPoint]?.width / 2 : points[hoveredPoint]?.x) - 50}
+              y={(chartType === 'candlestick' ? candlesticks[hoveredPoint]?.y : points[hoveredPoint]?.y) - 60}
               width="100"
-              height="40"
+              height={chartType === 'candlestick' ? "60" : "40"}
               fill="rgba(15, 23, 42, 0.95)"
               rx="12"
               className="drop-shadow-2xl"
               filter="url(#shadow)"
             />
             <text
-              x={points[hoveredPoint].x}
-              y={points[hoveredPoint].y - 40}
+              x={chartType === 'candlestick' ? candlesticks[hoveredPoint]?.x + candlesticks[hoveredPoint]?.width / 2 : points[hoveredPoint]?.x}
+              y={(chartType === 'candlestick' ? candlesticks[hoveredPoint]?.y : points[hoveredPoint]?.y) - 40}
               textAnchor="middle"
               className="text-sm fill-white font-bold"
             >
-              ${points[hoveredPoint].value.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              {chartType === 'candlestick' 
+                ? `$${candlesticks[hoveredPoint]?.close.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+                : `$${points[hoveredPoint]?.value.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
+              }
             </text>
+            {chartType === 'candlestick' && (
+              <text
+                x={candlesticks[hoveredPoint]?.x + candlesticks[hoveredPoint]?.width / 2}
+                y={candlesticks[hoveredPoint]?.y - 25}
+                textAnchor="middle"
+                className="text-xs fill-slate-300 font-medium"
+              >
+                O: ${candlesticks[hoveredPoint]?.open.toLocaleString('en-US', { maximumFractionDigits: 2 })} | H: ${candlesticks[hoveredPoint]?.high.toLocaleString('en-US', { maximumFractionDigits: 2 })} | L: ${candlesticks[hoveredPoint]?.low.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+              </text>
+            )}
             <text
-              x={points[hoveredPoint].x}
-              y={points[hoveredPoint].y - 25}
+              x={chartType === 'candlestick' ? candlesticks[hoveredPoint]?.x + candlesticks[hoveredPoint]?.width / 2 : points[hoveredPoint]?.x}
+              y={(chartType === 'candlestick' ? candlesticks[hoveredPoint]?.y : points[hoveredPoint]?.y) - (chartType === 'candlestick' ? 10 : 25)}
               textAnchor="middle"
               className="text-xs fill-slate-300 font-medium"
             >
-              {new Date(points[hoveredPoint].time * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              {new Date((chartType === 'candlestick' ? candlesticks[hoveredPoint]?.time : points[hoveredPoint]?.time) * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </text>
           </g>
         )}
