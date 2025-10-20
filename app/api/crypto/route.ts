@@ -54,8 +54,9 @@ export async function GET(request: NextRequest) {
           }
           data = await cryptoAPI.getCryptoChartData(id, days)
           cacheHeaders = {
-            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-            'X-Cache-Status': 'HIT'
+            'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=1800', // 15 min cache, 30 min stale
+            'X-Cache-Status': 'HIT',
+            'X-Chart-Cache-TTL': '900'
           }
           break
         case 'detail':

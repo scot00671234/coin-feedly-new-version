@@ -48,6 +48,7 @@ export interface CryptoChartData {
 // CoinGecko API client with advanced caching and rate limiting
 class CryptoAPI {
   private baseURL = process.env.COINGECKO_API_URL || 'https://api.coingecko.com/api/v3'
+  private requestQueue = new Map<string, Promise<any>>() // Request deduplication
 
   private async makeRequest<T>(
     endpoint: string, 
@@ -179,29 +180,58 @@ class CryptoAPI {
       const cached = chartDataCache.get(cacheKey)
       
       if (cached) {
+        console.log(`Chart data cache HIT for ${id} (${days} days)`)
         return cached
       }
 
-      const data = await this.makeRequest<{ prices: number[][] }>(
-        `/coins/${id}/market_chart`, 
-        {
-          vs_currency: 'usd',
-          days: days,
-          interval: days <= 1 ? 'hourly' : 'daily'
-        },
-        chartDataRateLimiter
-      )
+      // Check if there's already a request in progress for this chart
+      const requestKey = `chart:${id}:${days}`
+      if (this.requestQueue.has(requestKey)) {
+        console.log(`Chart data request already in progress for ${id} (${days} days) - waiting`)
+        return this.requestQueue.get(requestKey)!
+      }
 
-      const chartData = data.prices.map(([timestamp, price]) => ({
-        timestamp: timestamp,
-        price: price
-      }))
+      console.log(`Chart data cache MISS for ${id} (${days} days) - fetching from API`)
 
-      chartDataCache.set(cacheKey, chartData, CACHE_TTL.CHART_DATA)
-      return chartData
+      // Create the request promise and add to queue
+      const requestPromise = this.fetchChartDataFromAPI(id, days, cacheKey)
+      this.requestQueue.set(requestKey, requestPromise)
+
+      try {
+        const result = await requestPromise
+        return result
+      } finally {
+        // Remove from queue when done
+        this.requestQueue.delete(requestKey)
+      }
     },
     'crypto-chart'
   )
+
+  private async fetchChartDataFromAPI(id: string, days: number, cacheKey: string): Promise<CryptoChartData[]> {
+    // Add delay to prevent rapid successive requests
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    const data = await this.makeRequest<{ prices: number[][] }>(
+      `/coins/${id}/market_chart`, 
+      {
+        vs_currency: 'usd',
+        days: days,
+        interval: days <= 1 ? 'hourly' : 'daily'
+      },
+      chartDataRateLimiter
+    )
+
+    const chartData = data.prices.map(([timestamp, price]) => ({
+      timestamp: timestamp,
+      price: price
+    }))
+
+    // Cache for longer period to reduce API calls
+    chartDataCache.set(cacheKey, chartData, CACHE_TTL.CHART_DATA)
+    console.log(`Chart data cached for ${id} (${days} days) - ${chartData.length} points`)
+    return chartData
+  }
 
   searchCrypto = withPerformanceMonitoring(
     async (query: string): Promise<CryptoPrice[]> => {

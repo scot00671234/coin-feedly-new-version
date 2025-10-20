@@ -141,11 +141,12 @@ export const cryptoDetailCache = new AdvancedCache<any>(2000) // 2k crypto detai
 
 // Cache TTL constants (in milliseconds)
 export const CACHE_TTL = {
-  CHART_DATA: 300000, // 5 minutes for chart data
-  CRYPTO_LIST: 60000, // 1 minute for crypto list
-  CRYPTO_DETAIL: 300000, // 5 minutes for crypto detail
-  TRENDING: 180000, // 3 minutes for trending data
-  SEARCH: 300000, // 5 minutes for search results
+  CHART_DATA: 900000, // 15 minutes for chart data (longer to reduce API calls)
+  CRYPTO_LIST: 300000, // 5 minutes for crypto list
+  CRYPTO_DETAIL: 600000, // 10 minutes for crypto detail
+  TRENDING: 600000, // 10 minutes for trending data
+  SEARCH: 600000, // 10 minutes for search results
+  FEAR_GREED: 3600000, // 1 hour for fear & greed data
 } as const
 
 // Cache key generators

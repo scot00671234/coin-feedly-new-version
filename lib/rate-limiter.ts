@@ -126,10 +126,10 @@ export const apiRateLimiter = new AdvancedRateLimiter({
 })
 
 export const chartDataRateLimiter = new AdvancedRateLimiter({
-  requests: 100, // 100 chart requests per minute
+  requests: 30, // 30 chart requests per minute (more conservative)
   window: 60000, // 1 minute
-  requestsPerSecond: 5, // 5 requests per second
-  burstLimit: 10 // 10 burst requests
+  requestsPerSecond: 2, // 2 requests per second (more conservative)
+  burstLimit: 5 // 5 burst requests (more conservative)
 })
 
 export const searchRateLimiter = new AdvancedRateLimiter({
