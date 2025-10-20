@@ -58,19 +58,19 @@ export async function generateFallbackContent(
   
   switch (strategy) {
     case 'full-content':
-      return generateFullContentFallback(url, title, description, author, source, publishedAt, images, score)
+      return generateFullContentFallback(url, title, description, score, author, source, publishedAt, images)
     
     case 'enhanced-preview':
-      return generateEnhancedPreviewFallback(url, title, description, author, source, publishedAt, images, score, rssItem, opts)
+      return generateEnhancedPreviewFallback(url, title, description, score, opts, author, source, publishedAt, images, rssItem)
     
     case 'visual-card':
-      return generateVisualCardFallback(url, title, description, author, source, publishedAt, images, score, opts)
+      return generateVisualCardFallback(url, title, description, score, opts, author, source, publishedAt, images)
     
     case 'external-link':
-      return generateExternalLinkFallback(url, title, description, author, source, publishedAt, images, score)
+      return generateExternalLinkFallback(url, title, description, score, author, source, publishedAt, images)
     
     default:
-      return generateMinimalFallback(url, title, description, author, source, publishedAt, images, score)
+      return generateMinimalFallback(url, title, description, score, author, source, publishedAt, images)
   }
 }
 
@@ -81,11 +81,11 @@ function generateFullContentFallback(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
   author?: string,
   source?: string,
   publishedAt?: Date,
-  images: string[] = [],
-  score: ContentScore
+  images: string[] = []
 ): FallbackContent {
   return {
     content: `
@@ -127,13 +127,13 @@ function generateEnhancedPreviewFallback(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
+  options: FallbackOptions,
   author?: string,
   source?: string,
   publishedAt?: Date,
   images: string[] = [],
-  score: ContentScore,
-  rssItem?: any,
-  options: FallbackOptions
+  rssItem?: any
 ): FallbackContent {
   const summary = options.generateSummary ? generateAISummary(title, description) : description
   
@@ -191,12 +191,12 @@ function generateVisualCardFallback(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
+  options: FallbackOptions,
   author?: string,
   source?: string,
   publishedAt?: Date,
-  images: string[] = [],
-  score: ContentScore,
-  options: FallbackOptions
+  images: string[] = []
 ): FallbackContent {
   const heroImage = images[0] || generateCryptoImage(title)
   const category = detectCategoryFromTitle(title)
@@ -254,11 +254,11 @@ function generateExternalLinkFallback(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
   author?: string,
   source?: string,
   publishedAt?: Date,
-  images: string[] = [],
-  score: ContentScore
+  images: string[] = []
 ): FallbackContent {
   return {
     content: `
@@ -310,11 +310,11 @@ function generateMinimalFallback(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
   author?: string,
   source?: string,
   publishedAt?: Date,
-  images: string[] = [],
-  score: ContentScore
+  images: string[] = []
 ): FallbackContent {
   return {
     content: `

@@ -203,7 +203,7 @@ export const SOURCE_CONFIGS: Record<string, SourceConfig> = {
     },
     strategies: {
       useJavaScript: false,
-      customExtraction: null
+      customExtraction: undefined
     },
     confidence: {
       base: 0.9,
@@ -274,7 +274,7 @@ export const SOURCE_CONFIGS: Record<string, SourceConfig> = {
     },
     strategies: {
       useJavaScript: false,
-      customExtraction: null
+      customExtraction: undefined
     },
     confidence: {
       base: 0.85,
@@ -345,7 +345,7 @@ export const SOURCE_CONFIGS: Record<string, SourceConfig> = {
     },
     strategies: {
       useJavaScript: false,
-      customExtraction: null
+      customExtraction: undefined
     },
     confidence: {
       base: 0.8,
