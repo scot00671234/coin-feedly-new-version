@@ -93,7 +93,7 @@ export function validateContent(
     hasPublishDate,
     hasImages,
     hasLinks,
-    minTextLength: opts.minTextLength
+    minTextLength: opts.minTextLength || 200
   })
   
   return {
