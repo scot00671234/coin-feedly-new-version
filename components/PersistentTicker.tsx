@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { CryptoPrice } from '@/lib/crypto-api'
+import { priceManager } from '@/lib/price-manager'
 import { formatPrice, formatChange } from '@/lib/crypto-api'
 
 export default function PersistentTicker() {
@@ -10,11 +11,11 @@ export default function PersistentTicker() {
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Fetch crypto prices with real-time data
+  // Fetch crypto prices using unified API
   const fetchPrices = async () => {
     try {
-      // Use dedicated real-time endpoint that bypasses all caching
-      const response = await fetch('/api/crypto-realtime', {
+      // Use unified API for consistent pricing
+      const response = await fetch('/api/unified-crypto?action=ticker', {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -23,11 +24,22 @@ export default function PersistentTicker() {
       })
       if (response.ok) {
         const data = await response.json()
-        setPrices(data)
-        console.log('Real-time prices updated:', new Date().toLocaleTimeString())
+        setPrices(data.tickerData)
+        
+        // Update price manager with fresh data
+        priceManager.updatePrices(data.tickerData)
+        
+        console.log('Unified prices updated:', new Date().toLocaleTimeString())
       }
     } catch (error) {
-      console.error('Error fetching real-time crypto prices:', error)
+      console.error('Error fetching unified crypto prices:', error)
+      
+      // Fallback to price manager data
+      const cachedPrices = priceManager.getAllPrices().slice(0, 10)
+      if (cachedPrices.length > 0) {
+        setPrices(cachedPrices)
+        console.log('Using cached prices as fallback')
+      }
     } finally {
       setLoading(false)
     }

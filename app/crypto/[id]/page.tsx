@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
+import { CryptoPrice, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
+import { priceManager } from '@/lib/price-manager'
 import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft } from 'lucide-react'
-import LightChart from '@/components/LightChart'
+import ProfessionalTradingChart from '@/components/ProfessionalTradingChart'
 
 export default function CryptoDetailPage() {
   const params = useParams()
@@ -32,8 +33,19 @@ export default function CryptoDetailPage() {
     try {
       setLoading(true)
       setError(null)
-      const data = await cryptoAPI.getCryptoById(params.id as string)
-      setCrypto(data)
+      
+      // Use unified API to get both crypto data and chart data
+      const response = await fetch(`/api/unified-crypto?action=detail&id=${params.id}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      setCrypto(data.cryptoDetail)
+      
+      // Update price manager with the fresh data
+      priceManager.updatePrices([data.cryptoDetail])
+      
     } catch (error) {
       console.error('Error fetching crypto data:', error)
       setError('Failed to load cryptocurrency data')
@@ -50,43 +62,24 @@ export default function CryptoDetailPage() {
     
     try {
       console.log('Fetching chart data for:', crypto.id, 'timeframe:', timeframe)
-      const days = timeframe === '1d' ? 1 : timeframe === '7d' ? 7 : timeframe === '30d' ? 30 : 90
-      console.log('Days parameter:', days)
       
-      // Use backend API instead of direct CoinGecko API call
-      const response = await fetch(`/api/crypto?action=chart&id=${crypto.id}&days=${days}`)
+      // Use unified API to get chart data
+      const response = await fetch(`/api/unified-crypto?action=chart&id=${crypto.id}&timeframe=${timeframe}`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
       const data = await response.json()
-      console.log('Raw chart data from API:', data.length, 'points')
-      console.log('Sample raw data:', data.slice(0, 3))
+      console.log('Chart data from unified API:', data.chartData.length, 'points')
       
-      // Validate the data structure
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid data format: expected array')
-      }
-      
-      const formattedData = data.map((item: any) => {
-        if (!item.timestamp || !item.price) {
-          console.warn('Invalid data point:', item)
-          return null
-        }
-        return {
-          time: Math.floor(item.timestamp / 1000), // Convert to seconds and ensure integer
-          value: parseFloat(item.price) // Ensure price is a number
-        }
-      }).filter(item => item !== null) // Remove invalid data points
+      // Format chart data
+      const formattedData = data.chartData.map((item: any) => ({
+        time: Math.floor(item.timestamp / 1000),
+        value: parseFloat(item.price)
+      }))
       
       console.log('Formatted chart data:', formattedData.length, 'points')
-      console.log('Sample formatted data:', formattedData.slice(0, 5))
-      
-      if (formattedData.length === 0) {
-        throw new Error('No valid data points found')
-      }
-      
       setChartData(formattedData)
     } catch (error) {
       console.error('Error fetching chart data:', error)
@@ -239,10 +232,16 @@ export default function CryptoDetailPage() {
           </div>
 
           {/* Chart */}
-          <LightChart 
+          <ProfessionalTradingChart 
             data={chartData} 
-            height={400} 
+            height={500} 
             loading={chartData.length === 0 && crypto !== null}
+            lineColor="gradient"
+            theme="dark"
+            showGrid={true}
+            showAnnotations={true}
+            timeframe={timeframe}
+            lastUpdated={priceManager.getLastUpdate()}
           />
         </div>
 

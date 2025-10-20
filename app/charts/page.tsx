@@ -31,8 +31,8 @@ export default function ChartsPage() {
 
   const fetchTickerPrices = async () => {
     try {
-      // Use real-time endpoint for consistent pricing
-      const response = await fetch('/api/crypto-realtime', {
+      // Use unified API for consistent pricing
+      const response = await fetch('/api/unified-crypto?action=ticker', {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -43,9 +43,9 @@ export default function ChartsPage() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      setTickerPrices(data)
+      setTickerPrices(data.tickerData)
     } catch (error) {
-      console.error('Error fetching real-time ticker prices:', error)
+      console.error('Error fetching unified ticker prices:', error)
     }
   }
 
