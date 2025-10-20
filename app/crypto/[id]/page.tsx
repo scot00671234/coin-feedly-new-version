@@ -202,7 +202,7 @@ export default function CryptoDetailPage() {
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">Circulating Supply</span>
                 <span className="text-slate-900 dark:text-white font-medium">
-                  {crypto.circulating_supply.toLocaleString()} {crypto.symbol.toUpperCase()}
+                  {(crypto.circulating_supply || 0).toLocaleString()} {crypto.symbol.toUpperCase()}
                 </span>
               </div>
               <div className="flex justify-between">
