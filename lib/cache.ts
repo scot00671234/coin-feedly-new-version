@@ -14,7 +14,7 @@ interface CacheStats {
   size: number
 }
 
-class AdvancedCache<T> {
+export class AdvancedCache<T> {
   private cache = new Map<string, CacheEntry<T>>()
   private stats: CacheStats = {
     hits: 0,

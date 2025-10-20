@@ -113,6 +113,17 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               Polymarket
             </Link>
             
+            <Link
+              href="/fear-greed"
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                isActive('/fear-greed')
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              Fear & Greed
+            </Link>
+            
             <button
               onClick={toggleTheme}
               className="group flex items-center justify-center w-10 h-10 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-300"
@@ -175,6 +186,17 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                     }`}
                   >
                     Polymarket
+                  </Link>
+                  <Link 
+                    href="/fear-greed" 
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                      isActive('/fear-greed')
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    Fear & Greed
                   </Link>
                 </div>
               </div>

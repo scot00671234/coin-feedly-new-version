@@ -133,15 +133,6 @@ export default function PolymarketPage() {
               <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
                 Currently Under Development
               </h3>
-              <p className="text-blue-800 dark:text-blue-200 mb-3">
-                We're actively working on improving the Polymarket integration. The data below is functional but may not reflect the final user experience.
-              </p>
-              <div className="text-sm text-blue-700 dark:text-blue-300">
-                <p>• Enhanced market filtering and search</p>
-                <p>• Improved data visualization and charts</p>
-                <p>• Real-time updates and notifications</p>
-                <p>• Mobile-optimized interface</p>
-              </div>
             </div>
           </div>
         </div>
