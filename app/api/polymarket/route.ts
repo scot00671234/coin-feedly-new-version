@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     // Handle GraphQL response structure
     if (data.errors) {
       console.error('GraphQL errors:', data.errors)
-      throw new Error(`GraphQL errors: ${data.errors.map(e => e.message).join(', ')}`)
+      throw new Error(`GraphQL errors: ${data.errors.map((e: any) => e.message).join(', ')}`)
     }
 
     const markets = data.data?.markets || []
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 
     // Filter and transform crypto, politics, and finance markets
     const relevantMarkets = markets
-      .filter(market => {
+      .filter((market: any) => {
         if (!market || typeof market !== 'object') return false
         
         const question = market.question || market.title || market.name || ''
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
         return (hasCrypto || hasPolitics || hasFinance) && !hasExcluded
       })
       .slice(0, 5)
-      .map(market => {
+      .map((market: any) => {
         const question = market.question || market.title || market.name || 'Unknown Market'
         const description = market.description || market.desc || ''
         const id = market.id || market.market_id || 'unknown'
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
         
         if (markets.length > 0) {
           const relevantMarkets = markets
-            .filter(market => {
+            .filter((market: any) => {
               if (!market || typeof market !== 'object') return false
               
               const question = market.question || market.title || market.name || ''
@@ -258,7 +258,7 @@ export async function GET(request: NextRequest) {
               return (hasCrypto || hasPolitics || hasFinance) && !hasExcluded
             })
             .slice(0, 5)
-            .map(market => {
+            .map((market: any) => {
               const question = market.question || market.title || market.name || 'Unknown Market'
               const description = market.description || market.desc || ''
               const id = market.id || market.market_id || 'unknown'
