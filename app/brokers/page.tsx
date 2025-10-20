@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, Shield, TrendingUp, Users, Star, CheckCircle, ArrowRight } from 'lucide-react'
+import { ExternalLink, Shield, TrendingUp, Users, CheckCircle, ArrowRight } from 'lucide-react'
 
 export default function BrokersPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
@@ -11,19 +11,17 @@ export default function BrokersPage() {
     {
       id: 'axiom',
       name: 'Axiom',
-      description: 'Professional trading platform with advanced tools and low fees',
+      description: 'Professional trading platform offering advanced tools and competitive fees',
       logo: 'A',
-      rating: 4.8,
       features: [
         'Advanced Trading Tools',
-        'Low Trading Fees',
+        'Competitive Trading Fees',
         'Professional Support',
         'Secure Platform',
         'Real-time Data',
         'Mobile Trading'
       ],
       referralLink: 'https://axiom.trade/@ekvidity',
-      isRecommended: true,
       color: 'from-blue-600 to-purple-600',
       bgColor: 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20',
       borderColor: 'border-blue-200 dark:border-blue-700'
@@ -37,17 +35,17 @@ export default function BrokersPage() {
         <div className="text-center mb-16">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
             <Shield className="w-4 h-4 mr-2" />
-            Trusted Crypto Brokers
+            Trading Platforms
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
-            Choose Your
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Broker</span>
+            Trading
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Platforms</span>
           </h1>
           
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
-            Discover the best cryptocurrency trading platforms with competitive fees, 
-            advanced tools, and professional support to enhance your trading experience.
+            Explore cryptocurrency trading platforms with various features and services. 
+            Each platform offers different tools and fee structures to suit different trading needs.
           </p>
         </div>
 
@@ -62,15 +60,6 @@ export default function BrokersPage() {
             >
               {/* Card */}
               <div className={`relative overflow-hidden rounded-3xl border-2 ${broker.borderColor} ${broker.bgColor} p-8 h-full`}>
-                {/* Recommended Badge */}
-                {broker.isRecommended && (
-                  <div className="absolute top-6 right-6 z-10">
-                    <div className="flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-semibold shadow-lg">
-                      <Star className="w-3 h-3 mr-1 fill-current" />
-                      Recommended
-                    </div>
-                  </div>
-                )}
 
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5">
@@ -86,23 +75,6 @@ export default function BrokersPage() {
                     </div>
                     <div>
                       <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{broker.name}</h3>
-                      <div className="flex items-center mt-1">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < Math.floor(broker.rating)
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-slate-300 dark:text-slate-600'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="ml-2 text-sm text-slate-600 dark:text-slate-400">
-                          {broker.rating}/5
-                        </span>
-                      </div>
                     </div>
                   </div>
 
@@ -155,9 +127,9 @@ export default function BrokersPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Secure Trading</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Security Features</h3>
               <p className="text-slate-600 dark:text-slate-400">
-                All recommended brokers use industry-standard security measures to protect your funds.
+                Trading platforms typically implement various security measures to protect user accounts and funds.
               </p>
             </div>
             
@@ -165,9 +137,9 @@ export default function BrokersPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Low Fees</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Fee Structures</h3>
               <p className="text-slate-600 dark:text-slate-400">
-                Competitive trading fees and transparent pricing to maximize your trading profits.
+                Different platforms offer various fee structures and pricing models for trading activities.
               </p>
             </div>
             
@@ -175,22 +147,39 @@ export default function BrokersPage() {
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Expert Support</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Support Services</h3>
               <p className="text-slate-600 dark:text-slate-400">
-                Professional customer support available 24/7 to help with your trading needs.
+                Trading platforms may offer customer support services to assist with platform-related inquiries.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Disclaimer */}
-        <div className="mt-12 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-500 max-w-4xl mx-auto">
-            <strong>Disclaimer:</strong> Trading cryptocurrencies involves substantial risk of loss and is not suitable for all investors. 
-            The high degree of leverage can work against you as well as for you. Before deciding to trade cryptocurrencies, 
-            you should carefully consider your investment objectives, level of experience, and risk appetite. 
-            Past performance is not indicative of future results.
-          </p>
+        {/* Legal Disclaimer */}
+        <div className="mt-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 text-center">Important Legal Notice</h3>
+            <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3">
+              <p>
+                <strong>User Responsibility:</strong> It is your sole responsibility to research and evaluate any trading platform 
+                before making any financial decisions. Coin Feedly does not provide financial advice, recommendations, or endorsements 
+                of any trading platforms or services.
+              </p>
+              <p>
+                <strong>No Liability:</strong> Coin Feedly cannot be held legally responsible for any financial losses, risks, 
+                trading decisions, or outcomes resulting from your use of any trading platform. All trading activities carry inherent 
+                risks, and you should only trade with funds you can afford to lose.
+              </p>
+              <p>
+                <strong>Independent Research:</strong> Always conduct your own due diligence, read platform terms of service, 
+                understand fee structures, and consider your risk tolerance before engaging with any trading platform. 
+                Past performance does not guarantee future results.
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 pt-2">
+                By using this page, you acknowledge and agree to these terms and understand that all trading decisions are your own responsibility.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
