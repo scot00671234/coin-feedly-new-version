@@ -42,9 +42,9 @@ export default function CryptoCard({ crypto, onClick, isSelected = false }: Cryp
             {formatPrice(crypto.current_price)}
           </span>
           <div className={`flex items-center space-x-1 ${
-            crypto.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'
+            (crypto.price_change_percentage_24h || 0) >= 0 ? 'text-green-400' : 'text-red-400'
           }`}>
-            {crypto.price_change_percentage_24h >= 0 ? (
+            {(crypto.price_change_percentage_24h || 0) >= 0 ? (
               <TrendingUp className="w-4 h-4" />
             ) : (
               <TrendingDown className="w-4 h-4" />
