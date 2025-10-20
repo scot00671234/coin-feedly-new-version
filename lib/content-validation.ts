@@ -66,9 +66,9 @@ export function validateContent(
   const totalImages = images.length + contentImages
   
   // Check for required elements
-  const hasTitle = title && title.length > 0
-  const hasDescription = description && description.length > 0
-  const hasAuthor = author && author.length > 0
+  const hasTitle = Boolean(title && title.length > 0)
+  const hasDescription = Boolean(description && description.length > 0)
+  const hasAuthor = Boolean(author && author.length > 0)
   const hasPublishDate = publishedAt !== undefined && publishedAt !== null
   
   // Check for content structure
