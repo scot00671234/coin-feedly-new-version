@@ -45,12 +45,12 @@ export async function GET() {
         id: price.id,
         symbol: price.symbol,
         name: price.name,
-        current_price: price.price,
-        market_cap: price.marketCap,
+        current_price: price.price || 0,
+        market_cap: price.marketCap || 0,
         market_cap_rank: 0, // Not stored in database
         total_volume: price.volume24h || 0,
         price_change_percentage_1h_in_currency: 0, // Not stored in database
-        price_change_percentage_24h: price.change24h,
+        price_change_percentage_24h: price.change24h || 0,
         price_change_percentage_7d_in_currency: 0, // Not stored in database
         price_change_24h: 0, // Not stored in database
         circulating_supply: 0, // Not stored in database
@@ -78,10 +78,10 @@ export async function GET() {
       id: price.id,
       symbol: price.symbol,
       name: price.name,
-      price: price.current_price,
-      change24h: price.price_change_percentage_24h,
-      volume24h: price.total_volume,
-      marketCap: price.market_cap,
+      price: price.current_price || 0,
+      change24h: price.price_change_percentage_24h || 0,
+      volume24h: price.total_volume || 0,
+      marketCap: price.market_cap || 0,
       updatedAt: new Date().toISOString()
     }))
 
