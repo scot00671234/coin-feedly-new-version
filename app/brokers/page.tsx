@@ -1,11 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 export default function BrokersPage() {
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
   const brokers = [
     {
@@ -22,14 +20,14 @@ export default function BrokersPage() {
         'Mobile Trading'
       ],
       referralLink: 'https://axiom.trade/@ekvidity',
-      color: 'from-blue-600 to-purple-600',
-      bgColor: 'bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20',
+      color: 'from-blue-600 to-blue-700',
+      bgColor: 'bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-900/20 dark:to-slate-800/20',
       borderColor: 'border-blue-200 dark:border-blue-700'
     }
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900/20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
         <div className="text-center mb-16">
@@ -39,7 +37,7 @@ export default function BrokersPage() {
           
           <h1 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6">
             Trading
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Platforms</span>
+            <span className="text-blue-600 dark:text-blue-400"> Platforms</span>
           </h1>
           
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
@@ -53,12 +51,10 @@ export default function BrokersPage() {
           {brokers.map((broker) => (
             <div
               key={broker.id}
-              className={`relative group cursor-pointer transition-all duration-500 transform hover:scale-105 hover:-translate-y-2`}
-              onMouseEnter={() => setHoveredCard(broker.id)}
-              onMouseLeave={() => setHoveredCard(null)}
+              className="relative group transition-all duration-200"
             >
               {/* Card */}
-              <div className={`relative overflow-hidden rounded-3xl border-2 ${broker.borderColor} ${broker.bgColor} p-8 h-full`}>
+              <div className={`relative overflow-hidden rounded-2xl border ${broker.borderColor} ${broker.bgColor} p-8 h-full shadow-sm hover:shadow-md transition-shadow duration-200`}>
 
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-5">
@@ -88,18 +84,13 @@ export default function BrokersPage() {
                     href={broker.referralLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`group/btn relative inline-flex items-center justify-center w-full px-6 py-4 rounded-2xl font-semibold text-white bg-gradient-to-r ${broker.color} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}
+                    className="group/btn relative inline-flex items-center justify-center w-full px-6 py-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-200"
                   >
-                    <span className="relative z-10">Start Trading</span>
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                    
-                    {/* Button Background Effect */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative z-10">Visit Platform</span>
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
                   </Link>
                 </div>
 
-                {/* Hover Effect Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${broker.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-3xl`}></div>
               </div>
             </div>
           ))}
@@ -107,7 +98,7 @@ export default function BrokersPage() {
 
 
         {/* Legal Disclaimer */}
-        <div className="mt-12 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+        <div className="mt-12 bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
           <div className="max-w-4xl mx-auto">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 text-center">Important Legal Notice</h3>
             <div className="text-sm text-slate-600 dark:text-slate-400 space-y-3">

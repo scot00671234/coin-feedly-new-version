@@ -102,16 +102,6 @@ export default function NewsCard({ article }: NewsCardProps) {
           </p>
         )}
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-300/50 dark:border-slate-800/50">
-          <div className="flex items-center space-x-1 sm:space-x-2 text-blue-400 group-hover:text-blue-300 transition-colors">
-            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="font-semibold text-xs sm:text-sm">Read Full Article</span>
-          </div>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-          </div>
-        </div>
       </div>
       </article>
     </Link>

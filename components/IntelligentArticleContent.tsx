@@ -99,7 +99,7 @@ export default function IntelligentArticleContent({
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Read Original Article
+              Visit Original Source
             </a>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function IntelligentArticleContent({
                       className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Read Full Article on {article.source.name}
+                      Visit {article.source.name}
                     </a>
                   </div>
                 </div>
