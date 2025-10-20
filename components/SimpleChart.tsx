@@ -10,6 +10,50 @@ interface SimpleChartProps {
   chartType?: 'line' | 'candlestick'
 }
 
+// Generate candlestick data from line data - moved outside component to avoid circular dependency
+const generateCandlesticks = (data: Array<{ time: number; value: number }>, minTime: number, maxTime: number, minValue: number, maxValue: number, chartWidth: number, chartHeight: number, padding: any) => {
+  if (data.length < 2) return []
+
+  const candlesticks = []
+  const timeStep = (maxTime - minTime) / Math.max(20, data.length / 4) // Create 20-50 candles
+  
+  for (let i = 0; i < data.length - 1; i += Math.max(1, Math.floor(data.length / 30))) {
+    const current = data[i]
+    const next = data[i + 1] || data[i]
+    
+    // Simulate OHLC data from line data
+    const open = current.value
+    const close = next.value
+    const high = Math.max(open, close) * (1 + Math.random() * 0.02) // Add some volatility
+    const low = Math.min(open, close) * (1 - Math.random() * 0.02)
+    
+    const x = padding.left + ((current.time - minTime) / (maxTime - minTime)) * chartWidth
+    const candleWidth = Math.max(2, chartWidth / 30)
+    
+    const openY = padding.top + ((maxValue - open) / (maxValue - minValue)) * chartHeight
+    const closeY = padding.top + ((maxValue - close) / (maxValue - minValue)) * chartHeight
+    const highY = padding.top + ((maxValue - high) / (maxValue - minValue)) * chartHeight
+    const lowY = padding.top + ((maxValue - low) / (maxValue - minValue)) * chartHeight
+    
+    candlesticks.push({
+      x: x - candleWidth / 2,
+      y: Math.min(openY, closeY),
+      width: candleWidth,
+      height: Math.abs(closeY - openY) || 1,
+      open,
+      close,
+      high,
+      low,
+      highY,
+      lowY,
+      isGreen: close >= open,
+      time: current.time
+    })
+  }
+  
+  return candlesticks
+}
+
 export default function SimpleChart({ data, height = 400, width, loading = false, chartType = 'line' }: SimpleChartProps) {
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   
@@ -98,49 +142,6 @@ export default function SimpleChart({ data, height = 400, width, loading = false
     }
   }, [data, height, width, chartType])
 
-  // Generate candlestick data from line data
-  const generateCandlesticks = (data: Array<{ time: number; value: number }>, minTime: number, maxTime: number, minValue: number, maxValue: number, chartWidth: number, chartHeight: number, padding: any) => {
-    if (data.length < 2) return []
-
-    const candlesticks = []
-    const timeStep = (maxTime - minTime) / Math.max(20, data.length / 4) // Create 20-50 candles
-    
-    for (let i = 0; i < data.length - 1; i += Math.max(1, Math.floor(data.length / 30))) {
-      const current = data[i]
-      const next = data[i + 1] || data[i]
-      
-      // Simulate OHLC data from line data
-      const open = current.value
-      const close = next.value
-      const high = Math.max(open, close) * (1 + Math.random() * 0.02) // Add some volatility
-      const low = Math.min(open, close) * (1 - Math.random() * 0.02)
-      
-      const x = padding.left + ((current.time - minTime) / (maxTime - minTime)) * chartWidth
-      const candleWidth = Math.max(2, chartWidth / 30)
-      
-      const openY = padding.top + ((maxValue - open) / (maxValue - minValue)) * chartHeight
-      const closeY = padding.top + ((maxValue - close) / (maxValue - minValue)) * chartHeight
-      const highY = padding.top + ((maxValue - high) / (maxValue - minValue)) * chartHeight
-      const lowY = padding.top + ((maxValue - low) / (maxValue - minValue)) * chartHeight
-      
-      candlesticks.push({
-        x: x - candleWidth / 2,
-        y: Math.min(openY, closeY),
-        width: candleWidth,
-        height: Math.abs(closeY - openY) || 1,
-        open,
-        close,
-        high,
-        low,
-        highY,
-        lowY,
-        isGreen: close >= open,
-        time: current.time
-      })
-    }
-    
-    return candlesticks
-  }
 
   if (loading) {
     return (

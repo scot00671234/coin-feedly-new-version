@@ -39,21 +39,22 @@ export default function LightChart({ data, height = 400, width, loading = false 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
     let attempts = 0
-    const maxAttempts = 50 // 5 seconds max
+    const maxAttempts = 10 // 1 second max
 
     const checkContainer = () => {
       attempts++
-      if (chartContainerRef.current) {
+      if (chartContainerRef.current && chartContainerRef.current.clientWidth > 0) {
         setContainerReady(true)
-        console.log('Container is ready')
+        console.log('Container is ready with dimensions:', chartContainerRef.current.clientWidth, 'x', chartContainerRef.current.clientHeight)
       } else if (attempts >= maxAttempts) {
         console.log('Container timeout, falling back to simple chart')
         setUseSimpleChart(true)
       } else {
-        console.log('Container not ready yet, attempt', attempts)
         timeoutId = setTimeout(checkContainer, 100)
       }
     }
+    
+    // Start checking immediately
     checkContainer()
 
     return () => {
@@ -79,15 +80,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
 
         const container = chartContainerRef.current
         
-        // Set explicit dimensions
-        container.style.width = width ? `${width}px` : '100%'
-        container.style.height = `${height}px`
-        container.style.minWidth = '300px'
-        container.style.minHeight = '200px'
-
-        // Wait for dimensions to be applied
-        await new Promise(resolve => setTimeout(resolve, 100))
-
+        // Get current dimensions without setting them explicitly
         const containerWidth = container.clientWidth || 400
         const containerHeight = container.clientHeight || height
 
@@ -214,7 +207,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
   }, [data, isInitialized])
 
 
-  // If we should use simple chart or have no data, use SimpleChart with candlesticks
+  // If we should use simple chart, have no data, or loading, use SimpleChart with candlesticks
   if (useSimpleChart || data.length === 0 || loading) {
     return (
       <SimpleChart 
@@ -251,7 +244,8 @@ export default function LightChart({ data, height = 400, width, loading = false 
         height: `${height}px`, 
         width: width ? `${width}px` : '100%',
         minHeight: '200px',
-        minWidth: '300px'
+        minWidth: '300px',
+        position: 'relative'
       }}
     />
   )
