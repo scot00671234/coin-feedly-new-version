@@ -112,7 +112,7 @@ export default function PolymarketPage() {
                 Polymarket Predictions
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                Live crypto prediction markets from Polymarket
+                Live crypto, politics, and finance prediction markets from Polymarket
               </p>
             </div>
             <button

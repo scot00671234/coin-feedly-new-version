@@ -27,9 +27,9 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const category = searchParams.get('category') || 'crypto'
 
-    // Fetch markets from Polymarket API
+    // Fetch markets from Polymarket API with crypto/politics/finance focus
     const response = await fetch(
-      `https://clob.polymarket.com/markets?limit=${limit}&active=true&archived=false`,
+      `https://clob.polymarket.com/markets?limit=50&active=true&archived=false`,
       {
         headers: {
           'Accept': 'application/json',
@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
       throw new Error('Invalid response structure from Polymarket API')
     }
 
-    // Filter and transform crypto-related markets
-    const cryptoMarkets = markets
+    // Filter and transform crypto, politics, and finance markets
+    const relevantMarkets = markets
       .filter(market => {
         if (!market || typeof market !== 'object') return false
         
@@ -70,16 +70,51 @@ export async function GET(request: NextRequest) {
         const description = market.description || market.desc || ''
         const text = `${question} ${description}`.toLowerCase()
         
-        return text.includes('bitcoin') ||
-               text.includes('ethereum') ||
-               text.includes('crypto') ||
-               text.includes('btc') ||
-               text.includes('eth') ||
-               text.includes('defi') ||
-               text.includes('altcoin') ||
-               text.includes('solana') ||
-               text.includes('cardano') ||
-               text.includes('polkadot')
+        // Crypto keywords
+        const cryptoKeywords = [
+          'bitcoin', 'ethereum', 'crypto', 'btc', 'eth', 'defi', 'altcoin',
+          'solana', 'cardano', 'polkadot', 'chainlink', 'avalanche', 'polygon',
+          'binance', 'coinbase', 'crypto exchange', 'blockchain', 'nft',
+          'web3', 'metaverse', 'dao', 'yield farming', 'liquidity', 'staking',
+          'mining', 'hashrate', 'difficulty', 'halving', 'fork', 'upgrade'
+        ]
+        
+        // Politics keywords
+        const politicsKeywords = [
+          'election', 'president', 'congress', 'senate', 'house', 'governor',
+          'mayor', 'trump', 'biden', 'harris', 'desantis', 'newsom', 'abbott',
+          'voting', 'ballot', 'primary', 'caucus', 'debate', 'poll', 'approval',
+          'impeachment', 'resignation', 'nomination', 'confirmation', 'veto',
+          'bill', 'law', 'policy', 'regulation', 'federal', 'state', 'local'
+        ]
+        
+        // Finance keywords
+        const financeKeywords = [
+          'fed', 'federal reserve', 'interest rate', 'inflation', 'recession',
+          'gdp', 'unemployment', 'jobs report', 'cpi', 'ppi', 'retail sales',
+          'housing', 'mortgage', 'bond', 'treasury', 'yield curve', 'dollar',
+          'euro', 'yen', 'yuan', 'pound', 'franc', 'currency', 'forex',
+          'stock market', 's&p', 'nasdaq', 'dow', 'vix', 'volatility',
+          'earnings', 'revenue', 'profit', 'loss', 'bank', 'banking',
+          'credit', 'debt', 'default', 'bankruptcy', 'merger', 'acquisition'
+        ]
+        
+        // Check if market contains any relevant keywords
+        const hasCrypto = cryptoKeywords.some(keyword => text.includes(keyword))
+        const hasPolitics = politicsKeywords.some(keyword => text.includes(keyword))
+        const hasFinance = financeKeywords.some(keyword => text.includes(keyword))
+        
+        // Exclude sports and entertainment
+        const excludeKeywords = [
+          'nba', 'nfl', 'mlb', 'nhl', 'soccer', 'football', 'basketball',
+          'baseball', 'hockey', 'tennis', 'golf', 'boxing', 'ufc', 'mma',
+          'movie', 'film', 'oscar', 'emmy', 'grammy', 'award', 'celebrity',
+          'actor', 'actress', 'singer', 'musician', 'entertainment', 'sports'
+        ]
+        
+        const hasExcluded = excludeKeywords.some(keyword => text.includes(keyword))
+        
+        return (hasCrypto || hasPolitics || hasFinance) && !hasExcluded
       })
       .slice(0, 5)
       .map(market => {
@@ -108,7 +143,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      markets: cryptoMarkets,
+      markets: relevantMarkets,
       lastUpdated: new Date().toISOString()
     })
 
