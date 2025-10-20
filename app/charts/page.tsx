@@ -295,11 +295,11 @@ export default function ChartsPage() {
                             {formatPrice(crypto.current_price)}
                           </div>
                           <div className={`text-xs flex items-center justify-end ${
-                            crypto.price_change_percentage_24h >= 0 
+                            (crypto.price_change_percentage_24h || 0) >= 0 
                               ? 'text-green-600 dark:text-green-400' 
                               : 'text-red-600 dark:text-red-400'
                           }`}>
-                            {crypto.price_change_percentage_24h >= 0 ? (
+                            {(crypto.price_change_percentage_24h || 0) >= 0 ? (
                               <ArrowUp className="w-3 h-3 mr-1" />
                             ) : (
                               <ArrowDown className="w-3 h-3 mr-1" />
@@ -313,7 +313,7 @@ export default function ChartsPage() {
                         <div>
                           <div className="text-slate-500 dark:text-slate-400 mb-1">1h</div>
                           <div className={`font-medium ${
-                            crypto.price_change_percentage_1h_in_currency >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                            (crypto.price_change_percentage_1h_in_currency || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}>
                             {formatPercentage(crypto.price_change_percentage_1h_in_currency)}
                           </div>
@@ -321,7 +321,7 @@ export default function ChartsPage() {
                         <div>
                           <div className="text-slate-500 dark:text-slate-400 mb-1">7d</div>
                           <div className={`font-medium ${
-                            crypto.price_change_percentage_7d_in_currency >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                            (crypto.price_change_percentage_7d_in_currency || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}>
                             {formatPercentage(crypto.price_change_percentage_7d_in_currency)}
                           </div>
@@ -380,17 +380,17 @@ export default function ChartsPage() {
                           {formatPrice(crypto.current_price)}
                         </td>
                         <td className={`px-4 py-4 whitespace-nowrap text-sm ${
-                          crypto.price_change_percentage_1h_in_currency >= 0 ? 'text-green-400' : 'text-red-400'
+                          (crypto.price_change_percentage_1h_in_currency || 0) >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}>
                           {formatPercentage(crypto.price_change_percentage_1h_in_currency)}
                         </td>
                         <td className={`px-4 py-4 whitespace-nowrap text-sm ${
-                          crypto.price_change_percentage_24h >= 0 ? 'text-green-400' : 'text-red-400'
+                          (crypto.price_change_percentage_24h || 0) >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}>
                           {formatPercentage(crypto.price_change_percentage_24h)}
                         </td>
                         <td className={`px-4 py-4 whitespace-nowrap text-sm ${
-                          crypto.price_change_percentage_7d_in_currency >= 0 ? 'text-green-400' : 'text-red-400'
+                          (crypto.price_change_percentage_7d_in_currency || 0) >= 0 ? 'text-green-400' : 'text-red-400'
                         }`}>
                           {formatPercentage(crypto.price_change_percentage_7d_in_currency)}
                         </td>
