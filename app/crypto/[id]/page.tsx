@@ -314,9 +314,9 @@ export default function CryptoDetailPage() {
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">Price Change (24h)</span>
                 <span className={`font-medium ${
-                  crypto.price_change_24h >= 0 ? 'text-green-500' : 'text-red-500'
+                  (crypto.price_change_24h || 0) >= 0 ? 'text-green-500' : 'text-red-500'
                 }`}>
-                  {formatPrice(Math.abs(crypto.price_change_24h))}
+                  {formatPrice(Math.abs(crypto.price_change_24h || 0))}
                 </span>
               </div>
             </div>
