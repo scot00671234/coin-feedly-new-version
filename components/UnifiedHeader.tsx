@@ -69,8 +69,13 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
     },
     {
       href: '/brokers',
-      label: 'Brokers',
+      label: 'Axiom',
       description: 'Crypto broker comparison'
+    },
+    {
+      href: '/coinbase',
+      label: 'Coinbase',
+      description: 'Platform where you can trade crypto'
     }
   ]
 
