@@ -42,13 +42,13 @@ export async function generateFallbackContent(
   url: string,
   title: string,
   description: string,
+  score: ContentScore,
+  quality: ContentQuality,
   author?: string,
   source?: string,
   publishedAt?: Date,
   images: string[] = [],
   rssItem?: any,
-  score: ContentScore,
-  quality: ContentQuality,
   options: FallbackOptions = {}
 ): Promise<FallbackContent> {
   const opts = { ...DEFAULT_OPTIONS, ...options }
