@@ -220,33 +220,26 @@ export default function LightChart({ data, height = 400, width, loading = false 
     )
   }
 
-  // Show initializing state
-  if (!isInitialized || !containerReady) {
-    return (
-      <div 
-        className="flex items-center justify-center bg-slate-100 dark:bg-slate-700/30 rounded-lg text-slate-500 dark:text-slate-400"
-        style={{ height: `${height}px`, width: width ? `${width}px` : '100%' }}
-      >
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mb-2"></div>
-          <p className="text-sm">Initializing chart...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Render advanced chart
+  // Always render the container so the ref can measure dimensions; overlay loading UI if needed
   return (
     <div 
       ref={chartContainerRef}
-      className="w-full rounded-lg overflow-hidden"
+      className="w-full rounded-lg overflow-hidden relative"
       style={{ 
         height: `${height}px`, 
         width: width ? `${width}px` : '100%',
         minHeight: '200px',
-        minWidth: '300px',
-        position: 'relative'
+        minWidth: '300px'
       }}
-    />
+    >
+      {(!isInitialized || !containerReady) && !useSimpleChart && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-700/30 text-slate-500 dark:text-slate-400">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mb-2"></div>
+            <p className="text-sm">Initializing chart...</p>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

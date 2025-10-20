@@ -63,44 +63,87 @@ class CryptoAPI {
       await new Promise(resolve => setTimeout(resolve, waitTime))
     }
 
-    try {
-      const headers: any = {
-        'Accept': 'application/json'
-      }
-      
-      // Add API key to headers if available
-      if (process.env.COINGECKO_API_KEY) {
-        headers['x-cg-demo-api-key'] = process.env.COINGECKO_API_KEY
-        console.log('Using CoinGecko API key for higher rate limits')
-      } else {
-        console.log('No CoinGecko API key found, using free tier with rate limits')
-      }
-
-      const response = await axios.get(`${this.baseURL}${endpoint}`, {
-        params: {
-          ...params
-        },
-        timeout: 15000, // Increased timeout for reliability
-        headers
-      })
-
-      return response.data
-    } catch (error) {
-      console.error('Crypto API error:', error)
-      
-      // Handle specific error types
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 429) {
-          throw new Error('Rate limit exceeded. Please try again later.')
-        } else if (error.response?.status === 404) {
-          throw new Error('Cryptocurrency not found.')
-        } else if (error.code === 'ECONNABORTED') {
-          throw new Error('Request timeout. Please try again.')
-        }
-      }
-      
-      throw new Error('Failed to fetch crypto data')
+    const headers: any = {
+      'Accept': 'application/json'
     }
+    
+    // Add API key to headers if available
+    if (process.env.COINGECKO_API_KEY) {
+      headers['x-cg-demo-api-key'] = process.env.COINGECKO_API_KEY
+      console.log('Using CoinGecko API key for higher rate limits')
+    } else {
+      console.log('No CoinGecko API key found, using free tier with rate limits')
+    }
+
+    // Simple exponential backoff with Retry-After support
+    const maxAttempts = 3
+    let attempt = 0
+    let lastError: any
+
+    while (attempt < maxAttempts) {
+      try {
+        const response = await axios.get(`${this.baseURL}${endpoint}`, {
+          params: {
+            ...params
+          },
+          timeout: 15000,
+          headers,
+          validateStatus: (status) => status >= 200 && status < 500 // surface 429s for handling
+        })
+
+        if (response.status === 429) {
+          // Respect Retry-After if present; otherwise backoff 1s, 2s, 4s
+          const retryAfterHeader = response.headers?.['retry-after']
+          const retryAfterMs = retryAfterHeader ? Number(retryAfterHeader) * 1000 : Math.pow(2, attempt) * 1000
+          attempt++
+          if (attempt >= maxAttempts) {
+            throw new Error('Rate limit exceeded. Please try again later.')
+          }
+          await new Promise(r => setTimeout(r, isNaN(retryAfterMs) ? 1000 : retryAfterMs))
+          continue
+        }
+
+        if (response.status >= 500) {
+          // transient server error, backoff and retry
+          attempt++
+          lastError = new Error(`Upstream error ${response.status}`)
+          await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 500))
+          continue
+        }
+
+        if (response.status === 404) {
+          throw new Error('Cryptocurrency not found.')
+        }
+
+        return response.data as T
+      } catch (error) {
+        // Network/timeout errors
+        if (axios.isAxiosError(error)) {
+          if (error.code === 'ECONNABORTED') {
+            attempt++
+            lastError = error
+            await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 500))
+            continue
+          }
+        }
+        lastError = error
+        break
+      }
+    }
+
+    console.error('Crypto API error:', lastError)
+    if (axios.isAxiosError(lastError)) {
+      if (lastError.response?.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.')
+      }
+      if (lastError.response?.status === 404) {
+        throw new Error('Cryptocurrency not found.')
+      }
+      if (lastError.code === 'ECONNABORTED') {
+        throw new Error('Request timeout. Please try again.')
+      }
+    }
+    throw new Error('Failed to fetch crypto data')
   }
 
   getCryptoList = withPerformanceMonitoring(
