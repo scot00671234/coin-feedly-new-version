@@ -1,10 +1,18 @@
 providers = ["node"]
 
 [phases.install]
-cmds = ["npm ci --omit=dev --no-audit --no-fund"]
+cmds = [
+  # Reduce disk usage: skip optional deps, disable progress logs, and clean cache
+  "npm ci --omit=dev --omit=optional --no-audit --no-fund --no-progress",
+  "npm cache clean --force"
+]
 
 [phases.build]
-cmds = ["npx prisma generate", "npm run build"]
+cmds = [
+  "npx prisma generate",
+  # Reduce artifacts generated during build
+  "NEXT_TELEMETRY_DISABLED=1 NEXT_DISABLE_SOURCEMAPS=1 npm run build"
+]
 
 [phases.setup]
 cmds = []
