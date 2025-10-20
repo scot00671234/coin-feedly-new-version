@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { TrendingUp, TrendingDown, Star, ExternalLink, BarChart3 } from 'lucide-react'
 import LightChart from './LightChart'
+import ModernTradingChart from './ModernTradingChart'
 
 interface CryptoChartProps {
   crypto: CryptoPrice
@@ -13,6 +14,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
+  const [useFallbackChart, setUseFallbackChart] = useState(false)
 
   useEffect(() => {
     fetchChartData()
@@ -116,11 +118,24 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
 
       {/* Chart */}
       <div className="p-4">
-        <LightChart 
-          data={chartData} 
-          height={320} 
-          loading={loading}
-        />
+        {useFallbackChart ? (
+          <ModernTradingChart 
+            data={chartData} 
+            height={320} 
+            loading={loading}
+            lineColor="gradient"
+            theme="dark"
+            showGrid={true}
+            showAnnotations={true}
+          />
+        ) : (
+          <LightChart 
+            data={chartData} 
+            height={320} 
+            loading={loading}
+            onError={() => setUseFallbackChart(true)}
+          />
+        )}
       </div>
 
       {/* Stats */}

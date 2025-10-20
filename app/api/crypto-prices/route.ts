@@ -1,78 +1,106 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { cryptoAPI } from '@/lib/crypto-api'
+import { priceTickerCache, CACHE_TTL, getPriceTickerCacheKey } from '@/lib/cache'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Check if database is available and has tables
-    let databaseAvailable = false
-    try {
-      await prisma.$connect()
-      // Try to query a simple table to check if it exists
-      await prisma.cryptoPrice.findFirst()
-      databaseAvailable = true
-    } catch (dbError) {
-      console.log('Database not available or tables missing, fetching fresh prices from API')
-      databaseAvailable = false
-    }
-
-    if (!databaseAvailable) {
-      const freshPrices = await cryptoAPI.getCryptoList(1, 10)
-      return NextResponse.json(freshPrices, {
+    const { searchParams } = new URL(request.url)
+    const cacheBust = searchParams.get('t')
+    
+    // Check cache first for ticker prices (unless cache busting is requested)
+    const cacheKey = getPriceTickerCacheKey()
+    const cachedPrices = priceTickerCache.get(cacheKey)
+    
+    if (cachedPrices && !cacheBust) {
+      console.log('Ticker prices cache HIT - returning cached data')
+      return NextResponse.json(cachedPrices, {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+          'X-Cache-Status': 'HIT',
+          'X-Cache-TTL': '60'
         }
       })
     }
 
-    // Check if we have recent prices in database (less than 5 minutes old)
-    const recentPrices = await prisma.cryptoPrice.findMany({
-      where: {
-        updatedAt: {
-          gte: new Date(Date.now() - 5 * 60 * 1000) // 5 minutes ago
-        }
-      },
-      orderBy: {
-        marketCap: 'desc'
+    console.log('Ticker prices cache MISS - fetching fresh data from API')
+    
+    // Always fetch fresh prices from API for ticker to ensure latest data
+    const freshPrices = await cryptoAPI.getCryptoList(1, 10, !!cacheBust)
+    
+    // Cache the fresh prices with short TTL for ticker
+    priceTickerCache.set(cacheKey, freshPrices, CACHE_TTL.PRICE_TICKER)
+    
+    // Update database in background (don't wait for it)
+    updateDatabaseInBackground(freshPrices)
+    
+    return NextResponse.json(freshPrices, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        'X-Cache-Status': 'MISS',
+        'X-Cache-TTL': '60'
       }
     })
-
-    if (recentPrices.length > 0) {
-      // Transform database format to full CryptoPrice format
-      const transformedRecent = recentPrices.map(price => ({
-        id: price.id,
-        symbol: price.symbol,
-        name: price.name,
-        current_price: price.price || 0,
-        market_cap: price.marketCap || 0,
-        market_cap_rank: 0, // Not stored in database
-        total_volume: price.volume24h || 0,
-        price_change_percentage_1h_in_currency: 0, // Not stored in database
-        price_change_percentage_24h: price.change24h || 0,
-        price_change_percentage_7d_in_currency: 0, // Not stored in database
-        price_change_24h: 0, // Not stored in database
-        circulating_supply: 0, // Not stored in database
-        total_supply: 0, // Not stored in database
-        max_supply: 0, // Not stored in database
-        fully_diluted_valuation: 0, // Not stored in database
-        high_24h: 0, // Not stored in database
-        low_24h: 0, // Not stored in database
-        image: '', // Not stored in database
-        sparkline_in_7d: undefined
-      }))
-      
-      return NextResponse.json(transformedRecent, {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
-        }
+  } catch (error) {
+    console.error('Error fetching crypto prices:', error)
+    
+    // Fallback to database prices if API fails
+    try {
+      const fallbackPrices = await prisma.cryptoPrice.findMany({
+        orderBy: {
+          marketCap: 'desc'
+        },
+        take: 10
       })
+      
+      if (fallbackPrices.length > 0) {
+        // Transform database format back to full CryptoPrice format
+        const transformedFallback = fallbackPrices.map(price => ({
+          id: price.id,
+          symbol: price.symbol,
+          name: price.name,
+          current_price: price.price,
+          market_cap: price.marketCap,
+          market_cap_rank: 0, // Not stored in database
+          total_volume: price.volume24h || 0,
+          price_change_percentage_1h_in_currency: 0, // Not stored in database
+          price_change_percentage_24h: price.change24h,
+          price_change_percentage_7d_in_currency: 0, // Not stored in database
+          price_change_24h: 0, // Not stored in database
+          circulating_supply: 0, // Not stored in database
+          total_supply: 0, // Not stored in database
+          max_supply: 0, // Not stored in database
+          fully_diluted_valuation: 0, // Not stored in database
+          high_24h: 0, // Not stored in database
+          low_24h: 0, // Not stored in database
+          image: '', // Not stored in database
+          sparkline_in_7d: undefined
+        }))
+        
+        return NextResponse.json(transformedFallback, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            'X-Cache-Status': 'FALLBACK'
+          }
+        })
+      }
+    } catch (dbError) {
+      console.error('Database fallback failed:', dbError)
     }
 
-    // Fetch fresh prices from API
-    const freshPrices = await cryptoAPI.getCryptoList(1, 10)
-    
+    // Return error response
+    return NextResponse.json(
+      { error: 'Failed to fetch crypto prices' }, 
+      { status: 500 }
+    )
+  }
+}
+
+// Background function to update database without blocking response
+async function updateDatabaseInBackground(freshPrices: any[]) {
+  try {
     // Transform to match database format for storage
     const transformedPrices = freshPrices.map(price => ({
       id: price.id,
@@ -108,63 +136,9 @@ export async function GET() {
         }
       })
     }
-
-    // Return the full CryptoPrice objects for the frontend
-    return NextResponse.json(freshPrices, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
-      }
-    })
+    console.log('Database updated with fresh prices in background')
   } catch (error) {
-    console.error('Error fetching crypto prices:', error)
-    
-    // Fallback to database prices if API fails
-    try {
-      const fallbackPrices = await prisma.cryptoPrice.findMany({
-        orderBy: {
-          marketCap: 'desc'
-        }
-      })
-      
-      if (fallbackPrices.length > 0) {
-        // Transform database format back to full CryptoPrice format
-        const transformedFallback = fallbackPrices.map(price => ({
-          id: price.id,
-          symbol: price.symbol,
-          name: price.name,
-          current_price: price.price,
-          market_cap: price.marketCap,
-          market_cap_rank: 0, // Not stored in database
-          total_volume: price.volume24h || 0,
-          price_change_percentage_1h_in_currency: 0, // Not stored in database
-          price_change_percentage_24h: price.change24h,
-          price_change_percentage_7d_in_currency: 0, // Not stored in database
-          price_change_24h: 0, // Not stored in database
-          circulating_supply: 0, // Not stored in database
-          total_supply: 0, // Not stored in database
-          max_supply: 0, // Not stored in database
-          fully_diluted_valuation: 0, // Not stored in database
-          high_24h: 0, // Not stored in database
-          low_24h: 0, // Not stored in database
-          image: '', // Not stored in database
-          sparkline_in_7d: undefined
-        }))
-        
-        return NextResponse.json(transformedFallback, {
-          headers: {
-            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300'
-          }
-        })
-      }
-    } catch (dbError) {
-      console.error('Database fallback failed:', dbError)
-    }
-
-    // Return error response instead of mock data
-    return NextResponse.json(
-      { error: 'Failed to fetch crypto prices' }, 
-      { status: 500 }
-    )
+    console.error('Error updating database in background:', error)
   }
 }
 

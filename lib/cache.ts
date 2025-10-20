@@ -138,15 +138,17 @@ export class AdvancedCache<T> {
 export const chartDataCache = new AdvancedCache<any[]>(5000) // 5k chart entries
 export const cryptoListCache = new AdvancedCache<any[]>(1000) // 1k crypto list entries
 export const cryptoDetailCache = new AdvancedCache<any>(2000) // 2k crypto detail entries
+export const priceTickerCache = new AdvancedCache<any[]>(100) // 100 ticker price entries (very small, frequent updates)
 
 // Cache TTL constants (in milliseconds)
 export const CACHE_TTL = {
   CHART_DATA: 900000, // 15 minutes for chart data (longer to reduce API calls)
-  CRYPTO_LIST: 300000, // 5 minutes for crypto list
-  CRYPTO_DETAIL: 600000, // 10 minutes for crypto detail
+  CRYPTO_LIST: 120000, // 2 minutes for crypto list (reduced for more frequent updates)
+  CRYPTO_DETAIL: 300000, // 5 minutes for crypto detail (reduced for more frequent updates)
   TRENDING: 600000, // 10 minutes for trending data
   SEARCH: 600000, // 10 minutes for search results
   FEAR_GREED: 3600000, // 1 hour for fear & greed data
+  PRICE_TICKER: 60000, // 1 minute for ticker prices (very frequent updates)
 } as const
 
 // Cache key generators
@@ -168,4 +170,8 @@ export function getSearchCacheKey(query: string): string {
 
 export function getTrendingCacheKey(): string {
   return 'trending'
+}
+
+export function getPriceTickerCacheKey(): string {
+  return 'price_ticker'
 }

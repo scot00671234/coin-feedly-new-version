@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
       const query = searchParams.get('query')
       const id = searchParams.get('id')
       const days = parseInt(searchParams.get('days') || '7')
+      const cacheBust = searchParams.get('t')
 
       console.log('Crypto API request:', { action, page, perPage, query, id, days })
 
@@ -25,10 +26,10 @@ export async function GET(request: NextRequest) {
 
       switch (action) {
         case 'list':
-          data = await cryptoAPI.getCryptoList(page, perPage)
+          data = await cryptoAPI.getCryptoList(page, perPage, !!cacheBust)
           cacheHeaders = {
-            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-            'X-Cache-Status': 'HIT'
+            'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=240',
+            'X-Cache-Status': cacheBust ? 'BYPASS' : 'HIT'
           }
           break
         case 'search':
@@ -72,10 +73,10 @@ export async function GET(request: NextRequest) {
         default:
           // If no action is provided, default to list
           if (!action) {
-            data = await cryptoAPI.getCryptoList(page, perPage)
+            data = await cryptoAPI.getCryptoList(page, perPage, !!cacheBust)
             cacheHeaders = {
-              'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-              'X-Cache-Status': 'HIT'
+              'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=240',
+              'X-Cache-Status': cacheBust ? 'BYPASS' : 'HIT'
             }
           } else {
             return NextResponse.json({ error: 'Invalid action parameter' }, { status: 400 })

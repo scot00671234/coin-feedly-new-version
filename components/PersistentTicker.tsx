@@ -10,10 +10,11 @@ export default function PersistentTicker() {
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Fetch crypto prices
+  // Fetch crypto prices with cache busting
   const fetchPrices = async () => {
     try {
-      const response = await fetch('/api/crypto-prices')
+      // Add timestamp to bust cache and ensure fresh data
+      const response = await fetch(`/api/crypto-prices?t=${Date.now()}`)
       if (response.ok) {
         const data = await response.json()
         setPrices(data)
@@ -30,9 +31,9 @@ export default function PersistentTicker() {
     fetchPrices()
   }, [])
 
-  // Refresh prices every 30 seconds
+  // Refresh prices every 15 seconds for more frequent updates
   useEffect(() => {
-    const interval = setInterval(fetchPrices, 30000)
+    const interval = setInterval(fetchPrices, 15000)
     return () => clearInterval(interval)
   }, [])
 

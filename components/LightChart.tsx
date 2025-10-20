@@ -3,15 +3,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions, LineData, LineSeriesPartialOptions } from 'lightweight-charts'
 import SimpleChart from './SimpleChart'
+import ModernTradingChart from './ModernTradingChart'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
   height?: number
   width?: number
   loading?: boolean
+  onError?: () => void
 }
 
-export default function LightChart({ data, height = 400, width, loading = false }: LightChartProps) {
+export default function LightChart({ data, height = 400, width, loading = false, onError }: LightChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<any>(null)
@@ -148,6 +150,7 @@ export default function LightChart({ data, height = 400, width, loading = false 
         console.error('Error creating chart:', error)
         setChartError(error instanceof Error ? error.message : 'Unknown error')
         setUseSimpleChart(true)
+        onError?.()
       }
     }
 
@@ -198,15 +201,18 @@ export default function LightChart({ data, height = 400, width, loading = false 
   }, [data, isInitialized])
 
 
-  // If we should use simple chart, have no data, or loading, use SimpleChart with candlesticks
+  // If we should use simple chart, have no data, or loading, use ModernTradingChart
   if (useSimpleChart || data.length === 0 || loading) {
     return (
-      <SimpleChart 
+      <ModernTradingChart 
         data={data} 
         height={height} 
         width={width} 
         loading={loading}
-        chartType="candlestick"
+        lineColor="gradient"
+        theme="dark"
+        showGrid={true}
+        showAnnotations={true}
       />
     )
   }

@@ -25,7 +25,8 @@ export default function ChartsPage() {
 
   const fetchTickerPrices = async () => {
     try {
-      const response = await fetch('/api/crypto?action=list&page=1&perPage=10')
+      // Use cache busting to ensure fresh data
+      const response = await fetch(`/api/crypto?action=list&page=1&perPage=10&t=${Date.now()}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

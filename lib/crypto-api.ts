@@ -147,12 +147,14 @@ class CryptoAPI {
   }
 
   getCryptoList = withPerformanceMonitoring(
-    async (page: number = 1, perPage: number = 50): Promise<CryptoPrice[]> => {
+    async (page: number = 1, perPage: number = 50, bypassCache: boolean = false): Promise<CryptoPrice[]> => {
       const cacheKey = getCryptoListCacheKey(page, perPage)
-      const cached = cryptoListCache.get(cacheKey)
       
-      if (cached) {
-        return cached
+      if (!bypassCache) {
+        const cached = cryptoListCache.get(cacheKey)
+        if (cached) {
+          return cached
+        }
       }
 
       const data = await this.makeRequest<CryptoPrice[]>('/coins/markets', {
