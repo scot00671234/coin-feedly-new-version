@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       orderBy: { publishedAt: 'desc' }
     })
     
-    console.log(`📊 Found ${dbArticles.length} articles in database for category: ${category}`)
+    console.log(`📊 Found ${dbArticles.length} articles in database for primaryCategory: ${category}`)
     
     // Use database articles as the main source
     const allArticles = dbArticles
@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    console.log(`📊 Final result: ${articles.length} articles for category: ${category}`)
+    console.log(`📊 Final result: ${articles.length} articles for primaryCategory: ${category}`)
     if (articles.length > 0) {
       console.log('📝 First article categories:', articles[0].categories)
       console.log('🏷️ First article primaryCategory:', articles[0].primaryCategory)
