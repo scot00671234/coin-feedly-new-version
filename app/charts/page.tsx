@@ -23,17 +23,29 @@ export default function ChartsPage() {
     fetchTickerPrices()
   }, [page, sortBy, sortOrder])
 
+  // Auto-refresh ticker prices every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchTickerPrices, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
   const fetchTickerPrices = async () => {
     try {
-      // Use cache busting to ensure fresh data
-      const response = await fetch(`/api/crypto?action=list&page=1&perPage=10&t=${Date.now()}`)
+      // Use real-time endpoint for consistent pricing
+      const response = await fetch('/api/crypto-realtime', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
       setTickerPrices(data)
     } catch (error) {
-      console.error('Error fetching ticker prices:', error)
+      console.error('Error fetching real-time ticker prices:', error)
     }
   }
 

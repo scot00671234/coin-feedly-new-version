@@ -10,17 +10,24 @@ export default function PersistentTicker() {
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Fetch crypto prices with cache busting
+  // Fetch crypto prices with real-time data
   const fetchPrices = async () => {
     try {
-      // Add timestamp to bust cache and ensure fresh data
-      const response = await fetch(`/api/crypto-prices?t=${Date.now()}`)
+      // Use dedicated real-time endpoint that bypasses all caching
+      const response = await fetch('/api/crypto-realtime', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       if (response.ok) {
         const data = await response.json()
         setPrices(data)
+        console.log('Real-time prices updated:', new Date().toLocaleTimeString())
       }
     } catch (error) {
-      console.error('Error fetching crypto prices:', error)
+      console.error('Error fetching real-time crypto prices:', error)
     } finally {
       setLoading(false)
     }
@@ -31,9 +38,9 @@ export default function PersistentTicker() {
     fetchPrices()
   }, [])
 
-  // Refresh prices every 15 seconds for more frequent updates
+  // Refresh prices every 5 seconds for real-time updates
   useEffect(() => {
-    const interval = setInterval(fetchPrices, 15000)
+    const interval = setInterval(fetchPrices, 5000)
     return () => clearInterval(interval)
   }, [])
 

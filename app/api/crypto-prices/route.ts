@@ -10,37 +10,58 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const cacheBust = searchParams.get('t')
     
-    // Check cache first for ticker prices (unless cache busting is requested)
+    // For real-time pricing, always bypass cache when cache busting is requested
+    if (cacheBust) {
+      console.log('Real-time pricing requested - bypassing all caches')
+      
+      // Always fetch fresh prices from API for real-time data
+      const freshPrices = await cryptoAPI.getCryptoList(1, 10, true)
+      
+      // Update database in background (don't wait for it)
+      updateDatabaseInBackground(freshPrices)
+      
+      return NextResponse.json(freshPrices, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Cache-Status': 'REAL-TIME',
+          'X-Data-Freshness': 'LIVE'
+        }
+      })
+    }
+    
+    // Check cache only for non-real-time requests
     const cacheKey = getPriceTickerCacheKey()
     const cachedPrices = priceTickerCache.get(cacheKey)
     
-    if (cachedPrices && !cacheBust) {
+    if (cachedPrices) {
       console.log('Ticker prices cache HIT - returning cached data')
       return NextResponse.json(cachedPrices, {
         headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
           'X-Cache-Status': 'HIT',
-          'X-Cache-TTL': '60'
+          'X-Cache-TTL': '30'
         }
       })
     }
 
     console.log('Ticker prices cache MISS - fetching fresh data from API')
     
-    // Always fetch fresh prices from API for ticker to ensure latest data
-    const freshPrices = await cryptoAPI.getCryptoList(1, 10, !!cacheBust)
+    // Fetch fresh prices from API
+    const freshPrices = await cryptoAPI.getCryptoList(1, 10, false)
     
-    // Cache the fresh prices with short TTL for ticker
-    priceTickerCache.set(cacheKey, freshPrices, CACHE_TTL.PRICE_TICKER)
+    // Cache the fresh prices with very short TTL for ticker
+    priceTickerCache.set(cacheKey, freshPrices, 30000) // 30 seconds only
     
     // Update database in background (don't wait for it)
     updateDatabaseInBackground(freshPrices)
     
     return NextResponse.json(freshPrices, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
         'X-Cache-Status': 'MISS',
-        'X-Cache-TTL': '60'
+        'X-Cache-TTL': '30'
       }
     })
   } catch (error) {
