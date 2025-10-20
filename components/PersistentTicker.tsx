@@ -36,6 +36,23 @@ export default function PersistentTicker() {
     return () => clearInterval(interval)
   }, [])
 
+  // Update ticker content without restarting animation when prices change
+  useEffect(() => {
+    if (prices.length === 0 || !tickerRef.current) return
+
+    const ticker = tickerRef.current
+    const tickerContent = ticker.querySelector('.ticker-content') as HTMLElement
+    
+    if (!tickerContent) return
+
+    // Force a reflow to ensure the new content is rendered
+    tickerContent.offsetHeight
+    
+    // Update the content width for the animation
+    const newContentWidth = tickerContent.scrollWidth / 3
+    // The animation will pick up the new width in its next frame
+  }, [prices])
+
   // Smooth continuous animation with seamless loop
   useEffect(() => {
     if (prices.length === 0 || !tickerRef.current) return
@@ -47,10 +64,16 @@ export default function PersistentTicker() {
 
     let position = 0
     const speed = 0.5 // pixels per frame
-    const contentWidth = tickerContent.scrollWidth / 3 // Since we have 3 copies, use one-third width
+    let contentWidth = tickerContent.scrollWidth / 3 // Since we have 3 copies, use one-third width
 
     const animate = () => {
       position -= speed
+      
+      // Recalculate content width in case it changed due to data updates
+      const newContentWidth = tickerContent.scrollWidth / 3
+      if (Math.abs(newContentWidth - contentWidth) > 10) {
+        contentWidth = newContentWidth
+      }
       
       // Reset position when we've scrolled past one complete set of items
       // This creates a seamless loop since we have triplicated content
@@ -62,14 +85,18 @@ export default function PersistentTicker() {
       animationRef.current = requestAnimationFrame(animate)
     }
 
-    animationRef.current = requestAnimationFrame(animate)
+    // Only start animation if not already running
+    if (!animationRef.current) {
+      animationRef.current = requestAnimationFrame(animate)
+    }
 
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+        animationRef.current = undefined
       }
     }
-  }, [prices])
+  }, [prices.length]) // Only restart when the number of items changes, not on every data update
 
   if (loading) {
     return (
