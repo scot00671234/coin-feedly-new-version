@@ -14,8 +14,29 @@ interface ArticleData {
   publishedAt?: string
   images: string[]
   confidence: number
-  extractionMethod: 'rss' | 'html' | 'api' | 'fallback'
+  extractionMethod: 'rss' | 'html' | 'api' | 'fallback' | 'visual' | 'ai-generated' | 'browser'
   fallbackReason?: string
+  quality?: {
+    level: 'high' | 'medium' | 'low' | 'minimal'
+    confidence: number
+    issues: string[]
+    recommendations: string[]
+    fallbackStrategy: 'full-content' | 'enhanced-preview' | 'visual-card' | 'external-link'
+  }
+  score?: {
+    textLength: number
+    imageCount: number
+    structureQuality: number
+    readabilityScore: number
+    overallConfidence: number
+    hasTitle: boolean
+    hasDescription: boolean
+    hasAuthor: boolean
+    hasPublishDate: boolean
+    hasImages: boolean
+    hasLinks: boolean
+    isComplete: boolean
+  }
   formatted?: {
     wordCount: number
     readingTime: number
@@ -87,7 +108,27 @@ export default function EnhancedArticleModal({
       case 'html': return 'bg-green-100 text-green-800'
       case 'api': return 'bg-purple-100 text-purple-800'
       case 'fallback': return 'bg-orange-100 text-orange-800'
+      case 'visual': return 'bg-pink-100 text-pink-800'
+      case 'ai-generated': return 'bg-indigo-100 text-indigo-800'
+      case 'browser': return 'bg-cyan-100 text-cyan-800'
       default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getQualityBadge = (quality: any) => {
+    if (!quality) return { text: 'Unknown', color: 'text-gray-700', bgColor: 'bg-gray-100' }
+    
+    switch (quality.level) {
+      case 'high':
+        return { text: 'Full Article', color: 'text-green-700', bgColor: 'bg-green-100' }
+      case 'medium':
+        return { text: 'Summary', color: 'text-yellow-700', bgColor: 'bg-yellow-100' }
+      case 'low':
+        return { text: 'Preview', color: 'text-orange-700', bgColor: 'bg-orange-100' }
+      case 'minimal':
+        return { text: 'External Link', color: 'text-red-700', bgColor: 'bg-red-100' }
+      default:
+        return { text: 'Unknown', color: 'text-gray-700', bgColor: 'bg-gray-100' }
     }
   }
 
@@ -128,6 +169,11 @@ export default function EnhancedArticleModal({
                   <span className={`text-sm font-medium ${getConfidenceColor(articleData.confidence)}`}>
                     {Math.round(articleData.confidence * 100)}% confidence
                   </span>
+                  {articleData.quality && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getQualityBadge(articleData.quality).bgColor} ${getQualityBadge(articleData.quality).color}`}>
+                      {getQualityBadge(articleData.quality).text}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

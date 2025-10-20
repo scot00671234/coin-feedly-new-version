@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { extractArticleContent } from '@/lib/article-extractor'
+import { extractWithEnhancedPipeline } from '@/lib/enhanced-extraction-pipeline'
 import { extractImages } from '@/lib/enhanced-image-handler'
 import { formatContent } from '@/lib/content-formatter'
-import { createFallbackContent } from '@/lib/fallback-system'
+import { getSourceConfig, extractWithSourceSelectors } from '@/lib/source-specific-optimizations'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,28 +25,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Extract article content using enhanced system
-    const extractedContent = await extractArticleContent(url, rssItem, {
+    // Use enhanced extraction pipeline
+    const extractedResult = await extractWithEnhancedPipeline(url, rssItem, {
       timeout: 15000,
       maxRetries: 3,
       includeImages: true,
       sanitizeContent: true,
-      fallbackToRSS: true
+      fallbackToRSS: true,
+      useBrowserAutomation: false, // Can be enabled for problematic sites
+      useAIGeneration: false, // Can be enabled for premium features
+      useVisualFallbacks: true,
+      enableCaching: true,
+      cacheTimeout: 3600000, // 1 hour
+      strictMode: false
     })
 
-    // Extract images separately for better handling
-    const images = await extractImages(url, extractedContent.content, rssItem, {
+    // Extract additional images if needed
+    const additionalImages = await extractImages(url, extractedResult.content, rssItem, {
       maxImages: 5,
       minWidth: 200,
       minHeight: 150,
       preferHighQuality: true,
       includeFallbacks: true,
-      category: extractedContent.source || 'default',
-      title: extractedContent.title
+      category: extractedResult.source || 'default',
+      title: extractedResult.title
     })
 
+    // Combine images from extraction and additional extraction
+    const allImages = [...extractedResult.images, ...additionalImages.map(img => img.url)]
+    const uniqueImages = [...new Set(allImages)] // Remove duplicates
+
     // Format content for better display
-    const formattedContent = formatContent(extractedContent.content, {
+    const formattedContent = formatContent(extractedResult.content, {
       maxLength: 10000,
       preserveFormatting: true,
       removeAds: true,
@@ -58,45 +68,20 @@ export async function GET(request: NextRequest) {
       extractImages: true
     })
 
-    // If extraction failed, try fallback system
-    if (!extractedContent.success || extractedContent.confidence < 0.5) {
-      const fallbackContent = await createFallbackContent(url, rssItem, {
-        useRSSFallback: true,
-        useCategoryDetection: true,
-        usePlaceholderImages: true,
-        useGeneratedContent: true,
-        maxRetries: 2,
-        timeout: 10000
-      })
-
-      return NextResponse.json({
-        success: false,
-        content: fallbackContent.content,
-        title: fallbackContent.title,
-        description: fallbackContent.description,
-        author: fallbackContent.author,
-        source: fallbackContent.source,
-        publishedAt: fallbackContent.publishedAt,
-        category: fallbackContent.category,
-        images: [fallbackContent.imageUrl],
-        confidence: fallbackContent.confidence,
-        fallbackReason: fallbackContent.fallbackReason,
-        formatted: formattedContent,
-        extractionMethod: 'fallback'
-      })
-    }
-
     return NextResponse.json({
-      success: true,
-      content: extractedContent.content,
-      title: extractedContent.title,
-      description: extractedContent.description,
-      author: extractedContent.author,
-      source: extractedContent.source,
-      publishedAt: extractedContent.publishedAt,
-      images: images.map(img => img.url),
-      confidence: extractedContent.confidence,
-      extractionMethod: extractedContent.extractionMethod,
+      success: extractedResult.success,
+      content: extractedResult.content,
+      title: extractedResult.title,
+      description: extractedResult.description,
+      author: extractedResult.author,
+      source: extractedResult.source,
+      publishedAt: extractedResult.publishedAt,
+      images: uniqueImages,
+      confidence: extractedResult.confidence,
+      extractionMethod: extractedResult.extractionMethod,
+      quality: extractedResult.quality,
+      score: extractedResult.score,
+      fallbackReason: extractedResult.fallbackReason,
       formatted: formattedContent,
       wordCount: formattedContent.wordCount,
       readingTime: formattedContent.readingTime,
@@ -108,32 +93,41 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching article content:', error)
     
-    // Try ultimate fallback
+    // Try ultimate fallback using enhanced pipeline
     try {
-      const fallbackContent = await createFallbackContent(
-        request.url, 
-        null, 
-        { useGeneratedContent: true }
-      )
+      const fallbackResult = await extractWithEnhancedPipeline(url, rssItem, {
+        timeout: 5000,
+        maxRetries: 1,
+        includeImages: true,
+        sanitizeContent: true,
+        fallbackToRSS: true,
+        useBrowserAutomation: false,
+        useAIGeneration: false,
+        useVisualFallbacks: true,
+        enableCaching: false,
+        strictMode: false
+      })
       
       return NextResponse.json({
         success: false,
-        content: fallbackContent.content,
-        title: fallbackContent.title,
-        description: fallbackContent.description,
-        author: fallbackContent.author,
-        source: fallbackContent.source,
-        publishedAt: fallbackContent.publishedAt,
-        category: fallbackContent.category,
-        images: [fallbackContent.imageUrl],
-        confidence: fallbackContent.confidence,
-        fallbackReason: 'Error fallback',
-        extractionMethod: 'fallback'
+        content: fallbackResult.content,
+        title: fallbackResult.title,
+        description: fallbackResult.description,
+        author: fallbackResult.author,
+        source: fallbackResult.source,
+        publishedAt: fallbackResult.publishedAt,
+        images: fallbackResult.images,
+        confidence: fallbackResult.confidence,
+        extractionMethod: fallbackResult.extractionMethod,
+        quality: fallbackResult.quality,
+        score: fallbackResult.score,
+        fallbackReason: 'Error fallback - enhanced pipeline',
+        formatted: null
       })
     } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError)
+      console.error('Enhanced fallback also failed:', fallbackError)
       return NextResponse.json({ 
-        error: 'Failed to fetch article content and fallback failed',
+        error: 'Failed to fetch article content and enhanced fallback failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       }, { status: 500 })
     }
