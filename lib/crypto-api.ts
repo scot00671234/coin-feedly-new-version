@@ -17,20 +17,20 @@ export interface CryptoPrice {
   id: string
   symbol: string
   name: string
-  current_price: number
-  market_cap: number
-  market_cap_rank: number
-  total_volume: number
-  price_change_percentage_1h_in_currency: number
-  price_change_percentage_24h: number
-  price_change_percentage_7d_in_currency: number
-  price_change_24h: number
-  circulating_supply: number
-  total_supply: number
-  max_supply: number
-  fully_diluted_valuation: number
-  high_24h: number
-  low_24h: number
+  current_price: number | null
+  market_cap: number | null
+  market_cap_rank: number | null
+  total_volume: number | null
+  price_change_percentage_1h_in_currency: number | null
+  price_change_percentage_24h: number | null
+  price_change_percentage_7d_in_currency: number | null
+  price_change_24h: number | null
+  circulating_supply: number | null
+  total_supply: number | null
+  max_supply: number | null
+  fully_diluted_valuation: number | null
+  high_24h: number | null
+  low_24h: number | null
   image: string
   sparkline_in_7d?: {
     price: number[]
@@ -64,8 +64,7 @@ class CryptoAPI {
 
     try {
       const headers: any = {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate'
+        'Accept': 'application/json'
       }
       
       // Add API key to headers if available
@@ -150,22 +149,22 @@ class CryptoAPI {
         id: data.id,
         symbol: data.symbol,
         name: data.name,
-        current_price: data.market_data.current_price.usd,
-        market_cap: data.market_data.market_cap.usd,
-        market_cap_rank: data.market_cap_rank,
-        total_volume: data.market_data.total_volume.usd,
-        price_change_percentage_1h_in_currency: data.market_data.price_change_percentage_1h_in_currency.usd,
-        price_change_percentage_24h: data.market_data.price_change_percentage_24h,
-        price_change_percentage_7d_in_currency: data.market_data.price_change_percentage_7d_in_currency.usd,
-        price_change_24h: data.market_data.price_change_24h,
-        circulating_supply: data.market_data.circulating_supply,
-        total_supply: data.market_data.total_supply,
-        max_supply: data.market_data.max_supply,
-        fully_diluted_valuation: data.market_data.fully_diluted_valuation?.usd || 0,
-        high_24h: data.market_data.high_24h.usd,
-        low_24h: data.market_data.low_24h.usd,
-        image: data.image.small,
-        sparkline_in_7d: data.market_data.sparkline_7d ? { price: data.market_data.sparkline_7d.price } : undefined
+        current_price: data.market_data?.current_price?.usd || null,
+        market_cap: data.market_data?.market_cap?.usd || null,
+        market_cap_rank: data.market_cap_rank || null,
+        total_volume: data.market_data?.total_volume?.usd || null,
+        price_change_percentage_1h_in_currency: data.market_data?.price_change_percentage_1h_in_currency?.usd || null,
+        price_change_percentage_24h: data.market_data?.price_change_percentage_24h || null,
+        price_change_percentage_7d_in_currency: data.market_data?.price_change_percentage_7d_in_currency?.usd || null,
+        price_change_24h: data.market_data?.price_change_24h || null,
+        circulating_supply: data.market_data?.circulating_supply || null,
+        total_supply: data.market_data?.total_supply || null,
+        max_supply: data.market_data?.max_supply || null,
+        fully_diluted_valuation: data.market_data?.fully_diluted_valuation?.usd || null,
+        high_24h: data.market_data?.high_24h?.usd || null,
+        low_24h: data.market_data?.low_24h?.usd || null,
+        image: data.image?.small || '',
+        sparkline_in_7d: data.market_data?.sparkline_7d ? { price: data.market_data.sparkline_7d.price } : undefined
       }
 
       cryptoDetailCache.set(cacheKey, transformedData, CACHE_TTL.CRYPTO_DETAIL)
@@ -276,7 +275,10 @@ class CryptoAPI {
 export const cryptoAPI = new CryptoAPI()
 
 // Utility functions
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | null | undefined): string {
+  if (price === null || price === undefined || isNaN(price)) {
+    return '$0.00'
+  }
   if (price < 0.01) {
     return `$${price.toFixed(6)}`
   } else if (price < 1) {
@@ -288,7 +290,10 @@ export function formatPrice(price: number): string {
   }
 }
 
-export function formatMarketCap(marketCap: number): string {
+export function formatMarketCap(marketCap: number | null | undefined): string {
+  if (marketCap === null || marketCap === undefined || isNaN(marketCap)) {
+    return '$0'
+  }
   if (marketCap >= 1e12) {
     return `$${(marketCap / 1e12).toFixed(2)}T`
   } else if (marketCap >= 1e9) {
@@ -300,7 +305,10 @@ export function formatMarketCap(marketCap: number): string {
   }
 }
 
-export function formatVolume(volume: number): string {
+export function formatVolume(volume: number | null | undefined): string {
+  if (volume === null || volume === undefined || isNaN(volume)) {
+    return '$0'
+  }
   if (volume >= 1e12) {
     return `$${(volume / 1e12).toFixed(2)}T`
   } else if (volume >= 1e9) {
@@ -312,12 +320,18 @@ export function formatVolume(volume: number): string {
   }
 }
 
-export function formatPercentage(percentage: number): string {
+export function formatPercentage(percentage: number | null | undefined): string {
+  if (percentage === null || percentage === undefined || isNaN(percentage)) {
+    return '+0.00%'
+  }
   const sign = percentage >= 0 ? '+' : ''
   return `${sign}${percentage.toFixed(2)}%`
 }
 
-export function formatChange(change: number): string {
+export function formatChange(change: number | null | undefined): string {
+  if (change === null || change === undefined || isNaN(change)) {
+    return '+0.00%'
+  }
   const sign = change >= 0 ? '+' : ''
   return `${sign}${change.toFixed(2)}%`
 }

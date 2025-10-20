@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
+import { CryptoPrice, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { ArrowUp, ArrowDown } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
@@ -10,6 +10,7 @@ export default function ChartsPage() {
   const router = useRouter()
   const [cryptos, setCryptos] = useState<CryptoPrice[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -24,7 +25,11 @@ export default function ChartsPage() {
 
   const fetchTickerPrices = async () => {
     try {
-      const data = await cryptoAPI.getCryptoList(1, 10)
+      const response = await fetch('/api/crypto?action=list&page=1&perPage=10')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
       setTickerPrices(data)
     } catch (error) {
       console.error('Error fetching ticker prices:', error)
@@ -49,7 +54,12 @@ export default function ChartsPage() {
   const fetchCryptos = async () => {
     try {
       setLoading(true)
-      const data = await cryptoAPI.getCryptoList(page, 50)
+      setError(null)
+      const response = await fetch(`/api/crypto?action=list&page=${page}&perPage=50`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
       
       if (page === 1) {
         setCryptos(data)
@@ -60,6 +70,7 @@ export default function ChartsPage() {
       setHasMore(data.length === 50)
     } catch (error) {
       console.error('Error fetching cryptos:', error)
+      setError('Failed to load cryptocurrency data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -74,12 +85,18 @@ export default function ChartsPage() {
 
     try {
       setLoading(true)
+      setError(null)
       setPage(1)
-      const data = await cryptoAPI.searchCrypto(searchQuery)
+      const response = await fetch(`/api/crypto?action=search&query=${encodeURIComponent(searchQuery)}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const data = await response.json()
       setCryptos(data)
       setHasMore(false)
     } catch (error) {
       console.error('Error searching cryptos:', error)
+      setError('Failed to search cryptocurrencies. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -100,20 +117,20 @@ export default function ChartsPage() {
 
     switch (sortBy) {
       case 'market_cap':
-        aValue = a.market_cap
-        bValue = b.market_cap
+        aValue = a.market_cap || 0
+        bValue = b.market_cap || 0
         break
       case 'price':
-        aValue = a.current_price
-        bValue = b.current_price
+        aValue = a.current_price || 0
+        bValue = b.current_price || 0
         break
       case 'volume':
-        aValue = a.total_volume
-        bValue = b.total_volume
+        aValue = a.total_volume || 0
+        bValue = b.total_volume || 0
         break
       case 'change_24h':
-        aValue = a.price_change_percentage_24h
-        bValue = b.price_change_percentage_24h
+        aValue = a.price_change_percentage_24h || 0
+        bValue = b.price_change_percentage_24h || 0
         break
       default:
         return 0
@@ -206,6 +223,38 @@ export default function ChartsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 gap-6">
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                    Error loading data
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                    <p>{error}</p>
+                  </div>
+                  <div className="mt-4">
+                    <button
+                      onClick={() => {
+                        setError(null)
+                        fetchCryptos()
+                      }}
+                      className="bg-red-100 dark:bg-red-800 px-3 py-2 rounded-md text-sm font-medium text-red-800 dark:text-red-200 hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Crypto List */}
           <div className="w-full">
             <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg">
