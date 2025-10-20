@@ -7,23 +7,24 @@ import { getSourceConfig, extractWithSourceSelectors } from '@/lib/source-specif
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const url = searchParams.get('url')
+  const rssData = searchParams.get('rssData') // Optional RSS data as JSON string
+
+  if (!url) {
+    return NextResponse.json({ error: 'URL parameter is required' }, { status: 400 })
+  }
+
+  let rssItem = null
+  if (rssData) {
+    try {
+      rssItem = JSON.parse(rssData)
+    } catch (error) {
+      console.warn('Failed to parse RSS data:', error)
+    }
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const url = searchParams.get('url')
-    const rssData = searchParams.get('rssData') // Optional RSS data as JSON string
-
-    if (!url) {
-      return NextResponse.json({ error: 'URL parameter is required' }, { status: 400 })
-    }
-
-    let rssItem = null
-    if (rssData) {
-      try {
-        rssItem = JSON.parse(rssData)
-      } catch (error) {
-        console.warn('Failed to parse RSS data:', error)
-      }
-    }
 
     // Use enhanced extraction pipeline
     const extractedResult = await extractWithEnhancedPipeline(url, rssItem, {
