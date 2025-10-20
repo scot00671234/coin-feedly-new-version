@@ -1,9 +1,18 @@
 providers = ["node"]
 
+[variables]
+# Reduce install-time downloads and disk usage
+PRISMA_SKIP_POSTINSTALL_GENERATE = "1"
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+NPM_CONFIG_AUDIT = "false"
+NPM_CONFIG_FUND = "false"
+NPM_CONFIG_PROGRESS = "false"
+NEXT_TELEMETRY_DISABLED = "1"
+
 [phases.install]
 cmds = [
   # Reduce disk usage: skip optional deps, disable progress logs, and clean cache
-  "npm ci --omit=dev --omit=optional --no-audit --no-fund --no-progress",
+  "npm ci --omit=dev --omit=optional --no-audit --no-fund --no-progress --legacy-peer-deps",
   "npm cache clean --force"
 ]
 
