@@ -118,25 +118,26 @@ class AdvancedRateLimiter {
 }
 
 // Different rate limiters for different types of requests
+// Conservative limits for CoinGecko free tier (10-30 calls/minute)
 export const apiRateLimiter = new AdvancedRateLimiter({
-  requests: 50, // 50 requests per minute
+  requests: 20, // 20 requests per minute (conservative for free tier)
   window: 60000, // 1 minute
-  requestsPerSecond: 3, // 3 requests per second
-  burstLimit: 5 // 5 burst requests
+  requestsPerSecond: 1, // 1 request per second (very conservative)
+  burstLimit: 2 // 2 burst requests
 })
 
 export const chartDataRateLimiter = new AdvancedRateLimiter({
-  requests: 30, // 30 chart requests per minute (more conservative)
+  requests: 10, // 10 chart requests per minute (very conservative)
   window: 60000, // 1 minute
-  requestsPerSecond: 2, // 2 requests per second (more conservative)
-  burstLimit: 5 // 5 burst requests (more conservative)
+  requestsPerSecond: 1, // 1 request per second
+  burstLimit: 2 // 2 burst requests
 })
 
 export const searchRateLimiter = new AdvancedRateLimiter({
-  requests: 200, // 200 search requests per minute
+  requests: 15, // 15 search requests per minute (conservative)
   window: 60000, // 1 minute
-  requestsPerSecond: 10, // 10 requests per second
-  burstLimit: 20 // 20 burst requests
+  requestsPerSecond: 1, // 1 request per second
+  burstLimit: 3 // 3 burst requests
 })
 
 // Rate limiting middleware

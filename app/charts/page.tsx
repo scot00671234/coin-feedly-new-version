@@ -23,9 +23,9 @@ export default function ChartsPage() {
     fetchTickerPrices()
   }, [page, sortBy, sortOrder])
 
-  // Auto-refresh ticker prices every 10 seconds
+  // Auto-refresh ticker prices every 60 seconds to avoid rate limits
   useEffect(() => {
-    const interval = setInterval(fetchTickerPrices, 10000)
+    const interval = setInterval(fetchTickerPrices, 60000)
     return () => clearInterval(interval)
   }, [])
 

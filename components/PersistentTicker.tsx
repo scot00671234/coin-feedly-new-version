@@ -38,9 +38,9 @@ export default function PersistentTicker() {
     fetchPrices()
   }, [])
 
-  // Refresh prices every 5 seconds for real-time updates
+  // Refresh prices every 30 seconds to avoid rate limits
   useEffect(() => {
-    const interval = setInterval(fetchPrices, 5000)
+    const interval = setInterval(fetchPrices, 30000)
     return () => clearInterval(interval)
   }, [])
 

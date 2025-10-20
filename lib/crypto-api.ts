@@ -58,10 +58,13 @@ class CryptoAPI {
     // Check rate limit
     const rateLimitResult = rateLimiter.checkLimit('api-client')
     if (!rateLimitResult.allowed) {
-      const waitTime = rateLimitResult.retryAfter || 1000
+      const waitTime = rateLimitResult.retryAfter || 2000
       console.log(`Rate limit exceeded. Waiting ${waitTime}ms`)
       await new Promise(resolve => setTimeout(resolve, waitTime))
     }
+
+    // Add a small delay between requests to be more conservative
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     const headers: any = {
       'Accept': 'application/json'
