@@ -173,9 +173,9 @@ export default function CryptoDetailPage() {
                 {formatPrice(crypto.current_price)}
               </div>
               <div className={`flex items-center space-x-2 ${
-                crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'
+                (crypto.price_change_percentage_24h || 0) >= 0 ? 'text-green-500' : 'text-red-500'
               }`}>
-                {crypto.price_change_percentage_24h >= 0 ? (
+                {(crypto.price_change_percentage_24h || 0) >= 0 ? (
                   <TrendingUp className="w-5 h-5" />
                 ) : (
                   <TrendingDown className="w-5 h-5" />
@@ -254,7 +254,7 @@ export default function CryptoDetailPage() {
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">1 Hour</span>
                 <span className={`font-medium ${
-                  crypto.price_change_percentage_1h_in_currency >= 0 ? 'text-green-500' : 'text-red-500'
+                  (crypto.price_change_percentage_1h_in_currency || 0) >= 0 ? 'text-green-500' : 'text-red-500'
                 }`}>
                   {formatPercentage(crypto.price_change_percentage_1h_in_currency)}
                 </span>
@@ -262,7 +262,7 @@ export default function CryptoDetailPage() {
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">24 Hours</span>
                 <span className={`font-medium ${
-                  crypto.price_change_percentage_24h >= 0 ? 'text-green-500' : 'text-red-500'
+                  (crypto.price_change_percentage_24h || 0) >= 0 ? 'text-green-500' : 'text-red-500'
                 }`}>
                   {formatPercentage(crypto.price_change_percentage_24h)}
                 </span>
@@ -270,7 +270,7 @@ export default function CryptoDetailPage() {
               <div className="flex justify-between">
                 <span className="text-slate-600 dark:text-slate-400">7 Days</span>
                 <span className={`font-medium ${
-                  crypto.price_change_percentage_7d_in_currency >= 0 ? 'text-green-500' : 'text-red-500'
+                  (crypto.price_change_percentage_7d_in_currency || 0) >= 0 ? 'text-green-500' : 'text-red-500'
                 }`}>
                   {formatPercentage(crypto.price_change_percentage_7d_in_currency)}
                 </span>
