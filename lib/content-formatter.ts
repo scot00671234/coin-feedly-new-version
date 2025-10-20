@@ -23,6 +23,14 @@ export interface FormattingOptions {
   detectLanguage?: boolean
   extractLinks?: boolean
   extractImages?: boolean
+  // Browser-specific options
+  browserView?: boolean
+  readingMode?: boolean
+  removeNavigation?: boolean
+  removeSidebars?: boolean
+  removeFooters?: boolean
+  removeHeaders?: boolean
+  enhanceReadability?: boolean
 }
 
 const DEFAULT_OPTIONS: FormattingOptions = {
@@ -34,7 +42,15 @@ const DEFAULT_OPTIONS: FormattingOptions = {
   addLineBreaks: true,
   detectLanguage: true,
   extractLinks: true,
-  extractImages: true
+  extractImages: true,
+  // Browser-specific defaults
+  browserView: false,
+  readingMode: false,
+  removeNavigation: false,
+  removeSidebars: false,
+  removeFooters: false,
+  removeHeaders: false,
+  enhanceReadability: false
 }
 
 // Main content formatting function
@@ -45,7 +61,7 @@ export function formatContent(
   const opts = { ...DEFAULT_OPTIONS, ...options }
   
   // Clean and sanitize content
-  const cleanedContent = cleanContent(content, opts)
+  const cleanedContent = opts.browserView ? cleanContentForBrowser(content, opts) : cleanContent(content, opts)
   
   // Extract title and description
   const title = extractTitle(cleanedContent)
@@ -184,6 +200,156 @@ function cleanContent(content: string, options: FormattingOptions): string {
     console.error('Error cleaning content:', error)
     // Fallback to simple text cleaning
     return simpleTextClean(content, options)
+  }
+}
+
+// Clean content for browser view (preserves HTML structure)
+function cleanContentForBrowser(content: string, options: FormattingOptions): string {
+  try {
+    let cleaned = content
+    
+    // Remove unwanted elements using regex
+    if (options.removeAds) {
+      const adPatterns = [
+        /<[^>]*class=["'][^"']*advertisement[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ads[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*ad[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*banner[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*ad-[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*sponsored[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promo[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*promotion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      adPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
+    }
+    
+    if (options.removeSocial) {
+      const socialPatterns = [
+        /<[^>]*class=["'][^"']*social-share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*share[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*facebook[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*twitter[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*linkedin[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*instagram[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*youtube[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*tiktok[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*social[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      socialPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
+    }
+    
+    if (options.removeComments) {
+      const commentPatterns = [
+        /<[^>]*class=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*comments[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*discussion[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*feedback[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*reviews[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*class=["'][^"']*replies[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+        /<[^>]*id=["'][^"']*comment[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+      ]
+      commentPatterns.forEach(pattern => {
+        cleaned = cleaned.replace(pattern, '')
+      })
+    }
+
+    // Browser-specific cleaning
+    if (options.browserView) {
+      // Remove navigation elements
+      if (options.removeNavigation) {
+        const navPatterns = [
+          /<nav[^>]*>[\s\S]*?<\/nav>/gi,
+          /<[^>]*class=["'][^"']*nav[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*navigation[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*menu[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*breadcrumb[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*pagination[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+        ]
+        navPatterns.forEach(pattern => {
+          cleaned = cleaned.replace(pattern, '')
+        })
+      }
+
+      // Remove sidebars
+      if (options.removeSidebars) {
+        const sidebarPatterns = [
+          /<[^>]*class=["'][^"']*sidebar[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*side[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*widget[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*related[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*recommended[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*popular[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*trending[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*id=["'][^"']*sidebar[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+        ]
+        sidebarPatterns.forEach(pattern => {
+          cleaned = cleaned.replace(pattern, '')
+        })
+      }
+
+      // Remove footers
+      if (options.removeFooters) {
+        const footerPatterns = [
+          /<footer[^>]*>[\s\S]*?<\/footer>/gi,
+          /<[^>]*class=["'][^"']*footer[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*site-footer[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*id=["'][^"']*footer[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+        ]
+        footerPatterns.forEach(pattern => {
+          cleaned = cleaned.replace(pattern, '')
+        })
+      }
+
+      // Remove headers (site headers, not article headers)
+      if (options.removeHeaders) {
+        const headerPatterns = [
+          /<header[^>]*>[\s\S]*?<\/header>/gi,
+          /<[^>]*class=["'][^"']*site-header[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*main-header[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*class=["'][^"']*page-header[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi,
+          /<[^>]*id=["'][^"']*header[^"']*["'][^>]*>[\s\S]*?<\/[^>]*>/gi
+        ]
+        headerPatterns.forEach(pattern => {
+          cleaned = cleaned.replace(pattern, '')
+        })
+      }
+
+      // Enhance readability for browser view
+      if (options.enhanceReadability) {
+        // Increase font sizes for better readability
+        cleaned = cleaned.replace(/font-size:\s*(\d+)px/gi, (match, size) => {
+          const newSize = Math.max(parseInt(size) * 1.2, 16)
+          return `font-size: ${newSize}px`
+        })
+        
+        // Improve line height
+        cleaned = cleaned.replace(/line-height:\s*([\d.]+)/gi, (match, height) => {
+          const newHeight = Math.max(parseFloat(height) * 1.3, 1.5)
+          return `line-height: ${newHeight}`
+        })
+      }
+    }
+    
+    // Remove scripts and styles
+    cleaned = cleaned.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    cleaned = cleaned.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    
+    // Normalize whitespace in HTML
+    cleaned = cleaned
+      .replace(/\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      .trim()
+    
+    return cleaned
+    
+  } catch (error) {
+    console.error('Error cleaning content for browser:', error)
+    return content
   }
 }
 

@@ -56,9 +56,13 @@ export async function GET(request: NextRequest) {
     const allImages = [...extractedResult.images, ...additionalImages.map(img => img.url)]
     const uniqueImages = [...new Set(allImages)] // Remove duplicates
 
+    // Check for browser view options
+    const browserView = searchParams.get('browserView') === 'true'
+    const readingMode = searchParams.get('readingMode') === 'true'
+
     // Format content for better display
     const formattedContent = formatContent(extractedResult.content, {
-      maxLength: 10000,
+      maxLength: browserView ? 15000 : 10000, // Allow longer content for browser view
       preserveFormatting: true,
       removeAds: true,
       removeSocial: true,
@@ -66,7 +70,15 @@ export async function GET(request: NextRequest) {
       addLineBreaks: true,
       detectLanguage: true,
       extractLinks: true,
-      extractImages: true
+      extractImages: true,
+      // Browser-specific options
+      browserView,
+      readingMode,
+      removeNavigation: browserView,
+      removeSidebars: browserView,
+      removeFooters: browserView,
+      removeHeaders: browserView,
+      enhanceReadability: readingMode
     })
 
     return NextResponse.json({
