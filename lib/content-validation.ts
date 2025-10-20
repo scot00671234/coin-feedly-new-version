@@ -353,7 +353,7 @@ export function isContentValid(score: ContentScore, options: ValidationOptions =
   
   if (opts.strictMode) {
     return score.overallConfidence >= 0.8 && 
-           score.textLength >= opts.minTextLength &&
+           score.textLength >= (opts.minTextLength || 200) &&
            score.hasTitle
   }
   
