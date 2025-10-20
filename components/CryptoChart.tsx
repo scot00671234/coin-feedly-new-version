@@ -5,6 +5,7 @@ import { CryptoPrice, cryptoAPI, formatPrice, formatMarketCap, formatVolume, for
 import { TrendingUp, TrendingDown, Star, ExternalLink, BarChart3 } from 'lucide-react'
 import LightChart from './LightChart'
 import ModernTradingChart from './ModernTradingChart'
+import ProfessionalTradingChart from './ProfessionalTradingChart'
 
 interface CryptoChartProps {
   crypto: CryptoPrice
@@ -15,6 +16,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
   const [useFallbackChart, setUseFallbackChart] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
 
   useEffect(() => {
     fetchChartData()
@@ -40,6 +42,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
       }))
       
       setChartData(formattedData)
+      setLastUpdated(new Date()) // Update timestamp when data is fetched
     } catch (error) {
       console.error('Error fetching chart data:', error)
     } finally {
@@ -118,24 +121,17 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
 
       {/* Chart */}
       <div className="p-4">
-        {useFallbackChart ? (
-          <ModernTradingChart 
-            data={chartData} 
-            height={320} 
-            loading={loading}
-            lineColor="gradient"
-            theme="dark"
-            showGrid={true}
-            showAnnotations={true}
-          />
-        ) : (
-          <LightChart 
-            data={chartData} 
-            height={320} 
-            loading={loading}
-            onError={() => setUseFallbackChart(true)}
-          />
-        )}
+        <ProfessionalTradingChart 
+          data={chartData} 
+          height={400} 
+          loading={loading}
+          lineColor="gradient"
+          theme="dark"
+          showGrid={true}
+          showAnnotations={true}
+          timeframe={timeframe}
+          lastUpdated={lastUpdated}
+        />
       </div>
 
       {/* Stats */}

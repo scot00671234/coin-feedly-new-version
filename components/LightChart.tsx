@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineStyle, LineSeriesOptions, LineData, LineSeriesPartialOptions } from 'lightweight-charts'
 import SimpleChart from './SimpleChart'
 import ModernTradingChart from './ModernTradingChart'
+import ProfessionalTradingChart from './ProfessionalTradingChart'
 
 interface LightChartProps {
   data: Array<{ time: number; value: number }>
