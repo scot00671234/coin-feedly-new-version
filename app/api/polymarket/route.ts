@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch markets from Polymarket API
     const response = await fetch(
-      `https://gamma-api.polymarket.com/markets?limit=${limit}&category=${category}&active=true&archived=false`,
+      `https://clob.polymarket.com/markets?limit=${limit}&active=true&archived=false`,
       {
         headers: {
           'Accept': 'application/json',
@@ -42,34 +42,69 @@ export async function GET(request: NextRequest) {
       throw new Error(`Polymarket API error: ${response.status}`)
     }
 
-    const data: PolymarketResponse = await response.json()
+    const data = await response.json()
+    
+    console.log('Polymarket API response structure:', {
+      hasMarkets: !!data.markets,
+      hasData: !!data.data,
+      isArray: Array.isArray(data),
+      keys: Object.keys(data),
+      marketsLength: data.markets?.length,
+      dataLength: data.data?.length
+    })
+
+    // Handle different possible response structures
+    const markets = data.markets || data.data || data || []
+    
+    if (!Array.isArray(markets)) {
+      console.error('Invalid response structure from Polymarket API:', data)
+      throw new Error('Invalid response structure from Polymarket API')
+    }
 
     // Filter and transform crypto-related markets
-    const cryptoMarkets = data.markets
-      .filter(market => 
-        market.question.toLowerCase().includes('bitcoin') ||
-        market.question.toLowerCase().includes('ethereum') ||
-        market.question.toLowerCase().includes('crypto') ||
-        market.question.toLowerCase().includes('btc') ||
-        market.question.toLowerCase().includes('eth') ||
-        market.question.toLowerCase().includes('defi') ||
-        market.question.toLowerCase().includes('altcoin')
-      )
+    const cryptoMarkets = markets
+      .filter(market => {
+        if (!market || typeof market !== 'object') return false
+        
+        const question = market.question || market.title || market.name || ''
+        const description = market.description || market.desc || ''
+        const text = `${question} ${description}`.toLowerCase()
+        
+        return text.includes('bitcoin') ||
+               text.includes('ethereum') ||
+               text.includes('crypto') ||
+               text.includes('btc') ||
+               text.includes('eth') ||
+               text.includes('defi') ||
+               text.includes('altcoin') ||
+               text.includes('solana') ||
+               text.includes('cardano') ||
+               text.includes('polkadot')
+      })
       .slice(0, 5)
-      .map(market => ({
-        id: market.id,
-        title: market.question,
-        description: market.description,
-        probability: Math.round((market.outcome_prices[0] || 0) * 100),
-        volume: market.volume_usd,
-        resolutionDate: new Date(market.end_date_iso).toLocaleDateString(),
-        resolutionDateISO: market.end_date_iso,
-        outcomes: market.outcomes,
-        outcomePrices: market.outcome_prices,
-        polymarketUrl: `https://polymarket.com/market/${market.id}`,
-        createdAt: market.created_at,
-        updatedAt: market.updated_at
-      }))
+      .map(market => {
+        const question = market.question || market.title || market.name || 'Unknown Market'
+        const description = market.description || market.desc || ''
+        const id = market.id || market.market_id || 'unknown'
+        const outcomePrices = market.outcome_prices || market.prices || [0.5, 0.5]
+        const volume = market.volume_usd || market.volume || market.total_volume || 0
+        const endDate = market.end_date_iso || market.end_date || market.resolution_date || ''
+        
+        return {
+          id,
+          title: question,
+          description,
+          probability: Math.round((outcomePrices[0] || 0) * 100),
+          volume,
+          resolutionDate: endDate ? new Date(endDate).toLocaleDateString() : 'Unknown',
+          resolutionDateISO: endDate,
+          outcomes: market.outcomes || market.answers || ['Yes', 'No'],
+          outcomePrices,
+          polymarketUrl: `https://polymarket.com/market/${id}`,
+          createdAt: market.created_at || market.created || new Date().toISOString(),
+          updatedAt: market.updated_at || market.updated || new Date().toISOString()
+        }
+      })
 
     return NextResponse.json({
       success: true,
