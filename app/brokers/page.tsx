@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ExternalLink, Shield, TrendingUp, Users, CheckCircle, ArrowRight } from 'lucide-react'
+import { ExternalLink, Shield, TrendingUp, Users, ArrowRight } from 'lucide-react'
 
 export default function BrokersPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
@@ -83,20 +83,6 @@ export default function BrokersPage() {
                     {broker.description}
                   </p>
 
-                  {/* Features */}
-                  <div className="mb-8">
-                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4 uppercase tracking-wide">
-                      Key Features
-                    </h4>
-                    <div className="grid grid-cols-1 gap-2">
-                      {broker.features.map((feature, index) => (
-                        <div key={index} className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                          <CheckCircle className="w-4 h-4 text-green-500 mr-3 flex-shrink-0" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
 
                   {/* CTA Button */}
                   <Link
