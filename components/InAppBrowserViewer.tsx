@@ -112,18 +112,6 @@ export default function InAppBrowserViewer({
     window.open(articleUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const getExtractionMethodColor = (method: string) => {
-    switch (method) {
-      case 'rss': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-      case 'html': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'api': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-      case 'fallback': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-      case 'visual': return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200'
-      case 'ai-generated': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200'
-      case 'browser': return 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-    }
-  }
 
   if (!isOpen) return null
 
@@ -180,14 +168,6 @@ export default function InAppBrowserViewer({
             <div className="max-w-4xl mx-auto p-4 md:p-6">
               {/* Article Header */}
               <div className="mb-8">
-                <div className="flex items-center space-x-2 mb-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getExtractionMethodColor(articleData.extractionMethod)}`}>
-                    {articleData.extractionMethod.toUpperCase()}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {Math.round(articleData.confidence * 100)}% confidence
-                  </span>
-                </div>
                 
                 <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
                   {articleData.title}

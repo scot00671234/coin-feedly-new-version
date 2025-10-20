@@ -81,16 +81,29 @@ export async function GET(request: NextRequest) {
       enhanceReadability: readingMode
     })
 
+    // Calculate final confidence score
+    let finalConfidence = extractedResult.confidence
+    
+    // Boost confidence for browser view if we have good content
+    if (browserView && formattedContent.wordCount > 500) {
+      finalConfidence = Math.min(extractedResult.confidence + 0.2, 1.0)
+    }
+    
+    // Boost confidence for reading mode if content is well-formatted
+    if (readingMode && formattedContent.hasImages && formattedContent.hasLinks) {
+      finalConfidence = Math.min(extractedResult.confidence + 0.1, 1.0)
+    }
+
     return NextResponse.json({
       success: extractedResult.success,
-      content: extractedResult.content,
+      content: browserView ? formattedContent.content : extractedResult.content,
       title: extractedResult.title,
       description: extractedResult.description,
       author: extractedResult.author,
       source: extractedResult.source,
       publishedAt: extractedResult.publishedAt,
       images: uniqueImages,
-      confidence: extractedResult.confidence,
+      confidence: finalConfidence,
       extractionMethod: extractedResult.extractionMethod,
       quality: extractedResult.quality,
       score: extractedResult.score,

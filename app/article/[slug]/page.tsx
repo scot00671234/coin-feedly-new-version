@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { formatDistanceToNow } from 'date-fns'
 import { Clock, ExternalLink, ArrowLeft, Share2, Eye, Calendar, User } from 'lucide-react'
-import ArticlePageClient from '@/components/ArticlePageClient'
+import IntelligentArticleContent from '@/components/IntelligentArticleContent'
 
 // Generate slug from title
 function generateSlug(title: string): string {
@@ -148,14 +148,31 @@ async function getArticle(slug: string) {
       
       // Fetch external article content if we have a URL
       let externalContent = null
+      let articleData = null
+      
       if (article.url) {
-        externalContent = await fetchArticleContent(article.url)
+        try {
+          // Try enhanced content extraction first
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/article-content?url=${encodeURIComponent(article.url)}&browserView=true&readingMode=true`)
+          if (response.ok) {
+            articleData = await response.json()
+            externalContent = articleData.content
+          } else {
+            // Fallback to simple extraction
+            externalContent = await fetchArticleContent(article.url)
+          }
+        } catch (error) {
+          console.error('Error fetching enhanced content:', error)
+          // Fallback to simple extraction
+          externalContent = await fetchArticleContent(article.url)
+        }
       }
       
       return {
         article,
         relatedArticles,
-        externalContent
+        externalContent,
+        articleData
       }
     }
     
@@ -218,6 +235,7 @@ async function getArticle(slug: string) {
         
         // Fetch external article content if we have a URL
         let externalContent = null
+        let articleData = null
         if (fullArticle.url) {
           externalContent = await fetchArticleContent(fullArticle.url)
         }
@@ -225,7 +243,8 @@ async function getArticle(slug: string) {
         return {
           article: fullArticle,
           relatedArticles,
-          externalContent
+          externalContent,
+          articleData
         }
       }
     }
@@ -287,6 +306,7 @@ async function getArticle(slug: string) {
       
       // Fetch external article content if we have a URL
       let externalContent = null
+      let articleData = null
       if (articleById.url) {
         externalContent = await fetchArticleContent(articleById.url)
       }
@@ -294,7 +314,8 @@ async function getArticle(slug: string) {
       return {
         article: articleById,
         relatedArticles,
-        externalContent
+        externalContent,
+        articleData
       }
     }
     
@@ -367,6 +388,7 @@ async function getArticle(slug: string) {
       
       // Fetch external article content if we have a URL
       let externalContent = null
+      let articleData = null
       if (articleByTitle.url) {
         externalContent = await fetchArticleContent(articleByTitle.url)
       }
@@ -374,7 +396,8 @@ async function getArticle(slug: string) {
       return {
         article: articleByTitle,
         relatedArticles,
-        externalContent
+        externalContent,
+        articleData
       }
     }
     
@@ -433,7 +456,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound()
   }
 
-  const { article, relatedArticles, externalContent } = data
+  const { article, relatedArticles, externalContent, articleData } = data
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -553,10 +576,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   )}
                 </div>
 
-                {/* Embedded Content */}
-                <ArticlePageClient 
+                {/* Intelligent Content Display */}
+                <IntelligentArticleContent 
                   article={article} 
-                  externalContent={externalContent} 
+                  externalContent={externalContent}
+                  articleData={articleData}
                 />
               </div>
             </article>
