@@ -65,6 +65,12 @@ export default function Footer() {
               >
                 RSS Feed
               </Link>
+              <Link 
+                href="/legal" 
+                className="block text-slate-400 hover:text-white transition-colors text-sm"
+              >
+                Legal Disclaimer
+              </Link>
             </div>
           </div>
         </div>

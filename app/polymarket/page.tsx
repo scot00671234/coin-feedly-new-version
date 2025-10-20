@@ -31,11 +31,9 @@ export default function PolymarketPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<string>('')
-  const [refreshing, setRefreshing] = useState(false)
 
   const fetchMarkets = async () => {
     try {
-      setRefreshing(true)
       const response = await fetch('/api/polymarket?limit=5')
       const data: PolymarketResponse = await response.json()
       
@@ -52,7 +50,6 @@ export default function PolymarketPage() {
       setMarkets([])
     } finally {
       setLoading(false)
-      setRefreshing(false)
     }
   }
 
@@ -106,23 +103,13 @@ export default function PolymarketPage() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                Polymarket Predictions
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                Live crypto, politics, and finance prediction markets from Polymarket
-              </p>
-            </div>
-            <button
-              onClick={fetchMarkets}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
+          <div className="mb-4">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+              Polymarket Predictions
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Live crypto, politics, and finance prediction markets from Polymarket
+            </p>
           </div>
           
           {lastUpdated && (
@@ -130,6 +117,33 @@ export default function PolymarketPage() {
               Last updated: {new Date(lastUpdated).toLocaleString()}
             </p>
           )}
+        </div>
+
+        {/* Development Notice */}
+        <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Currently Under Development
+              </h3>
+              <p className="text-blue-800 dark:text-blue-200 mb-3">
+                We're actively working on improving the Polymarket integration. The data below is functional but may not reflect the final user experience.
+              </p>
+              <div className="text-sm text-blue-700 dark:text-blue-300">
+                <p>• Enhanced market filtering and search</p>
+                <p>• Improved data visualization and charts</p>
+                <p>• Real-time updates and notifications</p>
+                <p>• Mobile-optimized interface</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Error State */}
