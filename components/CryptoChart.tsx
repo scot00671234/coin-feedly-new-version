@@ -137,7 +137,7 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
           <div>
             <div className="text-slate-400 mb-1">Circulating Supply</div>
             <div className="text-white font-medium">
-              {crypto.circulating_supply.toLocaleString()} {crypto.symbol.toUpperCase()}
+              {(crypto.circulating_supply || 0).toLocaleString()} {crypto.symbol.toUpperCase()}
             </div>
           </div>
           <div>
