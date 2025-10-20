@@ -4,8 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Search, Moon, Sun, Menu, X } from 'lucide-react'
+import { Search, Moon, Sun, Menu, X, TrendingUp, BarChart3, Activity, Zap } from 'lucide-react'
 import { useTheme } from '@/contexts/ThemeContext'
+import DropdownMenu from './DropdownMenu'
 
 interface UnifiedHeaderProps {
   searchQuery: string
@@ -40,6 +41,43 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
   const isActive = (path: string) => {
     return pathname === path
   }
+
+  // Dropdown menu items
+  const marketItems = [
+    {
+      href: '/charts',
+      label: 'Charts',
+      icon: <BarChart3 className="w-4 h-4" />,
+      description: 'Real-time crypto charts'
+    },
+    {
+      href: '/predictions',
+      label: 'Predictions',
+      icon: <TrendingUp className="w-4 h-4" />,
+      description: 'AI-powered price predictions'
+    },
+    {
+      href: '/fear-greed',
+      label: 'Fear & Greed',
+      icon: <Activity className="w-4 h-4" />,
+      description: 'Market sentiment indicator'
+    }
+  ]
+
+  const toolsItems = [
+    {
+      href: '/polymarket',
+      label: 'Polymarket',
+      icon: <Zap className="w-4 h-4" />,
+      description: 'Prediction markets'
+    },
+    {
+      href: '/brokers',
+      label: 'Brokers',
+      icon: <BarChart3 className="w-4 h-4" />,
+      description: 'Crypto broker comparison'
+    }
+  ]
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-lg">
@@ -91,49 +129,25 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               Home
             </Link>
             
-            <Link
-              href="/charts"
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                isActive('/charts')
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Charts
-            </Link>
+            <DropdownMenu
+              trigger={
+                <span className="flex items-center space-x-1">
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Markets</span>
+                </span>
+              }
+              items={marketItems}
+            />
             
-            <Link
-              href="/polymarket"
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                isActive('/polymarket')
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Polymarket
-            </Link>
-            
-            <Link
-              href="/fear-greed"
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                isActive('/fear-greed')
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Fear & Greed
-            </Link>
-            
-            <Link
-              href="/brokers"
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
-                isActive('/brokers')
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Brokers
-            </Link>
+            <DropdownMenu
+              trigger={
+                <span className="flex items-center space-x-1">
+                  <Zap className="w-4 h-4" />
+                  <span>Tools</span>
+                </span>
+              }
+              items={toolsItems}
+            />
             
             <button
               onClick={toggleTheme}
@@ -176,50 +190,48 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                   >
                     Home
                   </Link>
-                  <Link 
-                    href="/charts" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      isActive('/charts')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    Charts
-                  </Link>
-                  <Link 
-                    href="/polymarket" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      isActive('/polymarket')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    Polymarket
-                  </Link>
-                  <Link 
-                    href="/fear-greed" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      isActive('/fear-greed')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    Fear & Greed
-                  </Link>
-                  <Link 
-                    href="/brokers" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
-                      isActive('/brokers')
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    Brokers
-                  </Link>
+                  
+                  {/* Markets Section */}
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 mt-4 tracking-wider uppercase">Markets</div>
+                  {marketItems.map((item, index) => (
+                    <Link 
+                      key={index}
+                      href={item.href} 
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                        isActive(item.href)
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {item.icon}
+                      <div>
+                        <div>{item.label}</div>
+                        <div className="text-xs opacity-75">{item.description}</div>
+                      </div>
+                    </Link>
+                  ))}
+                  
+                  {/* Tools Section */}
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 mt-4 tracking-wider uppercase">Tools</div>
+                  {toolsItems.map((item, index) => (
+                    <Link 
+                      key={index}
+                      href={item.href} 
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+                        isActive(item.href)
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      {item.icon}
+                      <div>
+                        <div>{item.label}</div>
+                        <div className="text-xs opacity-75">{item.description}</div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
 

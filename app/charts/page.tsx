@@ -31,12 +31,11 @@ export default function ChartsPage() {
 
   const fetchTickerPrices = async () => {
     try {
-      // Use unified API for consistent pricing
-      const response = await fetch('/api/unified-crypto?action=ticker', {
-        cache: 'no-store',
+      // Use smart cache API for consistent pricing
+      const response = await fetch('/api/smart-crypto?action=ticker', {
+        cache: 'default',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Accept': 'application/json'
         }
       })
       if (!response.ok) {
@@ -44,8 +43,9 @@ export default function ChartsPage() {
       }
       const data = await response.json()
       setTickerPrices(data.tickerData)
+      console.log('Ticker prices from smart cache:', response.headers.get('X-Cache-Status'))
     } catch (error) {
-      console.error('Error fetching unified ticker prices:', error)
+      console.error('Error fetching smart cache ticker prices:', error)
     }
   }
 

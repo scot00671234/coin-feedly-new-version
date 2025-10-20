@@ -34,8 +34,8 @@ export default function CryptoDetailPage() {
       setLoading(true)
       setError(null)
       
-      // Use unified API to get both crypto data and chart data
-      const response = await fetch(`/api/unified-crypto?action=detail&id=${params.id}`)
+      // Use smart cache API for consistent pricing
+      const response = await fetch(`/api/smart-crypto?action=detail&id=${params.id}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -45,6 +45,8 @@ export default function CryptoDetailPage() {
       
       // Update price manager with the fresh data
       priceManager.updatePrices([data.cryptoDetail])
+      
+      console.log('Smart cache detail loaded:', response.headers.get('X-Cache-Status'))
       
     } catch (error) {
       console.error('Error fetching crypto data:', error)
@@ -63,15 +65,16 @@ export default function CryptoDetailPage() {
     try {
       console.log('Fetching chart data for:', crypto.id, 'timeframe:', timeframe)
       
-      // Use unified API to get chart data
-      const response = await fetch(`/api/unified-crypto?action=chart&id=${crypto.id}&timeframe=${timeframe}`)
+      // Use smart cache API to get chart data
+      const response = await fetch(`/api/smart-crypto?action=chart&id=${crypto.id}&timeframe=${timeframe}`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
       const data = await response.json()
-      console.log('Chart data from unified API:', data.chartData.length, 'points')
+      console.log('Chart data from smart cache:', data.chartData.length, 'points')
+      console.log('Cache status:', response.headers.get('X-Cache-Status'))
       
       // Format chart data
       const formattedData = data.chartData.map((item: any) => ({

@@ -11,15 +11,14 @@ export default function PersistentTicker() {
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Fetch crypto prices using unified API
+  // Fetch crypto prices using smart cache
   const fetchPrices = async () => {
     try {
-      // Use unified API for consistent pricing
-      const response = await fetch('/api/unified-crypto?action=ticker', {
-        cache: 'no-store',
+      // Use smart cache API for consistent pricing with background updates
+      const response = await fetch('/api/smart-crypto?action=ticker', {
+        cache: 'default', // Allow browser caching
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Accept': 'application/json'
         }
       })
       if (response.ok) {
@@ -29,10 +28,11 @@ export default function PersistentTicker() {
         // Update price manager with fresh data
         priceManager.updatePrices(data.tickerData)
         
-        console.log('Unified prices updated:', new Date().toLocaleTimeString())
+        console.log('Smart cache prices updated:', new Date().toLocaleTimeString())
+        console.log('Cache status:', response.headers.get('X-Cache-Status'))
       }
     } catch (error) {
-      console.error('Error fetching unified crypto prices:', error)
+      console.error('Error fetching smart cache crypto prices:', error)
       
       // Fallback to price manager data
       const cachedPrices = priceManager.getAllPrices().slice(0, 10)
@@ -50,9 +50,9 @@ export default function PersistentTicker() {
     fetchPrices()
   }, [])
 
-  // Refresh prices every 30 seconds to avoid rate limits
+  // Refresh prices every 15 seconds (smart cache handles rate limiting)
   useEffect(() => {
-    const interval = setInterval(fetchPrices, 30000)
+    const interval = setInterval(fetchPrices, 15000)
     return () => clearInterval(interval)
   }, [])
 
