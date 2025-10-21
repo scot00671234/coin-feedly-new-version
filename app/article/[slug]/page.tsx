@@ -499,12 +499,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <nav className="mb-8">
             <ol className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-              <li><Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link></li>
+              <li><Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Home</Link></li>
               <li>/</li>
               <li><span className="text-gray-500 dark:text-gray-400 capitalize">{article.primaryCategory || 'News'}</span></li>
               <li>/</li>
@@ -515,46 +515,51 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content */}
             <article className="lg:col-span-3">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
                 {/* Article Header */}
-                <div className="p-8 border-b border-gray-200 dark:border-gray-700">
+                <div className="p-8 border-b border-gray-200/50 dark:border-gray-700/50">
                   {/* Category and Meta */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm font-medium rounded-full">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-bold rounded-full shadow-lg">
                       {article.primaryCategory?.toUpperCase() || 'NEWS'}
                     </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
-                    </span>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <Clock className="w-4 h-4" />
+                      <span>{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</span>
+                    </div>
                     {article.readingTime && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {article.readingTime} min read
-                      </span>
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <BookOpen className="w-4 h-4" />
+                        <span>{article.readingTime} min read</span>
+                      </div>
                     )}
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {article.viewCount + 1} views
-                    </span>
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <Eye className="w-4 h-4" />
+                      <span>{article.viewCount + 1} views</span>
+                    </div>
                   </div>
 
                   {/* Title */}
-                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                  <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-6 leading-tight">
                     {article.title}
                   </h1>
 
                   {/* Author and Source */}
-                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                    <span>By {article.author || article.source.name}</span>
+                  <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mb-8">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      <span className="font-medium">By {article.author || article.source.name}</span>
+                    </div>
                     <span>•</span>
                     <a 
                       href={article.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors flex items-center gap-2 font-medium"
                     >
+                      <Globe className="w-4 h-4" />
                       View Original
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
+                      <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
 
