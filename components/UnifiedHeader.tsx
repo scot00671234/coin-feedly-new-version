@@ -63,14 +63,9 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
 
   const toolsItems = [
     {
-      href: '/polymarket',
-      label: 'Polymarket',
-      description: 'Prediction markets'
-    },
-    {
       href: '/brokers',
       label: 'Axiom',
-      description: 'Crypto broker comparison'
+      description: 'Trade meme coins'
     },
     {
       href: '/coinbase',
@@ -204,8 +199,8 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                     </Link>
                   ))}
                   
-                  {/* Tools Section */}
-                  <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 mt-4 px-3 tracking-wide uppercase">Tools</div>
+                  {/* Brokers Section */}
+                  <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 mt-4 px-3 tracking-wide uppercase">Brokers</div>
                   {toolsItems.map((item, index) => (
                     <Link 
                       key={index}

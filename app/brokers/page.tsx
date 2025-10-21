@@ -9,7 +9,7 @@ export default function BrokersPage() {
     {
       id: 'axiom',
       name: 'Axiom',
-      description: 'Professional trading platform offering advanced tools and competitive fees',
+      description: 'Professional trading platform for trading meme coins and advanced tools with competitive fees',
       logo: 'A',
       features: [
         'Advanced Trading Tools',
@@ -47,7 +47,8 @@ export default function BrokersPage() {
         </div>
 
         {/* Brokers Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+        <div className="flex justify-center mb-16">
+          <div className="max-w-md w-full">
           {brokers.map((broker) => (
             <div
               key={broker.id}
@@ -94,6 +95,7 @@ export default function BrokersPage() {
               </div>
             </div>
           ))}
+          </div>
         </div>
 
 
