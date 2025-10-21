@@ -245,22 +245,6 @@ export default function CryptoDetailPage() {
                 </button>
               </div>
               
-              {/* Timeframe Selector */}
-              <div className="flex space-x-2">
-                {(['1d', '7d', '30d', '90d'] as const).map((tf) => (
-                  <button
-                    key={tf}
-                    onClick={() => setTimeframe(tf)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      timeframe === tf
-                        ? 'bg-blue-600 text-white'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}
-                  >
-                    {tf}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
