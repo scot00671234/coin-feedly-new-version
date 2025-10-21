@@ -520,7 +520,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <div className="p-8 border-b border-gray-200/50 dark:border-gray-700/50">
                   {/* Category and Meta */}
                   <div className="flex items-center gap-4 mb-6">
-                    <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-bold rounded-full shadow-lg">
+                    <span className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-full shadow-lg">
                       {article.primaryCategory?.toUpperCase() || 'NEWS'}
                     </span>
                     <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -589,39 +589,72 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   articleData={articleData}
                 />
               </div>
+
+              {/* Live News Feed Below Article */}
+              <div className="mt-12">
+                <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-8">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Latest from Coin Feedly
+                      </h2>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Fresh articles across all categories
+                      </p>
+                    </div>
+                  </div>
+                  <LiveNewsFeed limit={8} showHeader={false} />
+                </div>
+              </div>
             </article>
 
             {/* Sidebar */}
             <aside className="lg:col-span-1">
               {/* Related Articles */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Related {article.primaryCategory || 'News'} Articles
-                </h3>
-                <div className="space-y-4">
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Related {article.primaryCategory || 'News'}
+                  </h3>
+                </div>
+                <div className="space-y-6">
                   {relatedArticles.map((relatedArticle: any) => (
                     <Link
                       key={relatedArticle.id}
                       href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
                       className="block group"
                     >
-                      <div className="flex gap-3">
+                      <div className="flex gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
                         {relatedArticle.imageUrl && (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
                             <img
                               src={relatedArticle.imageUrl}
                               alt={relatedArticle.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2">
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-3 leading-relaxed">
                             {relatedArticle.title}
                           </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {relatedArticle.source.name} • {formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}
-                          </p>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                            <span className="font-medium">{relatedArticle.source.name}</span>
+                            <span>•</span>
+                            <span>{formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}</span>
+                          </div>
+                          {relatedArticle.readingTime && (
+                            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400 dark:text-gray-500">
+                              <BookOpen className="w-3 h-3" />
+                              <span>{relatedArticle.readingTime} min read</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </Link>
