@@ -613,16 +613,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
                   Related {article.primaryCategory || 'News'}
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {relatedArticles.map((relatedArticle: any) => (
                     <Link
                       key={relatedArticle.id}
                       href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
                       className="block group"
                     >
-                      <div className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
+                      <div className="flex gap-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-600">
                         {relatedArticle.imageUrl && (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-sm">
                             <img
                               src={relatedArticle.imageUrl}
                               alt={relatedArticle.title}
@@ -630,14 +630,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             />
                           </div>
                         )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2 leading-snug">
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-relaxed line-clamp-3">
                             {relatedArticle.title}
                           </h4>
-                          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            <span className="font-medium">{relatedArticle.source.name}</span>
-                            <span>•</span>
-                            <span className="whitespace-nowrap">{formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}</span>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                              <span className="font-medium truncate">{relatedArticle.source.name}</span>
+                              <span>•</span>
+                              <span className="whitespace-nowrap">{formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}</span>
+                            </div>
+                            {relatedArticle.readingTime && (
+                              <div className="text-xs text-gray-400 dark:text-gray-500">
+                                {relatedArticle.readingTime} min read
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
