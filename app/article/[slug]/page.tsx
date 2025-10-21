@@ -614,47 +614,36 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {/* Sidebar */}
             <aside className="lg:col-span-1">
               {/* Related Articles */}
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-8 mb-8">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Related {article.primaryCategory || 'News'}
-                  </h3>
-                </div>
-                <div className="space-y-6">
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 mb-8">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
+                  Related {article.primaryCategory || 'News'}
+                </h3>
+                <div className="space-y-4">
                   {relatedArticles.map((relatedArticle: any) => (
                     <Link
                       key={relatedArticle.id}
                       href={`/article/${relatedArticle.slug || generateSlug(relatedArticle.title)}`}
                       className="block group"
                     >
-                      <div className="flex gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
+                      <div className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200">
                         {relatedArticle.imageUrl && (
-                          <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 shadow-md">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                             <img
                               src={relatedArticle.imageUrl}
                               alt={relatedArticle.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                             />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-3 leading-relaxed">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 line-clamp-2 leading-snug">
                             {relatedArticle.title}
                           </h4>
                           <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
                             <span className="font-medium">{relatedArticle.source.name}</span>
                             <span>•</span>
-                            <span>{formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}</span>
+                            <span className="whitespace-nowrap">{formatDistanceToNow(new Date(relatedArticle.publishedAt), { addSuffix: true })}</span>
                           </div>
-                          {relatedArticle.readingTime && (
-                            <div className="flex items-center gap-1 mt-1 text-xs text-gray-400 dark:text-gray-500">
-                              <BookOpen className="w-3 h-3" />
-                              <span>{relatedArticle.readingTime} min read</span>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </Link>
