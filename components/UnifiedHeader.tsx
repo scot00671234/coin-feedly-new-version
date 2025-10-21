@@ -112,7 +112,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
               href="/"
               className={`px-3 py-2 rounded-md font-medium text-sm transition-all duration-200 focus:outline-none ${
                 isActive('/')
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'text-slate-900 dark:text-white font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -167,7 +167,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex items-center px-3 py-2.5 rounded-md font-medium text-sm transition-all duration-200 focus:outline-none ${
                       isActive('/')
-                        ? 'bg-blue-600 text-white'
+                        ? 'text-slate-900 dark:text-white font-bold'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
