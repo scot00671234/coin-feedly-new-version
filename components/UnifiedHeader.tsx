@@ -133,7 +133,7 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
             
             <DropdownMenu
               trigger={
-                <span>Tools</span>
+                <span>Brokers</span>
               }
               items={toolsItems}
             />
