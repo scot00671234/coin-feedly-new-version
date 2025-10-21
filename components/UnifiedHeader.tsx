@@ -50,11 +50,6 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
       description: 'Real-time crypto charts'
     },
     {
-      href: '/predictions',
-      label: 'Predictions',
-      description: 'AI-powered price predictions'
-    },
-    {
       href: '/fear-greed',
       label: 'Fear & Greed',
       description: 'Market sentiment indicator'
