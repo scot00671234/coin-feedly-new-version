@@ -218,23 +218,6 @@ export default function ProfessionalTradingChart({
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Price Chart</h3>
       </div>
 
-      {/* Timeframe Selector */}
-      <div className="absolute top-6 right-6 z-10">
-        <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-          {['1d', '7d', '30d', '90d'].map((tf) => (
-            <button
-              key={tf}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                tf === timeframe
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Price Info Card */}
       <div className="absolute top-16 left-6 z-10">

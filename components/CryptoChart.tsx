@@ -100,24 +100,6 @@ export default function CryptoChart({ crypto }: CryptoChartProps) {
         </div>
       </div>
 
-      {/* Timeframe Selector */}
-      <div className="p-4 border-b border-slate-700/50">
-        <div className="flex space-x-2">
-          {(['1d', '7d', '30d', '90d'] as const).map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                timeframe === tf
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Chart */}
       <div className="p-4">
