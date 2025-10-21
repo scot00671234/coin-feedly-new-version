@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { formatDistanceToNow } from 'date-fns'
-import { Clock, ExternalLink, ArrowLeft, Share2, Eye, Calendar, User } from 'lucide-react'
+import { Clock, ExternalLink, ArrowLeft, Share2, Eye, Calendar, User, TrendingUp, BookOpen, Globe } from 'lucide-react'
 import IntelligentArticleContent from '@/components/IntelligentArticleContent'
+import LiveNewsFeed from '@/components/LiveNewsFeed'
 
 // Generate slug from title
 function generateSlug(title: string): string {

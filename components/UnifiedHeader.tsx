@@ -58,12 +58,12 @@ export default function UnifiedHeader({ searchQuery, setSearchQuery, onSearch, s
 
   const toolsItems = [
     {
-      href: '/brokers',
+      href: '/brokers/axiom',
       label: 'Axiom',
       description: 'Trade meme coins'
     },
     {
-      href: '/coinbase',
+      href: '/brokers/coinbase',
       label: 'Coinbase',
       description: 'Platform where you can trade crypto'
     }

@@ -111,12 +111,10 @@ export default function BrokersPage() {
 
                   {/* CTA Button */}
                   <Link
-                    href={broker.referralLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`/brokers/${broker.id}`}
                     className="group/btn relative inline-flex items-center justify-center w-full px-8 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
-                    <span className="relative z-10 text-lg">Visit Platform</span>
+                    <span className="relative z-10 text-lg">Learn More</span>
                     <ArrowRight className="w-5 h-5 ml-3 group-hover/btn:translate-x-1 transition-transform duration-300" />
                   </Link>
                 </div>
