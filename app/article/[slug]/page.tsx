@@ -593,18 +593,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               {/* Live News Feed Below Article */}
               <div className="mt-12">
                 <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-8">
-                  <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                      <Globe className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Latest from Coin Feedly
-                      </h2>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        Fresh articles across all categories
-                      </p>
-                    </div>
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                      Latest from Coin Feedly
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      Fresh articles across all categories
+                    </p>
                   </div>
                   <LiveNewsFeed limit={8} showHeader={false} />
                 </div>
