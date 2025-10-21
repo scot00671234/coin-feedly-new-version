@@ -46,16 +46,8 @@ export default function NewsFeed({ articles, loading, loadingMore = false, hasMo
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="relative">
-            {/* Animated loading spinner */}
-            <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 rounded-full animate-spin border-t-blue-500 mx-auto mb-4"></div>
-            {/* Pulsing dots */}
-            <div className="flex justify-center space-x-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-          </div>
+          {/* Animated loading spinner */}
+          <div className="w-12 h-12 border-4 border-gray-200 dark:border-gray-700 rounded-full animate-spin border-t-blue-500 mx-auto"></div>
         </div>
       </div>
     )
