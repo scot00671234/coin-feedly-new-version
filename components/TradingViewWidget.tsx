@@ -21,7 +21,6 @@ interface TradingViewWidgetProps {
   studies?: string[]
   container_id?: string
   className?: string
-  onError?: (error: string) => void
 }
 
 export default function TradingViewWidget({
@@ -42,8 +41,7 @@ export default function TradingViewWidget({
   hide_volume = false,
   studies = [],
   container_id,
-  className = '',
-  onError
+  className = ''
 }: TradingViewWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -139,9 +137,7 @@ export default function TradingViewWidget({
         
       } catch (err) {
         console.error('TradingView widget error:', err)
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load TradingView widget'
-        setError(errorMessage)
-        onError?.(errorMessage)
+        setError(err instanceof Error ? err.message : 'Failed to load TradingView widget')
       }
     }
 

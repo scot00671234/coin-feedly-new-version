@@ -4,50 +4,19 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { CryptoPrice, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
 import { priceManager } from '@/lib/price-manager'
-import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft } from 'lucide-react'
+import { TrendingUp, TrendingDown, Star, ExternalLink, ArrowLeft, BarChart3 } from 'lucide-react'
 import ProfessionalTradingChart from '@/components/ProfessionalTradingChart'
 import TradingViewWidget from '@/components/TradingViewWidget'
-import { useTheme } from '@/contexts/ThemeContext'
 
 export default function CryptoDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { isDarkMode } = useTheme()
   const [crypto, setCrypto] = useState<CryptoPrice | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<'1d' | '7d' | '30d' | '90d'>('7d')
   const [chartData, setChartData] = useState<any[]>([])
-  const [tradingViewError, setTradingViewError] = useState(false)
-  const [useTradingView, setUseTradingView] = useState(true)
-
-  // Get TradingView symbol for the crypto
-  const getTradingViewSymbol = (crypto: CryptoPrice) => {
-    const symbolMap: { [key: string]: string } = {
-      'bitcoin': 'BINANCE:BTCUSDT',
-      'ethereum': 'BINANCE:ETHUSDT',
-      'binancecoin': 'BINANCE:BNBUSDT',
-      'cardano': 'BINANCE:ADAUSDT',
-      'solana': 'BINANCE:SOLUSDT',
-      'ripple': 'BINANCE:XRPUSDT',
-      'polkadot': 'BINANCE:DOTUSDT',
-      'dogecoin': 'BINANCE:DOGEUSDT',
-      'avalanche-2': 'BINANCE:AVAXUSDT',
-      'matic-network': 'BINANCE:MATICUSDT'
-    }
-    return symbolMap[crypto.id] || `BINANCE:${crypto.symbol.toUpperCase()}USDT`
-  }
-
-  // Convert timeframe to TradingView format
-  const getTradingViewTimeframe = (tf: string) => {
-    const timeframeMap: { [key: string]: string } = {
-      '1d': 'D',
-      '7d': 'D',
-      '30d': 'D',
-      '90d': 'W'
-    }
-    return timeframeMap[tf] || 'D'
-  }
+  const [chartType, setChartType] = useState<'tradingview' | 'custom'>('tradingview')
 
   useEffect(() => {
     if (params.id) {
@@ -247,97 +216,83 @@ export default function CryptoDetailPage() {
         {/* Chart Section */}
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-6 shadow-lg">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Price Chart</h2>
-              {useTradingView && !tradingViewError && (
-                <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium rounded-full">
-                  TradingView
-                </span>
-              )}
-              {!useTradingView && (
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-full">
-                  Custom Chart
-                </span>
-              )}
-            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Price Chart</h2>
             
-            {/* Timeframe Selector */}
-            <div className="flex space-x-2">
-              {(['1d', '7d', '30d', '90d'] as const).map((tf) => (
+            <div className="flex items-center space-x-4">
+              {/* Chart Type Toggle */}
+              <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
                 <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    timeframe === tf
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                  onClick={() => setChartType('tradingview')}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    chartType === 'tradingview'
+                      ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {tf}
+                  <BarChart3 className="w-4 h-4" />
+                  <span>TradingView</span>
                 </button>
-              ))}
+                <button
+                  onClick={() => setChartType('custom')}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                    chartType === 'custom'
+                      ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Custom</span>
+                </button>
+              </div>
+              
+              {/* Timeframe Selector */}
+              <div className="flex space-x-2">
+                {(['1d', '7d', '30d', '90d'] as const).map((tf) => (
+                  <button
+                    key={tf}
+                    onClick={() => setTimeframe(tf)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      timeframe === tf
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {tf}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Chart */}
-          {useTradingView && !tradingViewError ? (
-            <div className="relative">
-              <TradingViewWidget
-                symbol={crypto ? getTradingViewSymbol(crypto) : 'BINANCE:BTCUSDT'}
-                theme={isDarkMode ? 'dark' : 'light'}
-                autosize={true}
-                height={500}
-                interval={getTradingViewTimeframe(timeframe) as any}
-                style="1"
-                enable_publishing={false}
-                hide_top_toolbar={false}
-                hide_legend={false}
-                save_image={false}
-                hide_volume={false}
-                studies={['Volume@tv-basicstudies']}
-                className="rounded-lg overflow-hidden"
-                onError={(error) => {
-                  console.error('TradingView error:', error)
-                  setTradingViewError(true)
-                  setUseTradingView(false)
-                }}
-              />
-              {/* Fallback button */}
-              <div className="absolute top-2 right-2">
-                <button
-                  onClick={() => setUseTradingView(false)}
-                  className="px-3 py-1 bg-slate-600 hover:bg-slate-700 text-white text-xs rounded-md transition-colors"
-                >
-                  Use Custom Chart
-                </button>
-              </div>
-            </div>
+          {chartType === 'tradingview' ? (
+            <TradingViewWidget
+              symbol={`BINANCE:${crypto.symbol.toUpperCase()}USDT`}
+              theme="dark"
+              autosize={true}
+              height={500}
+              interval={timeframe === '1d' ? 'D' : timeframe === '7d' ? 'D' : timeframe === '30d' ? 'D' : 'W'}
+              style="1"
+              enable_publishing={false}
+              hide_top_toolbar={false}
+              hide_legend={false}
+              save_image={false}
+              hide_volume={false}
+              studies={['Volume@tv-basicstudies']}
+              className="rounded-lg overflow-hidden"
+            />
           ) : (
-            <div className="relative">
-              <ProfessionalTradingChart 
-                data={chartData} 
-                height={500} 
-                loading={chartData.length === 0 && crypto !== null}
-                lineColor="gradient"
-                theme={isDarkMode ? 'dark' : 'light'}
-                showGrid={true}
-                showAnnotations={true}
-                timeframe={timeframe}
-                lastUpdated={priceManager.getLastUpdate()}
-              />
-              {/* Switch back to TradingView button */}
-              <div className="absolute top-2 right-2">
-                <button
-                  onClick={() => {
-                    setUseTradingView(true)
-                    setTradingViewError(false)
-                  }}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
-                >
-                  Use TradingView
-                </button>
-              </div>
-            </div>
+            <ProfessionalTradingChart 
+              data={chartData} 
+              height={500} 
+              loading={chartData.length === 0 && crypto !== null}
+              lineColor="gradient"
+              theme="dark"
+              showGrid={true}
+              showAnnotations={true}
+              timeframe={timeframe}
+              lastUpdated={priceManager.getLastUpdate()}
+            />
           )}
         </div>
 

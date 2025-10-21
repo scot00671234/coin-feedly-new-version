@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { CryptoPrice, formatPrice, formatMarketCap, formatVolume, formatPercentage } from '@/lib/crypto-api'
-import { ArrowUp, ArrowDown, BarChart3, TrendingUp } from 'lucide-react'
+import { ArrowUp, ArrowDown } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
-import TradingViewCharts from '@/components/TradingViewCharts'
 
 export default function ChartsPage() {
   const router = useRouter()
@@ -18,8 +17,6 @@ export default function ChartsPage() {
   const [sortBy, setSortBy] = useState<'market_cap' | 'price' | 'volume' | 'change_24h'>('market_cap')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [tickerPrices, setTickerPrices] = useState<CryptoPrice[]>([])
-  const [activeTab, setActiveTab] = useState<'list' | 'charts'>('charts')
-  const [selectedCrypto, setSelectedCrypto] = useState<string>('bitcoin')
 
   useEffect(() => {
     fetchCryptos()
@@ -158,59 +155,7 @@ export default function ChartsPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-950 dark:via-blue-950 dark:to-slate-950">
       
-      {/* Header with Tabs */}
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
-              Crypto Charts & Analysis
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400">
-              Professional trading charts and market data
-            </p>
-          </div>
-          
-          {/* Tab Navigation */}
-          <div className="flex justify-center">
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-              <button
-                onClick={() => setActiveTab('charts')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === 'charts'
-                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Professional Charts</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('list')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  activeTab === 'list'
-                    ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4" />
-                <span>Market List</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Content based on active tab */}
-      {activeTab === 'charts' ? (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <TradingViewCharts 
-            selectedCrypto={selectedCrypto}
-            onCryptoSelect={setSelectedCrypto}
-          />
-        </div>
-      ) : (
-        <>
-          {/* Crypto Price Ticker */}
+      {/* Crypto Price Ticker */}
 
       {/* Filters Section */}
       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
@@ -494,8 +439,6 @@ export default function ChartsPage() {
           </div>
         </div>
       </div>
-        </>
-      )}
       
       {/* Footer */}
       <Footer />
