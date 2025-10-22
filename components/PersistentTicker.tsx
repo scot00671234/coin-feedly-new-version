@@ -8,31 +8,40 @@ import { formatPrice, formatChange } from '@/lib/crypto-api'
 export default function PersistentTicker() {
   const [prices, setPrices] = useState<CryptoPrice[]>([])
   const [loading, setLoading] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
   const tickerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number>()
 
-  // Fetch crypto prices using smart cache
+  // Fetch crypto prices using real-time API
   const fetchPrices = async () => {
+    if (isUpdating) return // Prevent concurrent updates
+    
+    setIsUpdating(true)
     try {
-      // Use smart cache API for consistent pricing with background updates
-      const response = await fetch('/api/smart-crypto?action=ticker', {
-        cache: 'default', // Allow browser caching
+      // Use real-time API for live pricing data with cache busting
+      const timestamp = Date.now()
+      const response = await fetch(`/api/crypto-realtime?t=${timestamp}`, {
+        cache: 'no-store', // Disable browser caching for real-time data
         headers: {
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         }
       })
       if (response.ok) {
         const data = await response.json()
-        setPrices(data.tickerData)
+        setPrices(data)
+        setLastUpdate(new Date())
         
         // Update price manager with fresh data
-        priceManager.updatePrices(data.tickerData)
+        priceManager.updatePrices(data)
         
-        console.log('Smart cache prices updated:', new Date().toLocaleTimeString())
+        console.log('Real-time prices updated:', new Date().toLocaleTimeString())
         console.log('Cache status:', response.headers.get('X-Cache-Status'))
+        console.log('Data freshness:', response.headers.get('X-Data-Freshness'))
       }
     } catch (error) {
-      console.error('Error fetching smart cache crypto prices:', error)
+      console.error('Error fetching real-time crypto prices:', error)
       
       // Fallback to price manager data
       const cachedPrices = priceManager.getAllPrices().slice(0, 10)
@@ -42,6 +51,7 @@ export default function PersistentTicker() {
       }
     } finally {
       setLoading(false)
+      setIsUpdating(false)
     }
   }
 
@@ -50,9 +60,9 @@ export default function PersistentTicker() {
     fetchPrices()
   }, [])
 
-  // Refresh prices every 15 seconds (smart cache handles rate limiting)
+  // Refresh prices every 10 seconds for real-time updates
   useEffect(() => {
-    const interval = setInterval(fetchPrices, 15000)
+    const interval = setInterval(fetchPrices, 10000)
     return () => clearInterval(interval)
   }, [])
 
@@ -155,6 +165,17 @@ export default function PersistentTicker() {
   return (
     <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-40 w-full max-w-full overflow-hidden">
       <div className="py-1.5 sm:py-2 overflow-hidden w-full" ref={tickerRef}>
+        {/* Update indicator and timestamp */}
+        <div className="absolute top-0 right-2 z-50 flex items-center space-x-2">
+          {isUpdating && (
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+          )}
+          {lastUpdate && !isUpdating && (
+            <div className="text-xs text-slate-400 hidden sm:block">
+              {lastUpdate.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
         <div className="ticker-content flex items-center space-x-4 sm:space-x-8 w-full">
           {/* Duplicate the prices for seamless loop - we need at least 3 copies for truly seamless scrolling */}
           {Array.from({ length: 3 }, (_, duplicateIndex) => 

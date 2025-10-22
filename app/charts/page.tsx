@@ -23,29 +23,31 @@ export default function ChartsPage() {
     fetchTickerPrices()
   }, [page, sortBy, sortOrder])
 
-  // Auto-refresh ticker prices every 60 seconds to avoid rate limits
+  // Auto-refresh ticker prices every 30 seconds for real-time updates
   useEffect(() => {
-    const interval = setInterval(fetchTickerPrices, 60000)
+    const interval = setInterval(fetchTickerPrices, 30000)
     return () => clearInterval(interval)
   }, [])
 
   const fetchTickerPrices = async () => {
     try {
-      // Use smart cache API for consistent pricing
-      const response = await fetch('/api/smart-crypto?action=ticker', {
-        cache: 'default',
+      // Use real-time API for live pricing data
+      const timestamp = Date.now()
+      const response = await fetch(`/api/crypto-realtime?t=${timestamp}`, {
+        cache: 'no-store',
         headers: {
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
         }
       })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
-      setTickerPrices(data.tickerData)
-      console.log('Ticker prices from smart cache:', response.headers.get('X-Cache-Status'))
+      setTickerPrices(data)
+      console.log('Real-time ticker prices:', response.headers.get('X-Cache-Status'))
     } catch (error) {
-      console.error('Error fetching smart cache ticker prices:', error)
+      console.error('Error fetching real-time ticker prices:', error)
     }
   }
 

@@ -3,9 +3,12 @@ import { cryptoAPI } from '@/lib/crypto-api'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    console.log('Real-time crypto prices requested - bypassing all caches')
+    const { searchParams } = new URL(request.url)
+    const cacheBust = searchParams.get('t')
+    
+    console.log('Real-time crypto prices requested - bypassing all caches', { cacheBust })
     
     // Always fetch fresh prices from API - no caching at all
     const freshPrices = await cryptoAPI.getCryptoList(1, 10, true)
@@ -17,7 +20,8 @@ export async function GET() {
         'Expires': '0',
         'X-Cache-Status': 'REAL-TIME',
         'X-Data-Freshness': 'LIVE',
-        'X-API-Version': 'realtime-v1'
+        'X-API-Version': 'realtime-v1',
+        'X-Timestamp': new Date().toISOString()
       }
     })
   } catch (error) {

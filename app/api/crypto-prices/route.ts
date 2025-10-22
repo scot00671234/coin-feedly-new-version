@@ -26,7 +26,8 @@ export async function GET(request: Request) {
           'Pragma': 'no-cache',
           'Expires': '0',
           'X-Cache-Status': 'REAL-TIME',
-          'X-Data-Freshness': 'LIVE'
+          'X-Data-Freshness': 'LIVE',
+          'X-Timestamp': new Date().toISOString()
         }
       })
     }
